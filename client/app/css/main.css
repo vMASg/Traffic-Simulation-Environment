@@ -1,0 +1,246 @@
+/*.editor-container {
+    width: 100%;
+}
+
+.editor-container > div {
+    width: 30%;
+    height: 400px;
+    margin: auto;
+}*/
+
+* {
+    -webkit-box-sizing: content-box;
+    box-sizing: content-box;
+}
+
+.bootstrap * {
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+.clearfix:before, .clearfix:after {
+    content: " ";
+    display: table;
+}
+
+.clearfix:after {
+    clear: both;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.main-content {
+    position: absolute;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.nav-tree-container {
+    position: relative;
+    margin: 0;
+    height: 100%;
+    width: calc(20% - 20px);
+    padding: 15px;
+    padding-right: 5px;
+}
+
+.scrollable {
+    overflow: auto;
+    height: 100%;
+}
+
+.nav-tree-container, .tab-container {
+    float: left;
+}
+
+.tab-container {
+    position: relative;
+    margin: 0;
+    height: 100%;
+    width: 80%;
+    overflow: hidden;
+}
+
+.alert-container {
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 20;
+    padding-top: 20px;
+}
+
+.alert-container > .alert {
+    width: 25%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/** NAVTREE **/
+
+.iScroll ::-webkit-scrollbar,.iScroll::-webkit-scrollbar {
+    width: 6px;
+    height: 9px
+}
+
+.iScroll ::-webkit-scrollbar-button:start:decrement,.iScroll ::-webkit-scrollbar-button:end:increment,.iScroll::-webkit-scrollbar-button:start:decrement,.iScroll::-webkit-scrollbar-button:end:increment {
+    display: block;
+    height: 0;
+    background-color: transparent
+}
+
+.iScroll ::-webkit-scrollbar-track-piece,.iScroll::-webkit-scrollbar-track-piece {
+    margin: 10px 0;
+    -webkit-border-radius: 0;
+    -webkit-border-bottom-right-radius: 4px;
+    -webkit-border-bottom-left-radius: 4px
+}
+
+.iScroll ::-webkit-scrollbar-thumb:vertical,.iScroll::-webkit-scrollbar-thumb:vertical {
+    height: 50px;
+    background-color: rgba(0,0,0,0.12);
+    -webkit-border-radius: 4px
+}
+
+.iScroll ::-webkit-scrollbar-thumb:horizontal,.iScroll::-webkit-scrollbar-thumb:horizontal {
+    width: 50px;
+    background-color: rgba(0,0,0,0.12);
+    -webkit-border-radius: 4px
+}
+
+.nav-tree-container .iScroll ::-webkit-scrollbar-thumb:vertical,#treecontainer .iScroll::-webkit-scrollbar-thumb:vertical {
+    height: 50px;
+    background-color: rgba(0,0,0,0.06);
+    -webkit-border-radius: 4px
+}
+
+.nav-tree {
+    /*display: table;*/
+    /*width: 20%;*/
+    /*float: left;*/
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.nav-tree .children {
+    padding-left: 20px;
+    margin-top: 5px;
+    cursor: pointer;
+}
+
+.nav-tree .parent {
+    position: relative;
+    margin: 0;
+    margin-bottom: 20px;
+    cursor: pointer;
+    /*width: 20%;*/
+}
+
+div[data-triangle-pointer] {
+    width: 10px;
+    height: 10px;
+    overflow: hidden;
+    float: left;
+}
+
+div[data-triangle-pointer].opened {
+    -webkit-transform: rotateZ(90deg);
+    transform: rotateZ(90deg);
+}
+
+/** CONTENT **/
+
+.header-tabs-container {
+    position: relative;
+    width: 100%;
+    height: 30px;
+}
+
+.view-container {
+    position: relative;
+    width: 100%;
+    height: calc(100% - 30px);
+}
+
+.code-panel {
+    position: relative;
+    /*width: 100%;*/
+    height: 49px;
+    background-color: #f0f0f0;
+    border-bottom: 1px solid #dcdcdc;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.code-panel > .btn {
+    margin-left: 4px;
+}
+
+.code-editor {
+    position: relative;
+    width: 100%;
+    height: calc(100% - 50px);
+    /*height: 900px;*/
+}
+
+/** HEADER TABS **/
+
+.nav-tree,
+.view-panel,
+header-tabs {
+    font: normal 11px/15px Helvetica Neue,Arial,sans-serif;
+    font-size: 13px;
+}
+
+header-tabs > div {
+    width: 100%;
+    height: 100%;
+    background-color: #dcdcdc;
+    position: relative;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.tab {
+    padding-left: 5px;
+    padding-right: 5px;
+    line-height: 2;
+    height: calc(100% - 3px);
+    float: left;
+    margin-top: 3px;
+    cursor: pointer;
+}
+
+.tab.active-tab {
+    background-color: #f0f0f0;
+}
+
+.close-img {
+    margin-left: 2px;
+    opacity: 0;
+    -webkit-transition: opacity 0.5s;
+    transition: opacity 0.5s;
+}
+
+.tab:hover > .close-img,
+.tab.active-tab > .close-img {
+    opacity: 1;
+}
+
+/*.button {
+    background-color: azure;
+    padding: 8px;
+    border-radius: 4px;
+    -webkit-user-select: none;
+    user-select: none;
+    cursor: pointer;
+}*/

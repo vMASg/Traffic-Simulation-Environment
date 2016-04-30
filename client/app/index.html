@@ -20,14 +20,20 @@
 </head>
 <body>
     <div class="main-content" data-ng-app="main" data-ng-controller="mainCtrl">
-        <div class="nav-tree-container">
-                <div data-angular-treeview="true" data-tree-model="roleList" data-node-id="roleId" data-node-label="roleName" data-node-children="children"></div>
-        </div>
-        <div class="tab-container" data-ng-controller="tabsCtrl">
-            <div class='header-tabs-container'>
-                <header-tabs class=""></header-tabs>
+        <div class="panel-top"></div>
+        <div class="vertical-separator"></div>
+        <div class="panel-main">
+            <div class="nav-tree-container">
+                    <div data-angular-treeview="true" data-tree-model="roleList" data-node-id="roleId" data-node-label="roleName" data-node-children="children"></div>
             </div>
-            <div class="view-container"></div>
+            <div class="horizontal-separator"></div>
+            <div class="tab-container" data-ng-controller="tabsCtrl">
+                <div class='header-tabs-container'>
+                    <header-tabs class=""></header-tabs>
+                </div>
+                <!-- <div class="vertical-separator"></div> -->
+                <div class="body-tabs-container"></div>
+            </div>
         </div>
         <alert-pool></alert-pool>
     </div>

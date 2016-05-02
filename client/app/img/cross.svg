@@ -1,0 +1,5 @@
+<svg width="8" height="8" xmlns="http://www.w3.org/2000/svg">
+    <line x1="0" y1="0" x2="8" y2="8" style="stroke: #ddd; stroke-width: 1.5" />
+    <line x1="8" y1="0" x2="0" y2="8" style="stroke: #ddd; stroke-width: 1.5" />
+    <!-- <path d="M180 288l12 -12l-84 -84l84 -84l-12 -12l-84 84l-84 -84l-12 12l84 84l-84 84l12 12l84 -84z"></path> -->
+</svg>

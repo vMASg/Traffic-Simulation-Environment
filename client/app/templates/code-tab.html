@@ -1,0 +1,18 @@
+<div class="view-panel code-panel">
+    <!-- TODO -->
+    <div class="btn btn-default" data-ng-click="saveScript()">Save</div>
+    <div class="btn btn-default" data-ng-click="saveScriptAs()">Save as</div>
+    <script type="text/ng-template" id="saveAsModal.html">
+        <div class="modal-header">
+            <h3>Save as</h3>
+        </div>
+        <div class="modal-body form-group bootstrap">
+            <input type="text" data-ng-model="saveLocation" class="form-control">
+        </div>
+        <div class="modal-footer">
+            <button class='btn btn-default' data-ng-click="$close(saveLocation)">Save</button>
+            <button class='btn btn-default' data-ng-click="$dismiss('Canceled')">Cancel</button>
+        </div>
+    </script>
+</div>
+<div class="code-editor" ui-ace="aceOption" ng-model="tabs[currentActiveTab].code"></div>

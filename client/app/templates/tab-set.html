@@ -1,0 +1,15 @@
+<div class="tab-container" data-tabs-dire="">
+    <div class='header-tabs-container'>
+        <div class="header-tabs" data-ng-dblclick="newTab()">
+            <div data-ng-repeat="tab in tabset" class="tab" data-ng-class="{'active-tab': tab.isActive}" data-ng-click="switchTab(tab)">
+                <span>{{tab.name}}</span>
+                <img class="close-img" src="img/cross.svg" data-ng-click="closeTab(tab.name)"/>
+            </div>
+        </div>
+    </div>
+    <div class="body-tabs-container">
+        <div style="position: relative; width: 100%; height: 100%;" data-ng-repeat="tab in tabset" data-ng-show="tab.isActive">
+            <div data-tab-type="tab.type" data-tab-data="tab" style="position: relative; width: 100%; height: 100%;"></div>
+        </div>
+    </div>
+</div>

@@ -13,27 +13,29 @@
     <script type="text/javascript" src="js/vendor/angular-fx/dist/angular-fx.min.js"></script>
     <script type="text/javascript" src="js/main.js"></script>
     <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="js/vendor/angular-tree-control/css/tree-control.css" />
     <link rel="stylesheet" type="text/css" href="js/vendor/animate.css/animate.min.css" />
     <link rel="stylesheet" type="text/css" href="js/vendor/angular-fx/dist/angular-fx.min.css" />
     <link rel="stylesheet" type="text/css" href="css/shadergraph.css" />
     <link rel="stylesheet" type="text/css" href="css/main.css" />
 </head>
 <body>
-    <div class="main-content" data-ng-app="main" data-ng-controller="mainCtrl">
+    <div class="main-content" data-ng-app="trafficEnv">
         <div class="panel-top"></div>
         <div class="vertical-separator"></div>
-        <div class="panel-main">
+        <div data-panel-browser="" class="panel-main">
             <div class="nav-tree-container">
-                    <div data-angular-treeview="true" data-tree-model="roleList" data-node-id="roleId" data-node-label="roleName" data-node-children="children"></div>
+                    <treecontrol
+                        class="tree-dark"
+                        tree-model="scriptsDirectories"
+                        options="treeOptions"
+                        on-selection="select(node)"
+                        >
+                        {{node.name}}
+                    </treecontrol>
             </div>
             <div class="horizontal-separator"></div>
-            <div class="tab-container" data-ng-controller="tabsCtrl">
-                <div class='header-tabs-container'>
-                    <header-tabs class=""></header-tabs>
-                </div>
-                <!-- <div class="vertical-separator"></div> -->
-                <div class="body-tabs-container"></div>
-            </div>
+            <tab-set></tab-set>
         </div>
         <alert-pool></alert-pool>
     </div>

@@ -1,0 +1,30 @@
+.panel-top,
+.nav-tree-container,
+.tab-container {
+    background-color: #1e1e1e;
+}
+
+.nav-tree-container {
+    color: #909E9E;
+}
+
+.header-tabs-container {
+    background-color: rgba(0,0,0,.25);
+}
+
+.body-tabs-container {
+    background-color: #272822;
+}
+
+.header-tabs {
+    color: #ddd;
+}
+
+.tab {
+    background-color: #2E2E2E;
+}
+
+.code-panel,
+.tab.active-tab {
+    background-color: #404040;
+}

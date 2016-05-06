@@ -1,5 +1,9 @@
 from flask import Flask, send_from_directory
 from flask_restful import Resource, Api
+from resources.script_collection import ScriptCollection
+from services.script_service import ScriptService
+
+ROOT_FOLDER = '.'
 
 class AppStarter(Resource):
     """Based in solution http://stackoverflow.com/a/29521067"""
@@ -17,7 +21,8 @@ class AppStarter(Resource):
     def register_routes_to_resources(self, static_files_root_folder_path):
         self._register_static_server(static_files_root_folder_path)
         # TODO: update resources
-        # self._api.add_resource()
+        script_service = ScriptService(root_folder=ROOT_FOLDER)
+        self._api.add_resource(ScriptCollection, '/scripts', resource_class_kwargs={'script_locator': script_service})
 
     def _goto_index(self):
         return self._serve_page("index.html")

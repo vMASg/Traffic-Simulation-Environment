@@ -1,16 +1,17 @@
-angular.module('trafficEnv', ['treeControl', 'ui.ace'])
+angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices'])
 
     .directive('panelBrowser', function() {
         return {
-            controller: ['$scope', function($scope) {
+            controller: ['$scope', 'scriptServices', function($scope, scriptServices) {
 
-                // TODO add API Call
-                $scope.scriptsDirectories = [
-                    { "name": "Scripts", "type": "dir", "children": [
-                        { "name": "mainscript.py", "type": "code"},
-                        { "name": "secondscript.py", "type": "code"}
-                    ]}
-                ];
+                // // TODO add API Call
+                // $scope.scriptsDirectories = [
+                //     { "name": "Scripts", "type": "dir", "children": [
+                //         { "name": "mainscript.py", "type": "code"},
+                //         { "name": "secondscript.py", "type": "code"}
+                //     ]}
+                // ];
+                $scope.scriptsDirectories = scriptServices.query();
 
                 $scope.treeOptions = {
                     nodeChildren: "children",

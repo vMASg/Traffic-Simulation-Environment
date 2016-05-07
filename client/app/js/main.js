@@ -116,6 +116,7 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices'])
                 $scope.aceOption = {
                     mode: 'python',
                     theme: 'monokai',
+                    showPrintMargin: false,
                     onLoad: function (_ace) {
                         // HACK to have the ace instance in the scope...
                         $scope.modeChanged = function (_ace) {
@@ -123,6 +124,7 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices'])
                         };
                         _ace.setOption('scrollPastEnd', 0.9);
                         _ace.$blockScrolling = Infinity;
+                        _ace.setHighlightActiveLine(false);
                     }
                 };
 

@@ -15,8 +15,10 @@ class ScriptCollection(Resource):
                 info = {'name': script.name}
                 if script.type == 'group':
                     info['children'] = construct_response(script.children)
+                    info['type'] = 'dir'
                 else:
                     info['id'] = script.id
+                    info['type'] = 'code'
 
                 retval.append(info)
             return retval

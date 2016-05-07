@@ -1,9 +1,10 @@
 from flask import Flask, send_from_directory
 from flask_restful import Resource, Api
 from resources.script_collection import ScriptCollection
+from resources.script import Script
 from services.script_service import ScriptService
 
-ROOT_FOLDER = '.'
+ROOT_FOLDER = r'F:\Uni\TFG\traffic-simulation-environment'
 
 class AppStarter(Resource):
     """Based in solution http://stackoverflow.com/a/29521067"""
@@ -23,6 +24,7 @@ class AppStarter(Resource):
         # TODO: update resources
         script_service = ScriptService(root_folder=ROOT_FOLDER)
         self._api.add_resource(ScriptCollection, '/scripts', resource_class_kwargs={'script_locator': script_service})
+        self._api.add_resource(Script, '/scripts/<path:id>', resource_class_kwargs={'script_locator': script_service})
 
     def _goto_index(self):
         return self._serve_page("index.html")

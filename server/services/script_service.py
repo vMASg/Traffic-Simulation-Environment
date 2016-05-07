@@ -1,5 +1,6 @@
 import os
 from collections import namedtuple
+from flask import send_file
 
 class ScriptService(object):
     """docstring for ScriptService"""
@@ -17,8 +18,15 @@ class ScriptService(object):
                     children = construct_response(full_path)
                     retval.append(return_type(content, 'group', None, children))
                 else:
-                    retval.append(return_type(content, 'file', full_path.replace('\\', '/'), None))
+                    retval.append(return_type(content, 'file', full_path, None))
             return retval
 
         children = construct_response(self._root_folder)
         return [return_type(self._root_folder, 'group', None, children)]
+
+    def get_script(self, id):
+        return send_file(id)
+
+    def update_script(self, id, content):
+        with open(id, 'w') as file:
+            file.write(content)

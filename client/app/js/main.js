@@ -11,16 +11,15 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices'])
                 //         { "name": "secondscript.py", "type": "code"}
                 //     ]}
                 // ];
-                $scope.scriptsDirectories = scriptServices.query();
+                $scope.scriptsDirectories = [];
+                scriptServices.getScriptCollection().then(function (data) {
+                    $scope.scriptsDirectories = data.data;
+                });
 
                 $scope.treeOptions = {
                     nodeChildren: "children",
                     dirSelectable: false,
                     allowDeselect: false
-                };
-
-                $scope.select = function (elem) {
-                    // body...
                 };
 
                 this.selectListener = function (fun) {
@@ -49,11 +48,10 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices'])
                         tab.isActive = false;
                     });
 
-                    $scope.tabset.push({
-                        name: elem.name,
-                        isActive: true,
-                        type: elem.type
-                    });
+                    ntab = angular.copy(elem);
+                    ntab.isActive = true;
+
+                    $scope.tabset.push(ntab);
                 };
 
                 $scope.openOrSwitchTab = function (elem) {
@@ -65,6 +63,14 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices'])
                         $scope.switchTab(tab);
                     } else {
                         $scope.openTab(elem);
+                    }
+                };
+
+                $scope.closeTab = function (index) {
+                    delete $scope.tabset.splice(index, 1)[0];
+                    var len = $scope.tabset.length;
+                    if (len > 0) {
+                        $scope.switchTab($scope.tabset[Math.min(index, len - 1)]);
                     }
                 };
             }],
@@ -106,7 +112,7 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices'])
             scope: {
                 'data': '=tabData'
             },
-            controller: ['$scope', function($scope) {
+            controller: ['$scope', 'scriptServices', function($scope, scriptServices) {
                 $scope.aceOption = {
                     mode: 'python',
                     theme: 'monokai',
@@ -118,6 +124,15 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices'])
                         _ace.setOption('scrollPastEnd', 0.9);
                         _ace.$blockScrolling = Infinity;
                     }
+                };
+
+                $scope.code = '';
+                scriptServices.getScript($scope.data.id).then(function (code) {
+                    $scope.code = code.data;
+                });
+
+                $scope.saveScript = function () {
+                    scriptServices.updateScript($scope.data.id, $scope.code);
                 };
             }],
             templateUrl: 'templates/code-tab.html',

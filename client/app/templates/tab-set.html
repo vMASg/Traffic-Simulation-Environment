@@ -3,7 +3,7 @@
         <div class="header-tabs" data-ng-dblclick="newTab()">
             <div data-ng-repeat="tab in tabset" class="tab" data-ng-class="{'active-tab': tab.isActive}" data-ng-click="switchTab(tab)">
                 <span>{{tab.name}}</span>
-                <img class="close-img" src="img/cross.svg" data-ng-click="closeTab(tab.name)"/>
+                <img class="close-img" src="img/cross.svg" data-ng-click="closeTab($index)"/>
             </div>
         </div>
     </div>

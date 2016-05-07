@@ -150,5 +150,6 @@ html, body {
     position: relative;
     width: 100%;
     height: calc(100% - 50px);
+    font-size: 14px;
     /*height: 900px;*/
 }

@@ -56,13 +56,13 @@
 /* TODO make proper theme */
 
 .ace-monokai {
-    background-color: #222222;
+    background-color: #222222 !important;
 }
 
 .ace-monokai .ace_gutter {
-    background: #262626;
+    background: #262626 !important;
 }
 
 .ace-monokai .ace_marker-layer .ace_selection {
-    background-color: #444444;
+    background-color: #444444 !important;
 }

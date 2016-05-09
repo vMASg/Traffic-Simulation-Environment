@@ -1,5 +1,6 @@
 from flask import Flask, send_from_directory
 from flask_restful import Resource, Api
+from flask.ext.socketio import SocketIO
 from resources.script_collection import ScriptCollection
 from resources.script import Script
 from services.script_service import ScriptService
@@ -13,6 +14,7 @@ class AppStarter(Resource):
         self._static_files_root_folder_path = ''
         self._app = Flask(__name__)
         self._api = Api(self._app)
+        self._socketio = SocketIO(self._app)
     
     def _register_static_server(self, static_files_root_folder_path):
         self._static_files_root_folder_path = static_files_root_folder_path
@@ -34,4 +36,4 @@ class AppStarter(Resource):
 
     def run(self, module_name):
         if module_name == '__main__':
-            self._app.run(debug=True)
+            self._socketio.run(self._app, debug=True)

@@ -22,7 +22,8 @@ class ScriptService(object):
             return retval
 
         children = construct_response(self._root_folder)
-        return [return_type(self._root_folder, 'group', None, children)]
+        folder_name = os.path.basename(self._root_folder if not self._root_folder[-1] == '\\' else self._root_folder[:-1])
+        return [return_type(folder_name, 'group', None, children)]
 
     def get_script(self, id):
         return send_file(id)
@@ -30,3 +31,7 @@ class ScriptService(object):
     def update_script(self, id, content):
         with open(id, 'w') as file:
             file.write(content)
+
+    def create_script(self, path, content):
+        self.update_script(os.path.join(self._root_folder, path), content)
+        return os.path.join(self._root_folder, path), os.path.basename(path), content

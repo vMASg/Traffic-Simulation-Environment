@@ -1,4 +1,4 @@
-angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices'])
+angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootstrap'])
 
     .directive('panelBrowser', function() {
         return {
@@ -56,7 +56,7 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices'])
 
                 $scope.openOrSwitchTab = function (elem) {
                     tab = $scope.tabset.find(function (tab) {
-                        return tab.name == elem.name;
+                        return tab.id == elem.id;
                     });
 
                     if (tab) {
@@ -112,7 +112,7 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices'])
             scope: {
                 'data': '=tabData'
             },
-            controller: ['$scope', 'scriptServices', function($scope, scriptServices) {
+            controller: ['$scope', 'scriptServices', '$uibModal', function($scope, scriptServices, $uibModal) {
                 $scope.aceOption = {
                     mode: 'python',
                     theme: 'monokai',
@@ -130,11 +130,23 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices'])
 
                 $scope.code = '';
                 scriptServices.getScript($scope.data.id).then(function (code) {
-                    $scope.code = code.data;
+                    $scope.code = code.data.replace(/\r/gm, '');
                 });
 
                 $scope.saveScript = function () {
-                    scriptServices.updateScript($scope.data.id, $scope.code);
+                    scriptServices.updateScript($scope.data.id, $scope.code.replace(/\r\r/gm, '\r'));
+                };
+
+                $scope.saveScriptAs = function () {
+                    var modalInstance = $uibModal.open({
+                        animate: true,
+                        templateUrl: 'saveAsModal.html',
+                        scope: $scope
+                    });
+
+                    modalInstance.result.then(function (name) {
+                        scriptServices.saveScript(name, $scope.code.replace(/\r\r/gm, '\r'));
+                    });
                 };
             }],
             templateUrl: 'templates/code-tab.html',

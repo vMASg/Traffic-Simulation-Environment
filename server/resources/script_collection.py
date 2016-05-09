@@ -1,4 +1,5 @@
 from flask.ext.restful import Resource
+from flask_restful import reqparse
 import os
 
 class ScriptCollection(Resource):
@@ -24,3 +25,11 @@ class ScriptCollection(Resource):
             return retval
 
         return construct_response(scripts)
+
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('name', type=str)
+        parser.add_argument('code', type=str)
+        args = parser.parse_args()
+        id, name, code = self._script_locator.create_script(args['name'], args['code'])
+        return {'id': id, 'name': name, 'code': code}

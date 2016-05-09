@@ -7,6 +7,10 @@ angular.module('APIServices', ['ngResource'])
             getScript: function (id) {
                 return $http.get('/scripts/' + encodeURIComponent(id));
             },
+            saveScript: function (name, code) {
+                var data = {name: name, code: code};
+                return $http.post('/scripts', angular.toJson(data));
+            },
             updateScript: function (id, code) {
                 return $http.put('/scripts/' + encodeURIComponent(id), code, {
                     headers: {

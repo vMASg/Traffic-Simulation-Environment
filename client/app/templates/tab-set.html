@@ -1,7 +1,7 @@
 <div class="tab-container" data-tabs-dire="">
     <div class='header-tabs-container'>
         <div class="header-tabs" data-ng-dblclick="newTab()">
-            <div data-ng-repeat="tab in tabset" class="tab" data-ng-class="{'active-tab': tab.isActive}" data-ng-click="switchTab(tab)">
+            <div data-ng-repeat="tab in tabset" class="tab" data-ng-class="{'active-tab': tab.isActive}" data-ng-click="switchTab(tab, true)">
                 <span>{{tab.name}}</span>
                 <img class="close-img" src="img/cross.svg" data-ng-click="closeTab($index)"/>
             </div>

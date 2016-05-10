@@ -19,11 +19,18 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                 $scope.treeOptions = {
                     nodeChildren: "children",
                     dirSelectable: false,
-                    allowDeselect: false
+                    allowDeselect: false,
+                    equality: function (a, b) {
+                        return a === b || (a && b && !(a.id && !b.id || b.id && !a.id) && ((a.id && b.id && a.id === b.id) || !(a.id && b.id) && a.name === b.name));
+                    }
                 };
 
                 this.selectListener = function (fun) {
                     $scope.select = fun;
+                };
+
+                this.changeSelected = function (selected) {
+                    $scope.selectedNode = selected;
                 };
             }],
         };
@@ -35,15 +42,19 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
             controller: ['$scope', function($scope) {
                 $scope.tabset = [];
 
-                $scope.switchTab = function (tab) {
+                $scope.switchTab = function (tab, changeSelected) {
                     if (tab.isActive) return;
                     $scope.tabset.forEach(function (tab) {
                         tab.isActive = false;
                     });
                     tab.isActive = true;
+
+                    if (changeSelected) {
+                        $scope.changeSelected(tab);
+                    }
                 };
 
-                $scope.openTab = function (elem) {
+                $scope.openTab = function (elem, changeSelected) {
                     $scope.tabset.forEach(function (tab) {
                         tab.isActive = false;
                     });
@@ -52,6 +63,10 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                     ntab.isActive = true;
 
                     $scope.tabset.push(ntab);
+
+                    if (changeSelected) {
+                        $scope.changeSelected(ntab);
+                    }
                 };
 
                 $scope.openOrSwitchTab = function (elem) {
@@ -60,9 +75,9 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                     });
 
                     if (tab) {
-                        $scope.switchTab(tab);
+                        $scope.switchTab(tab, false);
                     } else {
-                        $scope.openTab(elem);
+                        $scope.openTab(elem, false);
                     }
                 };
 
@@ -70,7 +85,9 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                     delete $scope.tabset.splice(index, 1)[0];
                     var len = $scope.tabset.length;
                     if (len > 0) {
-                        $scope.switchTab($scope.tabset[Math.min(index, len - 1)]);
+                        $scope.switchTab($scope.tabset[Math.min(index, len - 1)], true);
+                    } else {
+                        $scope.changeSelected(null);
                     }
                 };
             }],
@@ -82,6 +99,11 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                 this.selectTab = function (elem) {
                     $scope.openOrSwitchTab(elem);
                 };
+
+                $scope.changeSelected = function (elem) {
+                    panelBrowserCtrl.changeSelected(elem);
+                };
+
                 panelBrowserCtrl.selectListener(this.selectTab);
             }
         };

@@ -27,12 +27,13 @@
         <div class="panel-top"></div>
         <div class="vertical-separator"></div>
         <div data-panel-browser="" class="panel-main">
-            <div class="nav-tree-container iScroll">
+            <div class="nav-tree-container">
                     <treecontrol
                         class="tree-dark"
                         tree-model="scriptsDirectories"
                         options="treeOptions"
                         on-selection="select(node)"
+                        selected-node="selectedNode"
                         >
                         {{node.name}}
                     </treecontrol>

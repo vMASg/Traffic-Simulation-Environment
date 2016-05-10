@@ -1,8 +1,15 @@
-angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootstrap'])
+angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootstrap', 'btford.socket-io'])
+
+    .factory('socket', ['socketFactory', function(socketFactory){
+        return socketFactory({
+            prefix: 'event-',
+            ioSocket: io.connect('/subscription')
+        });
+    }])
 
     .directive('panelBrowser', function() {
         return {
-            controller: ['$scope', 'scriptServices', function($scope, scriptServices) {
+            controller: ['$scope', 'scriptServices', 'socket', function($scope, scriptServices, socket) {
 
                 // // TODO add API Call
                 // $scope.scriptsDirectories = [
@@ -32,6 +39,10 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                 this.changeSelected = function (selected) {
                     $scope.selectedNode = selected;
                 };
+
+                socket.on('msg', function (data) {
+                    console.log(data);
+                });
             }],
         };
     })

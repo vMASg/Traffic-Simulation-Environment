@@ -4,6 +4,7 @@ from flask.ext.socketio import SocketIO
 from resources.script_collection import ScriptCollection
 from resources.script import Script
 from services.script_service import ScriptService
+from server.subscription import Subscription
 
 ROOT_FOLDER = r'F:\Uni\TFG\traffic-simulation-environment'
 
@@ -15,6 +16,7 @@ class AppStarter(Resource):
         self._app = Flask(__name__)
         self._api = Api(self._app)
         self._socketio = SocketIO(self._app)
+        self._subscription = Subscription(self._socketio ,'/subscription')
     
     def _register_static_server(self, static_files_root_folder_path):
         self._static_files_root_folder_path = static_files_root_folder_path

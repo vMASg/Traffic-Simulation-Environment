@@ -33,7 +33,7 @@ class ScriptCollection(Resource):
         parser.add_argument('code', type=str)
         args = parser.parse_args()
         id, name, code = self._script_locator.create_script(args['name'], args['code'])
-        data = {'id': id, 'name': name, 'code': code}
+        data = {'id': id, 'name': name, 'type': 'code', 'code': code}
         self._new_script(data)
         return data
 

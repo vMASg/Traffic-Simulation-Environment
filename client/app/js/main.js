@@ -126,6 +126,20 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                         $scope.changeSelected(null);
                     }
                 };
+
+                $scope.switchNew = function (ntab) {
+                    var index, len = $scope.tabset.length;
+                    for (var i = 0; i < len; ++i) {
+                        if ($scope.tabset[i].isActive) {
+                            index = i;
+                        }
+                        $scope.tabset[i].isActive = false;
+                    }
+                    delete $scope.tabset[index];
+                    ntab.isActive = true;
+                    $scope.tabset[index] = ntab;
+                    $scope.changeSelected(ntab);
+                };
             }],
             require: '^panelBrowser',
             templateUrl: 'templates/tab-set.html',
@@ -168,7 +182,8 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
     .directive('codeTab', function() {
         return {
             scope: {
-                'data': '=tabData'
+                'data': '=tabData',
+                'switchNew': '&'
             },
             controller: ['$scope', 'scriptServices', '$uibModal', function($scope, scriptServices, $uibModal) {
                 $scope.aceOption = {
@@ -203,7 +218,13 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                     });
 
                     modalInstance.result.then(function (name) {
-                        scriptServices.saveScript(name, $scope.code.replace(/\r\r/gm, '\r'));
+                        scriptServices.saveScript(name, $scope.code.replace(/\r\r/gm, '\r')).then(function (data) {
+                            $scope.switchNew({ntab: {
+                                id: data.data.id,
+                                name: data.data.name,
+                                type: data.data.type
+                            }});
+                        });
                     });
                 };
             }],

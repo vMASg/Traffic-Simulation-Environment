@@ -5,7 +5,9 @@ angular.module('APIServices', ['ngResource'])
                 return $http.get('/scripts');
             },
             getScript: function (id) {
-                return $http.get('/scripts/' + encodeURIComponent(id));
+                return $http.get('/scripts/' + encodeURIComponent(id), {
+                    transformResponse: []
+                });
             },
             saveScript: function (name, code) {
                 var data = {name: name, code: code};

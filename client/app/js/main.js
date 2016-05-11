@@ -140,6 +140,17 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                     $scope.tabset[index] = ntab;
                     $scope.changeSelected(ntab);
                 };
+
+                $scope.newTab = function () {
+                    $scope.tabset.forEach(function (tab) {
+                        tab.isActive = false;
+                    });
+                    $scope.tabset.push({
+                        name: 'untitled',
+                        type: 'code',
+                        isActive: true
+                    });
+                };
             }],
             require: '^panelBrowser',
             templateUrl: 'templates/tab-set.html',
@@ -202,9 +213,11 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                 };
 
                 $scope.code = '';
-                scriptServices.getScript($scope.data.id).then(function (code) {
-                    $scope.code = code.data.replace(/\r/gm, '');
-                });
+                if ($scope.data.id) {
+                    scriptServices.getScript($scope.data.id).then(function (code) {
+                        $scope.code = code.data.replace(/\r/gm, '');
+                    });
+                }
 
                 $scope.saveScript = function () {
                     scriptServices.updateScript($scope.data.id, $scope.code.replace(/\r\r/gm, '\r'));

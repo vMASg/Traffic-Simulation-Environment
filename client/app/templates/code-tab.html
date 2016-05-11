@@ -1,6 +1,6 @@
 <div class="view-panel code-panel">
     <!-- TODO -->
-    <div class="btn btn-default" data-ng-click="saveScript()">Save</div>
+    <div class="btn btn-default" data-ng-disabled="!data.id" data-ng-click="saveScript()">Save</div>
     <div class="btn btn-default" data-ng-click="saveScriptAs()">Save as</div>
     <script type="text/ng-template" id="saveAsModal.html">
         <div class="modal-header">

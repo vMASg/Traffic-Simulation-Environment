@@ -27,8 +27,8 @@ class AppStarter(Resource):
         self._register_static_server(static_files_root_folder_path)
         # TODO: update resources
         script_service = ScriptService(root_folder=ROOT_FOLDER)
-        self._api.add_resource(ScriptCollection, '/scripts', resource_class_kwargs={'script_locator': script_service})
-        self._api.add_resource(Script, '/scripts/<path:id>', resource_class_kwargs={'script_locator': script_service})
+        self._api.add_resource(ScriptCollection, '/scripts', resource_class_kwargs={'script_locator': script_service, 'subscription_service': self._subscription})
+        self._api.add_resource(Script, '/scripts/<path:id>', resource_class_kwargs={'script_locator': script_service, 'subscription_service': self._subscription})
 
     def _goto_index(self):
         return self._serve_page("index.html")

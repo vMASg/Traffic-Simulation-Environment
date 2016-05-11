@@ -4,9 +4,10 @@ import os
 
 class ScriptCollection(Resource):
     """docstring for ScriptCollection"""
-    def __init__(self, script_locator):
+    def __init__(self, script_locator, subscription_service):
         super(ScriptCollection, self).__init__()
         self._script_locator = script_locator
+        self._subscription_service = subscription_service
 
     def get(self):
         scripts = self._script_locator.get_scripts()
@@ -32,4 +33,9 @@ class ScriptCollection(Resource):
         parser.add_argument('code', type=str)
         args = parser.parse_args()
         id, name, code = self._script_locator.create_script(args['name'], args['code'])
-        return {'id': id, 'name': name, 'code': code}
+        data = {'id': id, 'name': name, 'code': code}
+        self._new_script(data)
+        return data
+
+    def _new_script(self, data):
+        self._subscription_service.socketio.emit('new_script', data, namespace=self._subscription_service.namespace)

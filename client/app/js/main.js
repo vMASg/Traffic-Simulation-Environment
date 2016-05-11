@@ -43,6 +43,31 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                 socket.on('msg', function (data) {
                     console.log(data);
                 });
+
+                socket.on('new_script', function (data) {
+                    console.log(data);
+                    var addNewElement = function (currentNode, where, tab) {
+                        if (where.length > 0) {
+                            var name = where[0];
+                            for (var i = 0; i < currentNode.length; ++i) {
+                                if (currentNode[i].name == name) {
+                                    where.shift();
+                                    addNewElement(currentNode[i].children, where, tab);
+                                    break;
+                                }
+                            }
+                        } else {
+                            currentNode.push(tab);
+                            currentNode.sort(function (a,b) {
+                                return a.name.localeCompare(b.name);
+                            });
+                        }
+                    };
+                    var name = $scope.scriptsDirectories[0].name;
+                    var where = data.id.slice(data.id.indexOf(name)+name.length+1).split('\\');
+                    where.pop();
+                    addNewElement($scope.scriptsDirectories[0].children, where, data);
+                });
             }],
         };
     })

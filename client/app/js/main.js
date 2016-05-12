@@ -118,12 +118,15 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                 };
 
                 $scope.closeTab = function (index) {
+                    var wasActive = $scope.tabset[index].isActive;
                     delete $scope.tabset.splice(index, 1)[0];
                     var len = $scope.tabset.length;
-                    if (len > 0) {
-                        $scope.switchTab($scope.tabset[Math.min(index, len - 1)], true);
-                    } else {
-                        $scope.changeSelected(null);
+                    if (wasActive) {
+                        if (len > 0) {
+                            $scope.switchTab($scope.tabset[Math.min(index, len - 1)], true);
+                        } else {
+                            $scope.changeSelected(null);
+                        }
                     }
                 };
 

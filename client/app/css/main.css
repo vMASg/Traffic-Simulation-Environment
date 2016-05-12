@@ -135,7 +135,7 @@ treecontrol ul {
     opacity: 1;
 }
 
-.code-panel {
+.view-panel {
     position: relative;
     /*width: 100%;*/
     height: 49px;
@@ -148,7 +148,7 @@ treecontrol ul {
     padding-right: 5px;
 }
 
-.code-panel > .btn {
+.view-panel > .btn {
     margin-left: 4px;
 }
 

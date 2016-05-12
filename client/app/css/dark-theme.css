@@ -52,6 +52,13 @@
     background-color: #454545;
 }
 
+.btn-default[disabled],
+.btn-default {
+    color: #ddd;
+    background-color: #666;
+    border-color: #333;
+}
+
 
 /* TODO make proper theme */
 

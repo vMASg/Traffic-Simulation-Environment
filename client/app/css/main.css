@@ -160,6 +160,31 @@ treecontrol ul {
     /*height: 900px;*/
 }
 
+.immediate-editor {
+    position: relative;
+    width: 100%;
+    height: calc(100% - 350px);
+    font-size: 14px;
+    /*height: 900px;*/
+}
+
+.immediate-results {
+    position: relative;
+    width: 100%;
+    height: 298px;
+    padding: 5px;
+}
+
+.immediate-results > .menu {
+    width: 100%;
+    height: 34px;
+}
+
+.immediate-results > .results {
+    width: 100%;
+    height: calc(100% - 34px);
+}
+
 ::-webkit-scrollbar,::-webkit-scrollbar {
     width: 7px;
     height: 7px;

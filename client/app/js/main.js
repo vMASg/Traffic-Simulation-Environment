@@ -9,7 +9,8 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
 
     .directive('panelBrowser', function() {
         return {
-            controller: ['$scope', 'scriptServices', 'socket', function($scope, scriptServices, socket) {
+            controller: ['$scope', 'scriptServices', 'modelServices', 'socket',
+            function($scope, scriptServices, modelServices, socket) {
 
                 // // TODO add API Call
                 // $scope.scriptsDirectories = [
@@ -18,9 +19,16 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                 //         { "name": "secondscript.py", "type": "code"}
                 //     ]}
                 // ];
-                $scope.scriptsDirectories = [];
+                $scope.treeFiles = [];
+
                 scriptServices.getScriptCollection().then(function (data) {
-                    $scope.scriptsDirectories = data.data;
+                    var scriptsDirectories = data.data;
+                    modelServices.getModelCollection().then(function (data) {
+                        var modelsDirectories = [
+                            {name: 'Models', type: 'dir', children: data.data}
+                        ];
+                        $scope.treeFiles = scriptsDirectories.concat(modelsDirectories);
+                    });
                 });
 
                 $scope.treeOptions = {
@@ -246,5 +254,33 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
             }],
             templateUrl: 'templates/code-tab.html',
             // replace: true
+        };
+    })
+
+    .directive('modelTab', function(){
+        return {
+            scope: {
+                'data': '=tabData',
+                'switchNew': '&'
+            },
+            controller: function($scope, $element, $attrs, $transclude) {
+                $scope.aceOption = {
+                    mode: 'python',
+                    theme: 'monokai',
+                    showPrintMargin: false,
+                    onLoad: function (_ace) {
+                        // HACK to have the ace instance in the scope...
+                        $scope.modeChanged = function (_ace) {
+                            _ace.getSession().setMode("ace/mode/python");
+                        };
+                        _ace.setOption('scrollPastEnd', 0.9);
+                        _ace.$blockScrolling = Infinity;
+                        _ace.setHighlightActiveLine(false);
+                    }
+                };
+
+                $scope.code = '';
+            },
+            templateUrl: 'templates/model-tab.html'
         };
     });

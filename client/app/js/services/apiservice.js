@@ -1,4 +1,4 @@
-angular.module('APIServices', ['ngResource'])
+angular.module('APIServices', [])
     .factory('scriptServices', ['$http', function($http){
         return {
             getScriptCollection: function () {
@@ -19,6 +19,14 @@ angular.module('APIServices', ['ngResource'])
                         'Content-Type': 'text/plain'
                     }
                 });
+            }
+        };
+    }])
+
+    .factory('modelServices', ['$http', function($http){
+        return {
+            getModelCollection: function () {
+                return $http.get('/models')
             }
         };
     }]);

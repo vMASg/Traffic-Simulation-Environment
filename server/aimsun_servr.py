@@ -2,6 +2,7 @@ import os
 import sys
 import traceback
 import time
+import json
 
 from PyANGBasic import *
 from PyANGKernel import *
@@ -66,8 +67,6 @@ class Aimsun(object):
 
         elif instr.startswith('EXECUTE'):
             d = instr.split('\n', 1)
-            sys.stderr.write(str(d))
-            sys.stderr.flush()
             script = GKScript()
             script.setCode(d[1])
             script_out = ""
@@ -81,10 +80,10 @@ class Aimsun(object):
                 script_out = read_stream.read()
                 read_stream.close()
             except:
-                write_flush('Error')
+                write_flush(json.dumps({"status": "Error", "output": script_out[:-1]}))
                 # traceback.print_exc()
             else:
-                write_flush('{"status": "OK", "output": "%s"}' % script_out[:-1])
+                write_flush(json.dumps({"status": "OK", "output": script_out[:-1]}))
                 # write_flush(script_out)
 
         elif instr.startswith('SAVE MODEL AS'):

@@ -71,10 +71,10 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                             });
                         }
                     };
-                    var name = $scope.scriptsDirectories[0].name;
+                    var name = $scope.treeFiles[0].name;
                     var where = data.id.slice(data.id.indexOf(name)+name.length+1).split('\\');
                     where.pop();
-                    addNewElement($scope.scriptsDirectories[0].children, where, data);
+                    addNewElement($scope.treeFiles[0].children, where, data);
                 });
             }],
         };

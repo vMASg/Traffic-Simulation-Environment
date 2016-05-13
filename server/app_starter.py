@@ -52,4 +52,4 @@ class AppStarter(Resource):
 
     def run(self, module_name):
         if module_name == '__main__':
-            self._socketio.run(self._app, debug=True)
+            self._socketio.run(self._app, debug=True, host="0.0.0.0", port=8000)

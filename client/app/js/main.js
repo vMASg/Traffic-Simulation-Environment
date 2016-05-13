@@ -263,7 +263,7 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                 'data': '=tabData',
                 'switchNew': '&'
             },
-            controller: function($scope, $element, $attrs, $transclude) {
+            controller: ['$scope', 'modelServices', function($scope, modelServices) {
                 $scope.aceOption = {
                     mode: 'python',
                     theme: 'monokai',
@@ -280,7 +280,14 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                 };
 
                 $scope.code = '';
-            },
+                $scope.scriptResult = '';
+
+                $scope.runImmediate = function () {
+                    modelServices.runImmediateScript($scope.data.id, $scope.code).then(function (data) {
+                        $scope.scriptResult = data.data.output;
+                    });
+                };
+            }],
             templateUrl: 'templates/model-tab.html'
         };
     });

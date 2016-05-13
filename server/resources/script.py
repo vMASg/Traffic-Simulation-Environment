@@ -1,5 +1,5 @@
 from flask.ext.restful import Resource
-from flask import request
+from flask import request, send_file
 
 class Script(Resource):
     """docstring for Script"""
@@ -9,7 +9,7 @@ class Script(Resource):
         self._subscription_service = subscription_service
 
     def get(self, id):
-        return self._script_locator.get_script(id)
+        return send_file(self._script_locator.get_script_location(id))
 
     def put(self, id):
         self._script_locator.update_script(id, request.get_data())

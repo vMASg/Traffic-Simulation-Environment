@@ -183,6 +183,7 @@ treecontrol ul {
 .immediate-results > .results {
     width: 100%;
     height: calc(100% - 34px);
+    padding: 10px;
 }
 
 ::-webkit-scrollbar,::-webkit-scrollbar {

@@ -1,6 +1,5 @@
 import os
 from collections import namedtuple
-from flask import send_file
 
 class ScriptService(object):
     """docstring for ScriptService"""
@@ -25,8 +24,13 @@ class ScriptService(object):
         folder_name = os.path.basename(self._root_folder if not self._root_folder[-1] == '\\' else self._root_folder[:-1])
         return [return_type(folder_name, 'group', None, children)]
 
-    def get_script(self, id):
-        return send_file(id)
+    def get_script_content(self, id):
+        with open(id, 'r') as file:
+            content = file.read()
+        return content
+
+    def get_script_location(self, id):
+        return id
 
     def update_script(self, id, content):
         with open(id, 'w') as file:

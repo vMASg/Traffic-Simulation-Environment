@@ -27,6 +27,13 @@ angular.module('APIServices', [])
         return {
             getModelCollection: function () {
                 return $http.get('/models')
+            },
+            runImmediateScript: function (modelId, code) {
+                return $http.post('/models/' + encodeURIComponent(modelId) + '/runscript', code, {
+                    headers: {
+                        'Content-Type': 'text/plain'
+                    }
+                });
             }
         };
     }]);

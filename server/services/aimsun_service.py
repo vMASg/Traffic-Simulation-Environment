@@ -53,8 +53,7 @@ class AimsunProc(AimsunProcState):
         self._cmd = Popen(
             [self.aconsole_path, '-script', self.script_path],
             stdin=PIPE,
-            stdout=PIPE,
-            stderr=sys.stdout
+            stdout=PIPE
         )
         print self._receive_msg()
         self.state = AimsunProcState.READY

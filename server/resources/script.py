@@ -1,5 +1,6 @@
 from flask.ext.restful import Resource
 from flask import request, send_file
+from server.exceptions import InvalidPathException
 
 class Script(Resource):
     """docstring for Script"""
@@ -12,4 +13,7 @@ class Script(Resource):
         return send_file(self._script_locator.get_script_location(id))
 
     def put(self, id):
-        self._script_locator.update_script(id, request.get_data())
+        try:
+            self._script_locator.update_script(id, request.get_data())
+        except InvalidPathException as e:
+            return e.msg, 403

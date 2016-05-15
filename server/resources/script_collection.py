@@ -1,5 +1,6 @@
 from flask.ext.restful import Resource
 from flask_restful import reqparse
+from server.exceptions import InvalidPathException
 import os
 
 class ScriptCollection(Resource):
@@ -16,8 +17,9 @@ class ScriptCollection(Resource):
             for script in scr:
                 info = {'name': script.name}
                 if script.type == 'group':
-                    info['children'] = construct_response(script.children)
+                    info['id'] = script.id
                     info['type'] = 'dir'
+                    info['children'] = construct_response(script.children)
                 else:
                     info['id'] = script.id
                     info['type'] = 'code'
@@ -30,9 +32,14 @@ class ScriptCollection(Resource):
     def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument('name', type=str)
+        parser.add_argument('parent', type=str)
         parser.add_argument('code', type=str)
         args = parser.parse_args()
-        id, name, code = self._script_locator.create_script(args['name'], args['code'])
+        try:
+            id, name, code = self._script_locator.create_script(args['name'], args['parent'], args['code'])
+        except InvalidPathException as e:
+            return e.msg, 403
+
         data = {'id': id, 'name': name, 'type': 'code', 'code': code}
         self._new_script(data)
         return data

@@ -7,10 +7,22 @@
             <h3>Save as</h3>
         </div>
         <div class="modal-body form-group">
-            <input type="text" data-ng-model="saveLocation" class="form-control">
+            <!-- <input type="text" data-ng-model="saveLocation" class="form-control"> -->
+            <div class="nav-tree-container" style="float: none; height: 300px; width: 90%; margin: auto; border-radius: 4px">
+                <treecontrol
+                    class="tree-dark"
+                    tree-model="treeDirs"
+                    options="treeOptions"
+                    selected-node="selectedNode"
+                    filter-expression="onlyDirs"
+                    >
+                    {{node.name}}
+                </treecontrol>
+            </div>
+            <input type="text" class="form-control input" data-ng-model="filename" placeholder="File name" />
         </div>
         <div class="modal-footer">
-            <button class='btn btn-default' data-ng-click="$close(saveLocation)">Save</button>
+            <button class='btn btn-default' data-ng-click="$close([selectedNode.id, filename])">Save</button>
             <button class='btn btn-default' data-ng-click="$dismiss('Canceled')">Cancel</button>
         </div>
     </script>

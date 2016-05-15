@@ -25,7 +25,7 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                     var scriptsDirectories = data.data;
                     modelServices.getModelCollection().then(function (data) {
                         var modelsDirectories = [
-                            {name: 'Models', type: 'dir', children: data.data}
+                            {name: 'Models', id: '.', type: 'dir', children: data.data}
                         ];
                         $scope.treeFiles = scriptsDirectories.concat(modelsDirectories);
                     });
@@ -36,7 +36,8 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                     dirSelectable: false,
                     allowDeselect: false,
                     equality: function (a, b) {
-                        return a === b || (a && b && !(a.id && !b.id || b.id && !a.id) && ((a.id && b.id && a.id === b.id) || !(a.id && b.id) && a.name === b.name));
+                        // return a === b || (a && b && !(a.id && !b.id || b.id && !a.id) && ((a.id && b.id && a.id === b.id) || !(a.id && b.id) && a.name === b.name));
+                        return a && b && a.id === b.id && a.name === b.name;
                     }
                 };
 
@@ -71,8 +72,7 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                             });
                         }
                     };
-                    var name = $scope.treeFiles[0].name;
-                    var where = data.id.slice(data.id.indexOf(name)+name.length+1).split('\\');
+                    var where = data.id.split('\\');
                     where.pop();
                     addNewElement($scope.treeFiles[0].children, where, data);
                 });
@@ -235,14 +235,41 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                 };
 
                 $scope.saveScriptAs = function () {
+                    scriptServices.getScriptCollection().then(function (data) {
+                        $scope.treeDirs = data.data;
+                        $scope.selectedNode = data.data[0];
+                    });
+
+                    $scope.treeOptions = {
+                        nodeChildren: "children",
+                        dirSelectable: true,
+                        allowDeselect: false,
+                        equality: function (a, b) {
+                            // return a === b || (a && b && !(a.id && !b.id || b.id && !a.id) && ((a.id && b.id && a.id === b.id) || !(a.id && b.id) && a.name === b.name));
+                            return a.id === b.id && a.name === b.name;
+                        },
+                        isLeaf: function (a) {
+                            if (!a.children) return true;
+                            for (var i = 0; i < a.children.length; ++i) {
+                                if (a.children[i].children) return false;
+                            }
+                            return true;
+                        }
+                    };
+
+                    $scope.onlyDirs = function (a) {
+                        return a.children;
+                    };
+
                     var modalInstance = $uibModal.open({
                         animate: true,
                         templateUrl: 'saveAsModal.html',
                         scope: $scope
                     });
 
-                    modalInstance.result.then(function (name) {
-                        scriptServices.saveScript(name, $scope.code.replace(/\r\r/gm, '\r')).then(function (data) {
+                    modalInstance.result.then(function (info) {
+                        var location = info[0], name = info[1];
+                        scriptServices.saveScript(name, location, $scope.code.replace(/\r\r/gm, '\r')).then(function (data) {
                             $scope.switchNew({ntab: {
                                 id: data.data.id,
                                 name: data.data.name,

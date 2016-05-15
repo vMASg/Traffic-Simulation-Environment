@@ -9,8 +9,8 @@ angular.module('APIServices', [])
                     transformResponse: []
                 });
             },
-            saveScript: function (name, code) {
-                var data = {name: name, code: code};
+            saveScript: function (name, parent, code) {
+                var data = {name: name, parent: parent, code: code};
                 return $http.post('/scripts', angular.toJson(data));
             },
             updateScript: function (id, code) {
@@ -26,7 +26,7 @@ angular.module('APIServices', [])
     .factory('modelServices', ['$http', function($http){
         return {
             getModelCollection: function () {
-                return $http.get('/models')
+                return $http.get('/models');
             },
             runImmediateScript: function (modelId, code) {
                 return $http.post('/models/' + encodeURIComponent(modelId) + '/runscript', code, {

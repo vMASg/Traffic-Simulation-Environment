@@ -26,21 +26,39 @@ class ScriptService(object):
         folder_name = os.path.basename(self._root_folder)
         return [return_type(folder_name, 'group', '.', children)]
 
+    def _get_rel_abs_path(self, id):
+        abs_path = os.path.join(self._root_folder, id)
+        relpath = os.path.relpath(os.path.normpath(abs_path), self._root_folder)
+        return abs_path, relpath
+
     def get_script_content(self, id):
-        if not id.startswith('..'):
-            with open(os.path.join(self._root_folder, id), 'r') as file:
+        abs_path, relpath = self._get_rel_abs_path(id)
+        if not relpath.startswith('..'):
+            with open(abs_path, 'r') as file:
                 content = file.read()
             return content
+        else:
+            raise InvalidPathException()
 
     def get_script_location(self, id):
-        return os.path.join(self._root_folder, id)
+        abs_path, relpath = self._get_rel_abs_path(id)
+        return abs_path
 
     def update_script(self, id, content):
-        location = os.path.join(self._root_folder, id)
-        id = os.path.relpath(os.path.normpath(location), self._root_folder)
-        if not id.startswith('..'):
-            with open(location, 'w') as file:
+        abs_path, relpath = self._get_rel_abs_path(id)
+        if not relpath.startswith('..'):
+            with open(abs_path, 'w') as file:
                 file.write(content)
+        else:
+            raise InvalidPathException()
+
+    def delete_script(self, id):
+        abs_path, relpath = self._get_rel_abs_path(id)
+        if not relpath.startswith('..'):
+            try:
+                os.remove(abs_path)
+            except WindowsError:
+                pass
         else:
             raise InvalidPathException()
 

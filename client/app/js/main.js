@@ -45,6 +45,10 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                     $scope.select = fun;
                 };
 
+                this.deleteListener = function (fun) {
+                    $scope.deleteTab = fun;
+                };
+
                 this.changeSelected = function (selected) {
                     $scope.selectedNode = selected;
                 };
@@ -75,6 +79,34 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                     var where = data.id.split('\\');
                     where.pop();
                     addNewElement($scope.treeFiles[0].children, where, data);
+                });
+
+                socket.on('deleted_script', function (data) {
+                    var deleteScript = function (currentNode, where, id) {
+                        if (where.length > 0) {
+                            var name = where[0];
+                            for (var i = 0; i < currentNode.length; ++i) {
+                                if (currentNode[i].name == name) {
+                                    where.shift();
+                                    deleteScript(currentNode[i].children, where, id);
+                                    break;
+                                }
+                            }
+                        } else {
+                            for (var i = 0; i < currentNode.length; ++i) {
+                                if (currentNode[i].id == id) {
+                                    break;
+                                }
+                            }
+                            var tab = currentNode.splice(i, 1)[0];
+                            tab.id = undefined;
+                        }
+                    };
+                    var id = data.id;
+                    var where = id.split('\\');
+                    where.pop();
+                    deleteScript($scope.treeFiles[0].children, where, id);
+                    $scope.deleteTab(id);
                 });
             }],
         };
@@ -162,6 +194,14 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                         isActive: true
                     });
                 };
+
+                $scope.deleteTab = function (id) {
+                    var tab = $scope.tabset.find(function (tab) {
+                        return tab.id == id;
+                    });
+
+                    tab.id = undefined;
+                };
             }],
             require: '^panelBrowser',
             templateUrl: 'templates/tab-set.html',
@@ -172,11 +212,16 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                     $scope.openOrSwitchTab(elem);
                 };
 
+                this.deleteTab = function (id) {
+                    $scope.deleteTab(id);
+                };
+
                 $scope.changeSelected = function (elem) {
                     panelBrowserCtrl.changeSelected(elem);
                 };
 
                 panelBrowserCtrl.selectListener(this.selectTab);
+                panelBrowserCtrl.deleteListener(this.deleteTab);
             }
         };
     })
@@ -276,6 +321,18 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                                 type: data.data.type
                             }});
                         });
+                    });
+                };
+
+                $scope.deleteScript = function () {
+                    var modalInstance = $uibModal.open({
+                        animate: true,
+                        templateUrl: 'deleteModal.html',
+                        scope: $scope
+                    });
+
+                    modalInstance.result.then(function () {
+                        scriptServices.deleteScript($scope.data.id);
                     });
                 };
             }],

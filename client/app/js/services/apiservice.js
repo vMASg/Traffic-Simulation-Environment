@@ -19,6 +19,9 @@ angular.module('APIServices', [])
                         'Content-Type': 'text/plain'
                     }
                 });
+            },
+            deleteScript: function (id) {
+                return $http.delete('/scripts/' + encodeURIComponent(id));
             }
         };
     }])

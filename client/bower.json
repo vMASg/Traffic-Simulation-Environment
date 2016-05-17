@@ -30,6 +30,7 @@
     "angular-fx": "^1.1.0",
     "angular-resource": "^1.5.5",
     "socket.io-client": "^1.4.6",
-    "angular-socket-io": "^0.7.0"
+    "angular-socket-io": "^0.7.0",
+    "raphael": "^2.2.0"
   }
 }

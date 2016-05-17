@@ -374,4 +374,52 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
             }],
             templateUrl: 'templates/model-tab.html'
         };
+    })
+
+    .directive('pipelineTab', function(){
+        return {
+            scope: {
+                'data': "=tabData",
+                'switchNew': '&'
+            },
+            templateUrl: 'templates/pipeline-tab.html',
+            link: function($scope, iElm, iAttrs, controller) {
+                var dragger = function () {
+                    this.ox = this.type == "rect" ? this.attr("x") : this.attr("cx");
+                    this.oy = this.type == "rect" ? this.attr("y") : this.attr("cy");
+                    this.animate({"fill-opacity": .2}, 500);
+                };
+
+                var move = function (dx, dy) {
+                    var att = this.type == "rect" ? {x: this.ox + dx, y: this.oy + dy} : {cx: this.ox + dx, cy: this.oy + dy};
+                    this.attr(att);
+                    for (var i = $scope.connections.length; i--;) {
+                        paper.connection($scope.connections[i]);
+                    }
+                    // paper.safari();
+                };
+
+                var up = function () {
+                    this.animate({"fill-opacity": 0}, 500);
+                };
+
+                var paper = Raphael(iElm[0].children[1]);
+
+                $scope.connections = [];
+                $scope.shapes = [
+                    paper.rect(290, 80, 60, 40, 10),
+                    paper.rect(190, 80, 60, 40, 10)
+                    // paper.rect(290, 80, 60, 40, 10),
+                ];
+
+                for (var i = 0, ii = $scope.shapes.length; i < ii; i++) {
+                    var color = Raphael.getColor();
+                    $scope.shapes[i].attr({fill: color, stroke: color, "fill-opacity": 0, "stroke-width": 2, cursor: "move"});
+                    $scope.shapes[i].drag(move, dragger, up);
+                }
+                $scope.connections.push(paper.connection($scope.shapes[0], $scope.shapes[1], "#fff"));
+                // $scope.connections.push(paper.connection($scope.shapes[1], $scope.shapes[2], "#fff", "#fff|5"));
+                // $scope.connections.push(paper.connection($scope.shapes[1], $scope.shapes[3], "#000", "#fff"));
+            }
+        };
     });

@@ -159,6 +159,7 @@ treecontrol ul {
     margin-left: 4px;
 }
 
+.pipeline-container,
 .code-editor {
     position: relative;
     width: 100%;

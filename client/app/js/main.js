@@ -190,7 +190,7 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                     });
                     $scope.tabset.push({
                         name: 'untitled',
-                        type: 'code',
+                        type: 'pipeline',
                         isActive: true
                     });
                 };
@@ -384,40 +384,119 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
             },
             templateUrl: 'templates/pipeline-tab.html',
             link: function($scope, iElm, iAttrs, controller) {
-                var dragger = function () {
-                    this.ox = this.type == "rect" ? this.attr("x") : this.attr("cx");
-                    this.oy = this.type == "rect" ? this.attr("y") : this.attr("cy");
-                    this.animate({"fill-opacity": .2}, 500);
-                };
+                // var dragger = function () {
+                //     this.ox = this.type == "rect" ? this.attr("x") : this.attr("cx");
+                //     this.oy = this.type == "rect" ? this.attr("y") : this.attr("cy");
+                //     this.animate({"fill-opacity": 0.5}, 500);
+                // };
 
-                var move = function (dx, dy) {
-                    var att = this.type == "rect" ? {x: this.ox + dx, y: this.oy + dy} : {cx: this.ox + dx, cy: this.oy + dy};
-                    this.attr(att);
-                    for (var i = $scope.connections.length; i--;) {
-                        paper.connection($scope.connections[i]);
+                // var move = function (dx, dy) {
+                //     var att = this.type == "rect" ? {x: this.ox + dx, y: this.oy + dy} : {cx: this.ox + dx, cy: this.oy + dy};
+                //     this.attr(att);
+                //     for (var i = $scope.connections.length; i--;) {
+                //         paper.connection($scope.connections[i]);
+                //     }
+                //     // paper.safari();
+                // };
+
+                // var up = function () {
+                //     this.animate({"fill-opacity": 0.5}, 500);
+                // };
+                var element;
+
+                var mousemove = function (ev) {
+                    // var element = ev.target;
+                    if (element && element.moving) {
+                        var posX = ev.clientX, posY = ev.clientY;
+                        var aX = posX - element.diffX, aY = posY - element.diffY;
+                        if (aX < 0) aX = 0;
+                        if (aY < 0) aY = 0;
+                        if (aX + element.ew > containerWidth) aX = containerWidth - element.ew;
+                        if (aY + element.eh > containerHeight) aY = containerHeight -element.eh;
+                        element.style.left = aX + 'px';
+                        element.style.top = aY + 'px';
                     }
-                    // paper.safari();
                 };
 
-                var up = function () {
-                    this.animate({"fill-opacity": 0}, 500);
+                var startMoving = function (ev) {
+                    element = ev.target;
+                    var posX = ev.clientX, posY = ev.clientY;
+                    var top = element.style.top.replace('px',''), left = element.style.left.replace('px','');
+                    var width = parseInt(element.style.width), height = parseInt(element.style.height);
+
+                    element.diffX = posX - left;
+                    element.diffY = posY - top;
+                    element.ew = width;
+                    element.eh = height;
+                    element.moving = true;
+
+                    // element.addEventListener('mousemove', mousemove, true);
+                    element.classList.add('moving');
                 };
 
-                var paper = Raphael(iElm[0].children[1]);
+                var stopMoving = function (ev) {
+                    // element.removeEventListener('mousemove', mousemove);
+                    element.moving = false;
+                    element.classList.remove('moving');
+                    element = null;
+                };
+
+                var createBox = function (parent) {
+                    // var box = paper.set();
+                    // var rect = paper.rect(0, 0, 200, 260, 10);
+                    // rect.attr({fill: '#131516', "fill-opacity": 0.5, cursor: "move"});
+                    // var text = paper.text(80, 5, "Hello World");
+                    // box.push(
+                    //     rect,
+                    //     text
+                    // );
+                    // box.attr({x: 230, y: 340, "stroke-width": 0});
+                    // box.drag(move, dragger, up);
+                    // return box;
+                    var box = document.createElement('div');
+                    box.classList.add('node-box');
+                    box.addEventListener('mousedown', startMoving, true);
+                    // box.addEventListener('mousemove', mousemove, true);
+                    // box.addEventListener('mouseup', stopMoving, true);
+                    parent.appendChild(box);
+                    return box;
+                };
+
+                var createPath = function (x1, y1, x4, y4) {
+                    // Taken from https://github.com/idflood/ThreeNodes.js/blob/master/src/scripts/threenodes/connections/views/ConnectionView.coffee line47 (commit a1163e1)
+                    var min_diff = 42;
+                    var diffx = Math.max(min_diff, x4 - x1);
+                    var diffy = Math.max(min_diff, y4 - y1);
+
+                    var x2 = x1 + diffx * 0.5;
+                    var y2 = y1;
+                    var x3 = x4 - diffx * 0.5;
+                    var y3 = y4;
+
+                    return ["M", x1.toFixed(3), y1.toFixed(3), "C", x2, y2, x3, y3, x4.toFixed(3), y4.toFixed(3)].join(",");
+                };
+
+                var nodes = iElm[0].children[1].children[1];
+                nodes.addEventListener('mousemove', mousemove, true);
+                nodes.addEventListener('mouseup', stopMoving, true);
+                var containerWidth = parseInt(nodes.style.width);
+                var containerHeight = parseInt(nodes.style.height);
+                var paper = Raphael(iElm[0].children[1].children[0]);
 
                 $scope.connections = [];
                 $scope.shapes = [
-                    paper.rect(290, 80, 60, 40, 10),
-                    paper.rect(190, 80, 60, 40, 10)
-                    // paper.rect(290, 80, 60, 40, 10),
+                    createBox(nodes),
+                    createBox(nodes)
                 ];
 
-                for (var i = 0, ii = $scope.shapes.length; i < ii; i++) {
-                    var color = Raphael.getColor();
-                    $scope.shapes[i].attr({fill: color, stroke: color, "fill-opacity": 0, "stroke-width": 2, cursor: "move"});
-                    $scope.shapes[i].drag(move, dragger, up);
-                }
-                $scope.connections.push(paper.connection($scope.shapes[0], $scope.shapes[1], "#fff"));
+                paper.path(createPath(200, 300, 400, 50)).attr({stroke: '#4E4F4F', 'stroke-width': 1});
+
+                // for (var i = 0, ii = $scope.shapes.length; i < ii; i++) {
+                //     var color = Raphael.getColor();
+                //     $scope.shapes[i].attr({fill: color, stroke: color, "fill-opacity": 0, "stroke-width": 2, cursor: "move"});
+                //     $scope.shapes[i].drag(move, dragger, up);
+                // }
+                // $scope.connections.push(paper.connection($scope.shapes[0], $scope.shapes[1], "#fff"));
                 // $scope.connections.push(paper.connection($scope.shapes[1], $scope.shapes[2], "#fff", "#fff|5"));
                 // $scope.connections.push(paper.connection($scope.shapes[1], $scope.shapes[3], "#000", "#fff"));
             }

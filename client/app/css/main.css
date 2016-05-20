@@ -194,6 +194,27 @@ treecontrol ul {
     padding: 10px;
 }
 
+.pipeline-container > .nodes,
+.pipeline-container > .connections {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.pipeline-container .node-box {
+    width: 100px;
+    height: 160px;
+    position: absolute;
+    background-color: rgba(19,21,22,0.5);
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+    cursor: default;
+}
+
+.pipeline-container .node-box.moving {
+    cursor: move;
+}
+
 ::-webkit-scrollbar,::-webkit-scrollbar {
     width: 7px;
     height: 7px;

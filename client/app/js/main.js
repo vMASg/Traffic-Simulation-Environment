@@ -418,8 +418,9 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                     }
                 };
 
-                var startMoving = function (ev) {
-                    element = ev.target;
+                var startMoving = function (ev, target) {
+                    // element = ev.target;
+                    element = target;
                     var posX = ev.clientX, posY = ev.clientY;
                     var top = element.style.top.replace('px',''), left = element.style.left.replace('px','');
                     var width = parseInt(element.style.width), height = parseInt(element.style.height);
@@ -436,12 +437,14 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
 
                 var stopMoving = function (ev) {
                     // element.removeEventListener('mousemove', mousemove);
-                    element.moving = false;
-                    element.classList.remove('moving');
-                    element = null;
+                    if (element) {                    
+                        element.moving = false;
+                        element.classList.remove('moving');
+                        element = null;
+                    }
                 };
 
-                var createBox = function (parent) {
+                var createBox = function (parent, nodeInfo) {
                     // var box = paper.set();
                     // var rect = paper.rect(0, 0, 200, 260, 10);
                     // rect.attr({fill: '#131516', "fill-opacity": 0.5, cursor: "move"});
@@ -454,8 +457,20 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                     // box.drag(move, dragger, up);
                     // return box;
                     var box = document.createElement('div');
+                    var boxContent;
+                    var connCircle = '';
+                    boxContent  = '<div class="title"><span>' + nodeInfo.title + '</span></div>\n';
+                    boxContent += '<div class="inputs_outputs">\n';
+                    for (var i = 0; i < nodeInfo.inputs.length && i < nodeInfo.outputs.length; ++i) {
+                        boxContent += '<div class="io-row">\n';
+                        boxContent += '<div class="io-cell">'+ connCircle + '<span>' + nodeInfo.inputs[i].name + '</span></div>';
+                        boxContent += '<div class="io-cell"><span>' + nodeInfo.outputs[i].name + '</span>' + connCircle + '</div>';
+                        boxContent += '</div>';
+                    }
+                    boxContent += '</div>';
+                    box.innerHTML = boxContent;
                     box.classList.add('node-box');
-                    box.addEventListener('mousedown', startMoving, true);
+                    box.addEventListener('mousedown', function (ev) { startMoving(ev, box); }, true);
                     // box.addEventListener('mousemove', mousemove, true);
                     // box.addEventListener('mouseup', stopMoving, true);
                     parent.appendChild(box);
@@ -485,8 +500,8 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
 
                 $scope.connections = [];
                 $scope.shapes = [
-                    createBox(nodes),
-                    createBox(nodes)
+                    createBox(nodes, {title: 'something.py', inputs: [{name: 'in'}], outputs: [{name: 'out'}]}),
+                    createBox(nodes, {title: 'something2.py', inputs: [{name: 'in'}], outputs: [{name: 'out'}]})
                 ];
 
                 paper.path(createPath(200, 300, 400, 50)).attr({stroke: '#4E4F4F', 'stroke-width': 1});

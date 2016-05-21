@@ -87,6 +87,10 @@
     background-color: #2E2E2E;
 }
 
+.pipeline-container .node-box {
+    color: #ddd;
+}
+
 .btn-default[disabled],
 .btn-default {
     color: #ddd;

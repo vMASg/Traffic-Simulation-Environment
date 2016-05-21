@@ -1,4 +1,4 @@
-SCRIPTS_ROOT_FOLDER = r'D:\TEMP\CitEffect\gitcode'
-MODELS_ROOT_FOLDER = r'D:\USUARIS\victor.mas\CitEffect\gitmodel'
-ACONSOLE_PATH = r'D:\SOFT\TSS-Transport Simulation Systems\Aimsun 8.0 x64\aconsole.exe'
+SCRIPTS_ROOT_FOLDER = r'F:\Projects\TFG\Scripts'
+MODELS_ROOT_FOLDER = r'F:\Projects\TFG\Models'
+ACONSOLE_PATH = r'F:\Projects\TFG\fake_aconsole.py'
 AIMSUN_SCRIPT_PATH = r'server\aimsun_servr.py'

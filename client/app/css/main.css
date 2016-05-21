@@ -201,18 +201,34 @@ treecontrol ul {
     height: 100%;
 }
 
+.pipeline-container .node-box.moving {
+    cursor: move;
+}
+
 .pipeline-container .node-box {
-    width: 100px;
-    height: 160px;
+    /*width: 100px;*/
+    min-width: 120px;
+    /*height: 160px;*/
     position: absolute;
     background-color: rgba(19,21,22,0.5);
+    -webkit-user-select: none;
+    user-select: none;
     -webkit-border-radius: 10px;
     border-radius: 10px;
+    padding: 10px;
     cursor: default;
 }
 
-.pipeline-container .node-box.moving {
-    cursor: move;
+.pipeline-container .node-box > .title {
+    text-align: center;
+}
+
+.pipeline-container .io-row > .io-cell:first-child {
+    float: left;
+}
+
+.pipeline-container .io-row > .io-cell:last-child {
+    float: right;
 }
 
 ::-webkit-scrollbar,::-webkit-scrollbar {

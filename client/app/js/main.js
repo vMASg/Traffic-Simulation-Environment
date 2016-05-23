@@ -458,23 +458,111 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                     // return box;
                     var box = document.createElement('div');
                     var boxContent;
-                    var connCircle = '';
+                    var connCircleStart = '<div class="circle start"></div>';
+                    var connCircleEnd = '<div class="circle end"></div>';
                     boxContent  = '<div class="title"><span>' + nodeInfo.title + '</span></div>\n';
                     boxContent += '<div class="inputs_outputs">\n';
                     for (var i = 0; i < nodeInfo.inputs.length && i < nodeInfo.outputs.length; ++i) {
-                        boxContent += '<div class="io-row">\n';
-                        boxContent += '<div class="io-cell">'+ connCircle + '<span>' + nodeInfo.inputs[i].name + '</span></div>';
-                        boxContent += '<div class="io-cell"><span>' + nodeInfo.outputs[i].name + '</span>' + connCircle + '</div>';
+                        boxContent += '<div class="io-row clearfix">\n';
+                        boxContent += '<div class="io-cell">'+ connCircleEnd + '<span>' + nodeInfo.inputs[i].name + '</span></div>';
+                        boxContent += '<div class="io-cell"><span>' + nodeInfo.outputs[i].name + '</span>' + connCircleStart + '</div>';
                         boxContent += '</div>';
+                    }
+                    while (i < nodeInfo.inputs.length) {
+                        boxContent += '<div class="io-row clearfix">\n';
+                        boxContent += '<div class="io-cell">'+ connCircleEnd + '<span>' + nodeInfo.inputs[i].name + '</span></div>';
+                        boxContent += '<div class="io-cell"></div>';
+                        boxContent += '</div>';
+                        ++i;
+                    }
+                    while (i < nodeInfo.outputs.length) {
+                        boxContent += '<div class="io-row clearfix">\n';
+                        boxContent += '<div class="io-cell"></div>';
+                        boxContent += '<div class="io-cell"><span>' + nodeInfo.outputs[i].name + '</span>' + connCircleStart + '</div>';
+                        boxContent += '</div>';
+                        ++i;
                     }
                     boxContent += '</div>';
                     box.innerHTML = boxContent;
                     box.classList.add('node-box');
-                    box.addEventListener('mousedown', function (ev) { startMoving(ev, box); }, true);
+                    box.addEventListener('mousedown', function (ev) { startMoving(ev, box); }, false);
+                    var circles = box.querySelectorAll('.circle.start');
+                    for (i = circles.length - 1; i >= 0; i--) {
+                        circles[i].addEventListener('mousedown', createStartingConnection, false);
+                        circles[i].addEventListener('mouseup', finishEndingConnection, false);
+                    }
+                    circles = box.querySelectorAll('.circle.end');
+                    for (i = circles.length - 1; i >= 0; i--) {
+                        circles[i].addEventListener('mousedown', createEndingConnection, false);
+                        circles[i].addEventListener('mouseup', finishStartingConnection, false);
+                    }
                     // box.addEventListener('mousemove', mousemove, true);
                     // box.addEventListener('mouseup', stopMoving, true);
                     parent.appendChild(box);
                     return box;
+                };
+
+                var startingPath;
+                var createStartingConnection = function (ev) {
+                    if (!endingPath) {
+                        var element = ev.target;
+                        var boundingClientRect = element.getBoundingClientRect();
+                        ev.stopPropagation();
+                        // var top = parseInt(element.style.top.replace('px','')), left = parseInt(element.style.left.replace('px',''));
+                        var top = boundingClientRect.top, left = boundingClientRect.left;
+                        // var width = parseInt(element.style.width), height = parseInt(element.style.height);
+                        var width = boundingClientRect.width, height = boundingClientRect.height;
+                        top -= containerTop;
+                        left -= containerLeft;
+                        startingPath = {
+                            x: left + width / 2,
+                            y: top + height / 2,
+                            figure: paper.path(createPath((left + width) / 2, (top + height) / 2, (left + width) / 2, (top + height) / 2))
+                        };
+                        startingPath.figure.attr({stroke: '#4E4F4F', 'stroke-width': 1});
+                    }
+                };
+
+                var endingPath;
+                var createEndingConnection = function (ev) {
+                    if (!startingPath) {
+                        var element = ev.target;
+                        var boundingClientRect = element.getBoundingClientRect();
+                        ev.stopPropagation();
+                        // var top = parseInt(element.style.top.replace('px','')), left = parseInt(element.style.left.replace('px',''));
+                        var top = boundingClientRect.top, left = boundingClientRect.left;
+                        // var width = parseInt(element.style.width), height = parseInt(element.style.height);
+                        var width = boundingClientRect.width, height = boundingClientRect.height;
+                        top -= containerTop;
+                        left -= containerLeft;
+                        endingPath = {
+                            x: left + width / 2,
+                            y: top + height / 2,
+                            figure: paper.path(createPath((left + width) / 2, (top + height) / 2, (left + width) / 2, (top + height) / 2))
+                        };
+                        endingPath.figure.attr({stroke: '#4E4F4F', 'stroke-width': 1});
+                    }
+                };
+
+                var drawpath = function (ev) {
+                    var newX = ev.clientX - containerLeft;
+                    var newY = ev.clientY - containerTop;
+                    var newPath;
+                    if (startingPath) {
+                        newPath = createPath(startingPath.x, startingPath.y, newX, newY);
+                        startingPath.figure.attr({path: newPath});
+                    } else if (endingPath) {
+                        newPath = createPath(newX, newY, endingPath.x, endingPath.y);
+                        endingPath.figure.attr({path: newPath});
+                    }
+                };
+
+                var finishStartingConnection = function (ev) {
+                    startingPath = null;
+                };
+
+                var finishEndingConnection = function (ev) {
+                    endingPath = null;
                 };
 
                 var createPath = function (x1, y1, x4, y4) {
@@ -488,23 +576,27 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                     var x3 = x4 - diffx * 0.5;
                     var y3 = y4;
 
-                    return ["M", x1.toFixed(3), y1.toFixed(3), "C", x2, y2, x3, y3, x4.toFixed(3), y4.toFixed(3)].join(",");
+                    return [["M", x1.toFixed(3), y1.toFixed(3)], ["C", x2, y2, x3, y3, x4.toFixed(3), y4.toFixed(3)]];
                 };
 
                 var nodes = iElm[0].children[1].children[1];
-                nodes.addEventListener('mousemove', mousemove, true);
-                nodes.addEventListener('mouseup', stopMoving, true);
+                nodes.addEventListener('mousemove', mousemove, false);
+                nodes.addEventListener('mousemove', drawpath, false);
+                nodes.addEventListener('mouseup', stopMoving, false);
+                var boundingClientRect = nodes.getBoundingClientRect();
                 var containerWidth = parseInt(nodes.style.width);
                 var containerHeight = parseInt(nodes.style.height);
+                var containerLeft = boundingClientRect.left;
+                var containerTop = boundingClientRect.top;
                 var paper = Raphael(iElm[0].children[1].children[0]);
 
                 $scope.connections = [];
                 $scope.shapes = [
                     createBox(nodes, {title: 'something.py', inputs: [{name: 'in'}], outputs: [{name: 'out'}]}),
-                    createBox(nodes, {title: 'something2.py', inputs: [{name: 'in'}], outputs: [{name: 'out'}]})
+                    createBox(nodes, {title: 'something2.py', inputs: [{name: 'in'}, {name: 'input'}], outputs: [{name: 'out'}, {name: 'output'}]})
                 ];
 
-                paper.path(createPath(200, 300, 400, 50)).attr({stroke: '#4E4F4F', 'stroke-width': 1});
+                // paper.path(createPath(200, 300, 400, 50)).attr({stroke: '#4E4F4F', 'stroke-width': 1});
 
                 // for (var i = 0, ii = $scope.shapes.length; i < ii; i++) {
                 //     var color = Raphael.getColor();

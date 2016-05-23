@@ -221,14 +221,39 @@ treecontrol ul {
 
 .pipeline-container .node-box > .title {
     text-align: center;
+    margin-bottom: 5px;
+}
+
+.pipeline-container .io-row > .io-cell {
+    display: -webkit-flex;
+    display: flex;
+    align-items: center;
 }
 
 .pipeline-container .io-row > .io-cell:first-child {
     float: left;
+    margin-right: 25px;
 }
 
 .pipeline-container .io-row > .io-cell:last-child {
     float: right;
+}
+
+.pipeline-container .io-cell > .circle {
+    border-radius: 100%;
+    background-color: #17526F;
+    width: 9px;
+    height: 9px;
+}
+
+.pipeline-container .io-cell:first-child > .circle {
+    float: left;
+    margin-right: 10px;
+}
+
+.pipeline-container .io-cell:last-child > .circle {
+    float: right;
+    margin-left: 10px;
 }
 
 ::-webkit-scrollbar,::-webkit-scrollbar {

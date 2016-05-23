@@ -89,6 +89,9 @@
 
 .pipeline-container .node-box {
     color: #ddd;
+/*    -webkit-box-shadow: 0px 0px 11px 0px rgba(0, 0, 0, 0.75);
+    -moz-box-shadow:    0px 0px 11px 0px rgba(0, 0, 0, 0.75);
+    box-shadow:         0px 0px 11px 0px rgba(0, 0, 0, 0.75);*/
 }
 
 .btn-default[disabled],

@@ -384,28 +384,9 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
             },
             templateUrl: 'templates/pipeline-tab.html',
             link: function($scope, iElm, iAttrs, controller) {
-                // var dragger = function () {
-                //     this.ox = this.type == "rect" ? this.attr("x") : this.attr("cx");
-                //     this.oy = this.type == "rect" ? this.attr("y") : this.attr("cy");
-                //     this.animate({"fill-opacity": 0.5}, 500);
-                // };
-
-                // var move = function (dx, dy) {
-                //     var att = this.type == "rect" ? {x: this.ox + dx, y: this.oy + dy} : {cx: this.ox + dx, cy: this.oy + dy};
-                //     this.attr(att);
-                //     for (var i = $scope.connections.length; i--;) {
-                //         paper.connection($scope.connections[i]);
-                //     }
-                //     // paper.safari();
-                // };
-
-                // var up = function () {
-                //     this.animate({"fill-opacity": 0.5}, 500);
-                // };
                 var element;
 
                 var mousemove = function (ev) {
-                    // var element = ev.target;
                     if (element && element.moving) {
                         var posX = ev.clientX, posY = ev.clientY;
                         var aX = posX - element.diffX, aY = posY - element.diffY;
@@ -419,7 +400,6 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                 };
 
                 var startMoving = function (ev, target) {
-                    // element = ev.target;
                     element = target;
                     var posX = ev.clientX, posY = ev.clientY;
                     var top = element.style.top.replace('px',''), left = element.style.left.replace('px','');
@@ -431,12 +411,10 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                     element.eh = height;
                     element.moving = true;
 
-                    // element.addEventListener('mousemove', mousemove, true);
                     element.classList.add('moving');
                 };
 
                 var stopMoving = function (ev) {
-                    // element.removeEventListener('mousemove', mousemove);
                     if (element) {                    
                         element.moving = false;
                         element.classList.remove('moving');
@@ -445,17 +423,6 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                 };
 
                 var createBox = function (parent, nodeInfo) {
-                    // var box = paper.set();
-                    // var rect = paper.rect(0, 0, 200, 260, 10);
-                    // rect.attr({fill: '#131516', "fill-opacity": 0.5, cursor: "move"});
-                    // var text = paper.text(80, 5, "Hello World");
-                    // box.push(
-                    //     rect,
-                    //     text
-                    // );
-                    // box.attr({x: 230, y: 340, "stroke-width": 0});
-                    // box.drag(move, dragger, up);
-                    // return box;
                     var box = document.createElement('div');
                     var boxContent;
                     var connCircleStart = '<div class="circle start"></div>';
@@ -488,57 +455,57 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                     box.addEventListener('mousedown', function (ev) { startMoving(ev, box); }, false);
                     var circles = box.querySelectorAll('.circle.start');
                     for (i = circles.length - 1; i >= 0; i--) {
-                        circles[i].addEventListener('mousedown', createStartingConnection, false);
-                        circles[i].addEventListener('mouseup', finishEndingConnection, false);
+                        var inp = nodeInfo.inputs[i];
+                        inp.getNode = function() { return nodeInfo; };
+                        circles[i].addEventListener('mousedown', function(ev) { createStartingConnection(ev, inp); }, false);
+                        circles[i].addEventListener('mouseup', function (ev) { finishEndingConnection(ev, inp); }, false);
                     }
                     circles = box.querySelectorAll('.circle.end');
                     for (i = circles.length - 1; i >= 0; i--) {
-                        circles[i].addEventListener('mousedown', createEndingConnection, false);
-                        circles[i].addEventListener('mouseup', finishStartingConnection, false);
+                        var out = nodeInfo.outputs[i];
+                        out.getNode = function() { return nodeInfo; };
+                        circles[i].addEventListener('mousedown', function (ev) { createEndingConnection(ev, out); }, false);
+                        circles[i].addEventListener('mouseup', function (ev) { finishStartingConnection(ev, out); }, false);
                     }
-                    // box.addEventListener('mousemove', mousemove, true);
-                    // box.addEventListener('mouseup', stopMoving, true);
                     parent.appendChild(box);
                     return box;
                 };
 
                 var startingPath;
-                var createStartingConnection = function (ev) {
-                    if (!endingPath) {
+                var createStartingConnection = function (ev, nodeConnector) {
+                    ev.stopPropagation();
+                    if (!endingPath && !startingPath) {
                         var element = ev.target;
                         var boundingClientRect = element.getBoundingClientRect();
-                        ev.stopPropagation();
-                        // var top = parseInt(element.style.top.replace('px','')), left = parseInt(element.style.left.replace('px',''));
                         var top = boundingClientRect.top, left = boundingClientRect.left;
-                        // var width = parseInt(element.style.width), height = parseInt(element.style.height);
                         var width = boundingClientRect.width, height = boundingClientRect.height;
                         top -= containerTop;
                         left -= containerLeft;
                         startingPath = {
                             x: left + width / 2,
                             y: top + height / 2,
-                            figure: paper.path(createPath((left + width) / 2, (top + height) / 2, (left + width) / 2, (top + height) / 2))
+                            figure: paper.path(createPath((left + width) / 2, (top + height) / 2, (left + width) / 2, (top + height) / 2)),
+                            connectorOut: nodeConnector
                         };
                         startingPath.figure.attr({stroke: '#4E4F4F', 'stroke-width': 1});
                     }
                 };
 
                 var endingPath;
-                var createEndingConnection = function (ev) {
-                    if (!startingPath) {
+                var createEndingConnection = function (ev, nodeConnector) {
+                    ev.stopPropagation();
+                    if (!startingPath && !endingPath) {
                         var element = ev.target;
                         var boundingClientRect = element.getBoundingClientRect();
-                        ev.stopPropagation();
-                        // var top = parseInt(element.style.top.replace('px','')), left = parseInt(element.style.left.replace('px',''));
                         var top = boundingClientRect.top, left = boundingClientRect.left;
-                        // var width = parseInt(element.style.width), height = parseInt(element.style.height);
                         var width = boundingClientRect.width, height = boundingClientRect.height;
                         top -= containerTop;
                         left -= containerLeft;
                         endingPath = {
                             x: left + width / 2,
                             y: top + height / 2,
-                            figure: paper.path(createPath((left + width) / 2, (top + height) / 2, (left + width) / 2, (top + height) / 2))
+                            figure: paper.path(createPath((left + width) / 2, (top + height) / 2, (left + width) / 2, (top + height) / 2)),
+                            connectorIn: nodeConnector
                         };
                         endingPath.figure.attr({stroke: '#4E4F4F', 'stroke-width': 1});
                     }
@@ -557,12 +524,26 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                     }
                 };
 
-                var finishStartingConnection = function (ev) {
-                    startingPath = null;
+                var finishStartingConnection = function (ev, nodeConnector) {
+                    if (startingPath && nodeConnector.getNode() !== startingPath.connectorOut.getNode()) {
+                        if (!startingPath.connectorOut.connections) {
+                            startingPath.connectorOut.connections = [];
+                        }
+                        startingPath.connectorOut.connections.push({pathObj: startingPath.figure, destination: nodeConnector});
+                        nodeConnector.input = {pathObj: startingPath.figure, origin: startingPath.connectorOut};
+                        startingPath = null;
+                    }
                 };
 
-                var finishEndingConnection = function (ev) {
-                    endingPath = null;
+                var finishEndingConnection = function (ev, nodeConnector) {
+                    if (endingPath && nodeConnector.getNode() !== endingPath.connectorIn.getNode()) {
+                        if (!nodeConnector.connections) {
+                            nodeConnector.connections = [];
+                        }
+                        nodeConnector.connections.push({pathObj: endingPath.figure, origin: endingPath.connectorIn});
+                        endingPath.connectorIn.input = {pathObj: endingPath.figure, destination: nodeConnector};
+                        endingPath = null;
+                    }
                 };
 
                 var createPath = function (x1, y1, x4, y4) {
@@ -595,17 +576,6 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                     createBox(nodes, {title: 'something.py', inputs: [{name: 'in'}], outputs: [{name: 'out'}]}),
                     createBox(nodes, {title: 'something2.py', inputs: [{name: 'in'}, {name: 'input'}], outputs: [{name: 'out'}, {name: 'output'}]})
                 ];
-
-                // paper.path(createPath(200, 300, 400, 50)).attr({stroke: '#4E4F4F', 'stroke-width': 1});
-
-                // for (var i = 0, ii = $scope.shapes.length; i < ii; i++) {
-                //     var color = Raphael.getColor();
-                //     $scope.shapes[i].attr({fill: color, stroke: color, "fill-opacity": 0, "stroke-width": 2, cursor: "move"});
-                //     $scope.shapes[i].drag(move, dragger, up);
-                // }
-                // $scope.connections.push(paper.connection($scope.shapes[0], $scope.shapes[1], "#fff"));
-                // $scope.connections.push(paper.connection($scope.shapes[1], $scope.shapes[2], "#fff", "#fff|5"));
-                // $scope.connections.push(paper.connection($scope.shapes[1], $scope.shapes[3], "#000", "#fff"));
             }
         };
     });

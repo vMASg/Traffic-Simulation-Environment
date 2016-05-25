@@ -379,7 +379,7 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
     .directive('pipelineTab', function(){
         return {
             scope: {
-                'data': "=tabData",
+                'data': '=tabData',
                 'switchNew': '&'
             },
             templateUrl: 'templates/pipeline-tab.html',
@@ -394,30 +394,53 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                         if (aY < 0) aY = 0;
                         if (aX + element.ew > containerWidth) aX = containerWidth - element.ew;
                         if (aY + element.eh > containerHeight) aY = containerHeight -element.eh;
-                        element.style.left = aX + 'px';
-                        element.style.top = aY + 'px';
+                        element.target.style.left = aX + 'px';
+                        element.target.style.top = aY + 'px';
+                        var inputs = element.nodeInfo.inputs;
+                        for (var i = inputs.length - 1; i >= 0; i--) {
+                            var inp = inputs[i];
+                            if (inp.input) {
+                                var circ = inp.getCircle();
+                                var path = inp.input.pathObj;
+                                var circOrig = inp.input.origin.getCircle();
+                                var boundingClientRect = circ.getBoundingClientRect();
+                                var dtop = boundingClientRect.top, dleft = boundingClientRect.left;
+                                var dwidth = boundingClientRect.width, dheight = boundingClientRect.height;
+                                dtop -= containerTop;
+                                dleft -= containerLeft;
+
+                                var boundingClientRectOrig = circOrig.getBoundingClientRect();
+                                var otop = boundingClientRectOrig.top, oleft = boundingClientRectOrig.left;
+                                var owidth = boundingClientRectOrig.width, oheight = boundingClientRectOrig.height;
+                                otop -= containerTop;
+                                oleft -= containerLeft;
+                                path.attr({path: createPath(oleft + owidth / 2, otop + oheight / 2, dleft + dwidth / 2, dtop + dheight / 2)});
+                            }
+                        }
                     }
                 };
 
-                var startMoving = function (ev, target) {
-                    element = target;
+                var startMoving = function (ev, target, nodeInfo) {
+                    // element = target;
+                    element = {target: target};
                     var posX = ev.clientX, posY = ev.clientY;
-                    var top = element.style.top.replace('px',''), left = element.style.left.replace('px','');
-                    var width = parseInt(element.style.width), height = parseInt(element.style.height);
+                    var top = target.style.top.replace('px',''), left = target.style.left.replace('px','');
+                    var width = parseInt(target.style.width), height = parseInt(target.style.height);
 
                     element.diffX = posX - left;
                     element.diffY = posY - top;
                     element.ew = width;
                     element.eh = height;
                     element.moving = true;
+                    element.nodeInfo = nodeInfo;
 
-                    element.classList.add('moving');
+                    target.classList.add('moving');
                 };
 
                 var stopMoving = function (ev) {
                     if (element) {                    
                         element.moving = false;
-                        element.classList.remove('moving');
+                        element.target.classList.remove('moving');
                         element = null;
                     }
                 };
@@ -452,20 +475,24 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                     boxContent += '</div>';
                     box.innerHTML = boxContent;
                     box.classList.add('node-box');
-                    box.addEventListener('mousedown', function (ev) { startMoving(ev, box); }, false);
+                    box.addEventListener('mousedown', function (ev) { startMoving(ev, box, nodeInfo); }, false);
                     var circles = box.querySelectorAll('.circle.start');
                     for (i = circles.length - 1; i >= 0; i--) {
+                        var circ = circles[i];
                         var inp = nodeInfo.inputs[i];
                         inp.getNode = function() { return nodeInfo; };
-                        circles[i].addEventListener('mousedown', function(ev) { createStartingConnection(ev, inp); }, false);
-                        circles[i].addEventListener('mouseup', function (ev) { finishEndingConnection(ev, inp); }, false);
+                        inp.getCircle = function() { return circ; };
+                        circ.addEventListener('mousedown', function(ev) { createStartingConnection(ev, inp); }, false);
+                        circ.addEventListener('mouseup', function (ev) { finishEndingConnection(ev, inp); }, false);
                     }
                     circles = box.querySelectorAll('.circle.end');
                     for (i = circles.length - 1; i >= 0; i--) {
+                        var circ = circles[i];
                         var out = nodeInfo.outputs[i];
                         out.getNode = function() { return nodeInfo; };
-                        circles[i].addEventListener('mousedown', function (ev) { createEndingConnection(ev, out); }, false);
-                        circles[i].addEventListener('mouseup', function (ev) { finishStartingConnection(ev, out); }, false);
+                        out.getCircle = function() { return circ; };
+                        circ.addEventListener('mousedown', function (ev) { createEndingConnection(ev, out); }, false);
+                        circ.addEventListener('mouseup', function (ev) { finishStartingConnection(ev, out); }, false);
                     }
                     parent.appendChild(box);
                     return box;
@@ -484,7 +511,7 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                         startingPath = {
                             x: left + width / 2,
                             y: top + height / 2,
-                            figure: paper.path(createPath((left + width) / 2, (top + height) / 2, (left + width) / 2, (top + height) / 2)),
+                            figure: paper.path(createPath(left + width / 2, top + height / 2, left + width / 2, top + height / 2)),
                             connectorOut: nodeConnector
                         };
                         startingPath.figure.attr({stroke: '#4E4F4F', 'stroke-width': 1});
@@ -504,7 +531,7 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                         endingPath = {
                             x: left + width / 2,
                             y: top + height / 2,
-                            figure: paper.path(createPath((left + width) / 2, (top + height) / 2, (left + width) / 2, (top + height) / 2)),
+                            figure: paper.path(createPath(left + width / 2, top + height / 2, left + width / 2, top + height / 2)),
                             connectorIn: nodeConnector
                         };
                         endingPath.figure.attr({stroke: '#4E4F4F', 'stroke-width': 1});
@@ -526,6 +553,14 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
 
                 var finishStartingConnection = function (ev, nodeConnector) {
                     if (startingPath && nodeConnector.getNode() !== startingPath.connectorOut.getNode()) {
+                        var element = ev.target;
+                        var boundingClientRect = element.getBoundingClientRect();
+                        var top = boundingClientRect.top, left = boundingClientRect.left;
+                        var width = boundingClientRect.width, height = boundingClientRect.height;
+                        top -= containerTop;
+                        left -= containerLeft;
+                        var newPath = createPath(startingPath.x, startingPath.y, left + width / 2, top + height / 2);
+                        startingPath.figure.attr({path: newPath});
                         if (!startingPath.connectorOut.connections) {
                             startingPath.connectorOut.connections = [];
                         }
@@ -537,6 +572,14 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
 
                 var finishEndingConnection = function (ev, nodeConnector) {
                     if (endingPath && nodeConnector.getNode() !== endingPath.connectorIn.getNode()) {
+                        var element = ev.target;
+                        var boundingClientRect = element.getBoundingClientRect();
+                        var top = boundingClientRect.top, left = boundingClientRect.left;
+                        var width = boundingClientRect.width, height = boundingClientRect.height;
+                        top -= containerTop;
+                        left -= containerLeft;
+                        var newPath = createPath(left + width / 2, top + height / 2, endingPath.x, endingPath.y);
+                        endingPath.figure.attr({path: newPath});
                         if (!nodeConnector.connections) {
                             nodeConnector.connections = [];
                         }

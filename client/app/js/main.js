@@ -393,7 +393,7 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                         if (aX < 0) aX = 0;
                         if (aY < 0) aY = 0;
                         if (aX + element.ew > containerWidth) aX = containerWidth - element.ew;
-                        if (aY + element.eh > containerHeight) aY = containerHeight -element.eh;
+                        if (aY + element.eh > containerHeight) aY = containerHeight - element.eh;
                         element.target.style.left = aX + 'px';
                         element.target.style.top = aY + 'px';
                         var inputs = element.nodeInfo.inputs;
@@ -479,20 +479,24 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                     var circles = box.querySelectorAll('.circle.start');
                     for (i = circles.length - 1; i >= 0; i--) {
                         var circ = circles[i];
-                        var inp = nodeInfo.inputs[i];
+                        var inp = nodeInfo.outputs[i];
+                        var csc = function(inp) { return function(ev) { createStartingConnection(ev, inp); }; };
+                        var fec = function (inp) { return function (ev) { finishEndingConnection(ev, inp); }; };
                         inp.getNode = function() { return nodeInfo; };
-                        inp.getCircle = function() { return circ; };
-                        circ.addEventListener('mousedown', function(ev) { createStartingConnection(ev, inp); }, false);
-                        circ.addEventListener('mouseup', function (ev) { finishEndingConnection(ev, inp); }, false);
+                        inp.getCircle = (function(circ) { return function() { return circ; }; })(circ);
+                        circ.addEventListener('mousedown', csc(inp), false);
+                        circ.addEventListener('mouseup', fec(inp), false);
                     }
                     circles = box.querySelectorAll('.circle.end');
                     for (i = circles.length - 1; i >= 0; i--) {
                         var circ = circles[i];
-                        var out = nodeInfo.outputs[i];
+                        var out = nodeInfo.inputs[i];
+                        var cec = function (out) { return function (ev) { createEndingConnection(ev, out); }; };
+                        var fsc = function (out) { return function (ev) { finishStartingConnection(ev, out); }; };
                         out.getNode = function() { return nodeInfo; };
-                        out.getCircle = function() { return circ; };
-                        circ.addEventListener('mousedown', function (ev) { createEndingConnection(ev, out); }, false);
-                        circ.addEventListener('mouseup', function (ev) { finishStartingConnection(ev, out); }, false);
+                        out.getCircle = (function(circ) { return function() { return circ; }; })(circ);
+                        circ.addEventListener('mousedown', cec(out), false);
+                        circ.addEventListener('mouseup', fsc(out), false);
                     }
                     parent.appendChild(box);
                     return box;

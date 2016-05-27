@@ -376,7 +376,7 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
         };
     })
 
-    .directive('pipelineTab', function(){
+    .directive('pipelineTab', ['$timeout', function($timeout){
         return {
             scope: {
                 'data': '=tabData',
@@ -385,6 +385,21 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
             templateUrl: 'templates/pipeline-tab.html',
             link: function($scope, iElm, iAttrs, controller) {
                 var element;
+
+                var updateConnection = function (circ, circOrig, pathObj) {
+                    var boundingClientRect = circ.getBoundingClientRect();
+                    var dtop = boundingClientRect.top, dleft = boundingClientRect.left;
+                    var dwidth = boundingClientRect.width, dheight = boundingClientRect.height;
+                    dtop -= containerTop;
+                    dleft -= containerLeft;
+
+                    var boundingClientRectOrig = circOrig.getBoundingClientRect();
+                    var otop = boundingClientRectOrig.top, oleft = boundingClientRectOrig.left;
+                    var owidth = boundingClientRectOrig.width, oheight = boundingClientRectOrig.height;
+                    otop -= containerTop;
+                    oleft -= containerLeft;
+                    pathObj.attr({path: createPath(oleft + owidth / 2, otop + oheight / 2, dleft + dwidth / 2, dtop + dheight / 2)});
+                };
 
                 var mousemove = function (ev) {
                     if (element && element.moving) {
@@ -403,18 +418,20 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                                 var circ = inp.getCircle();
                                 var path = inp.input.pathObj;
                                 var circOrig = inp.input.origin.getCircle();
-                                var boundingClientRect = circ.getBoundingClientRect();
-                                var dtop = boundingClientRect.top, dleft = boundingClientRect.left;
-                                var dwidth = boundingClientRect.width, dheight = boundingClientRect.height;
-                                dtop -= containerTop;
-                                dleft -= containerLeft;
-
-                                var boundingClientRectOrig = circOrig.getBoundingClientRect();
-                                var otop = boundingClientRectOrig.top, oleft = boundingClientRectOrig.left;
-                                var owidth = boundingClientRectOrig.width, oheight = boundingClientRectOrig.height;
-                                otop -= containerTop;
-                                oleft -= containerLeft;
-                                path.attr({path: createPath(oleft + owidth / 2, otop + oheight / 2, dleft + dwidth / 2, dtop + dheight / 2)});
+                                updateConnection(circ, circOrig, path);
+                            }
+                        }
+                        var outputs = element.nodeInfo.outputs;
+                        for (i = outputs.length - 1; i >= 0; i--) {
+                            var out = outputs[i];
+                            if (out.connections) {
+                                var circOrig = out.getCircle();
+                                for (var j = out.connections.length - 1; j >= 0; j--) {
+                                    var connection = out.connections[j];
+                                    var path = connection.pathObj;
+                                    var circ = connection.destination.getCircle();
+                                    updateConnection(circ, circOrig, path);
+                                }
                             }
                         }
                     }
@@ -587,8 +604,8 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                         if (!nodeConnector.connections) {
                             nodeConnector.connections = [];
                         }
-                        nodeConnector.connections.push({pathObj: endingPath.figure, origin: endingPath.connectorIn});
-                        endingPath.connectorIn.input = {pathObj: endingPath.figure, destination: nodeConnector};
+                        nodeConnector.connections.push({pathObj: endingPath.figure, destination: endingPath.connectorIn});
+                        endingPath.connectorIn.input = {pathObj: endingPath.figure, origin: nodeConnector};
                         endingPath = null;
                     }
                 };
@@ -607,13 +624,22 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                     return [["M", x1.toFixed(3), y1.toFixed(3)], ["C", x2, y2, x3, y3, x4.toFixed(3), y4.toFixed(3)]];
                 };
 
+                // TODO read http://stackoverflow.com/questions/24167460/how-do-i-get-the-x-and-y-positions-of-an-element-in-an-angularjs-directive
                 var nodes = iElm[0].children[1].children[1];
+                var recomputeContainer = function () {
+                    var boundingClientRect = nodes.getBoundingClientRect();
+                    containerWidth = boundingClientRect.width;
+                    containerHeight = boundingClientRect.height;
+                    containerLeft = boundingClientRect.left;
+                    containerTop = boundingClientRect.top;
+                };
                 nodes.addEventListener('mousemove', mousemove, false);
                 nodes.addEventListener('mousemove', drawpath, false);
                 nodes.addEventListener('mouseup', stopMoving, false);
+                nodes.addEventListener('resize', recomputeContainer, false);
                 var boundingClientRect = nodes.getBoundingClientRect();
-                var containerWidth = parseInt(nodes.style.width);
-                var containerHeight = parseInt(nodes.style.height);
+                var containerWidth = boundingClientRect.width;
+                var containerHeight = boundingClientRect.height;
                 var containerLeft = boundingClientRect.left;
                 var containerTop = boundingClientRect.top;
                 var paper = Raphael(iElm[0].children[1].children[0]);
@@ -623,6 +649,7 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                     createBox(nodes, {title: 'something.py', inputs: [{name: 'in'}], outputs: [{name: 'out'}]}),
                     createBox(nodes, {title: 'something2.py', inputs: [{name: 'in'}, {name: 'input'}], outputs: [{name: 'out'}, {name: 'output'}]})
                 ];
+                $timeout(recomputeContainer, 200);
             }
         };
-    });
+    }]);

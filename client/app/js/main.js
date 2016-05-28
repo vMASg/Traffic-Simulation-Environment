@@ -1,4 +1,4 @@
-angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootstrap', 'btford.socket-io'])
+angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootstrap', 'btford.socket-io', 'ang-drag-drop'])
 
     .factory('socket', ['socketFactory', function(socketFactory){
         return socketFactory({
@@ -586,6 +586,9 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                             startingPath.connectorOut.connections = [];
                         }
                         startingPath.connectorOut.connections.push({pathObj: startingPath.figure, destination: nodeConnector});
+                        if (nodeConnector.input) {
+                            nodeConnector.input.pathObj.remove();
+                        }
                         nodeConnector.input = {pathObj: startingPath.figure, origin: startingPath.connectorOut};
                         startingPath = null;
                     }
@@ -605,6 +608,9 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                             nodeConnector.connections = [];
                         }
                         nodeConnector.connections.push({pathObj: endingPath.figure, destination: endingPath.connectorIn});
+                        if (endingPath.connectorIn.input) {
+                            endingPath.connectorIn.input.pathObj.remove();
+                        }
                         endingPath.connectorIn.input = {pathObj: endingPath.figure, origin: nodeConnector};
                         endingPath = null;
                     }
@@ -644,6 +650,10 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                 var containerTop = boundingClientRect.top;
                 var paper = Raphael(iElm[0].children[1].children[0]);
 
+                $scope.dropHandler = function ($event, $data) {
+                    console.log("Received dropdown", $data);
+                    $scope.shapes.push(createBox(nodes, {title: $data, inputs: [{name: 'in'}], outputs: [{name: 'out'}]}));
+                };
                 $scope.connections = [];
                 $scope.shapes = [
                     createBox(nodes, {title: 'something.py', inputs: [{name: 'in'}], outputs: [{name: 'out'}]}),

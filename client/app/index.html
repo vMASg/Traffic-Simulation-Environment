@@ -16,6 +16,7 @@
     <script type="text/javascript" src="js/vendor/angular-socket-io/socket.min.js"></script>
     <script type="text/javascript" src="js/vendor/eve/eve.js"></script>
     <script type="text/javascript" src="js/vendor/raphael/raphael.min.js"></script>
+    <script type="text/javascript" src="js/vendor/angular-native-dragdrop/draganddrop.js"></script>
     <script type="text/javascript" src="js/lib/graffle.js"></script>
     <script type="text/javascript" src="js/main.js"></script>
     <script type="text/javascript" src="js/services/apiservice.js"></script>
@@ -40,7 +41,7 @@
                         on-selection="select(node)"
                         selected-node="selectedNode"
                         >
-                        {{node.name}}
+                        <span data-ui-draggable="true" data-drag="node.id">{{node.name}}</span>
                     </treecontrol>
             </div>
             <div class="horizontal-separator"></div>

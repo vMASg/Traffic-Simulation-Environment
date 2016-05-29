@@ -67,3 +67,13 @@ class ScriptService(object):
         id = os.path.relpath(id, self._root_folder)
         self.update_script(id, content)
         return id, os.path.basename(id), content
+
+    # FIELDS QUERY
+    def get_name(self, id):
+        return os.path.basename(id)
+
+    def get_path(self, id):
+        return id
+
+    def get_input_output(self, id):
+        pass

@@ -1,6 +1,7 @@
 import os
 from collections import namedtuple
 from server.exceptions import InvalidPathException
+from server.utils.script_info import get_inputs_outputs
 
 class ScriptService(object):
     """docstring for ScriptService"""
@@ -76,4 +77,4 @@ class ScriptService(object):
         return id
 
     def get_input_output(self, id):
-        pass
+        return get_inputs_outputs(self._get_rel_abs_path(id)[0])

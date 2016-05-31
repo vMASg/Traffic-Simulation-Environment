@@ -11,4 +11,4 @@ class BikeLanes(PythonScript):
 
 
 if __name__ == '__main__':
-    BikeLanes().main(1, 2)
+    print BikeLanes().main(1, 2)

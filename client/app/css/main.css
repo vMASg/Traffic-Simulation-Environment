@@ -168,6 +168,10 @@ treecontrol ul {
     /*height: 900px;*/
 }
 
+.pipeline-container {
+    font-size: 12px;
+}
+
 .immediate-editor {
     position: relative;
     width: 100%;

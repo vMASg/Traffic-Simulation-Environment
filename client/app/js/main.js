@@ -376,7 +376,7 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
         };
     })
 
-    .directive('pipelineTab', ['$timeout', function($timeout){
+    .directive('pipelineTab', ['$timeout', 'scriptServices', function($timeout, scriptServices){
         return {
             scope: {
                 'data': '=tabData',
@@ -462,7 +462,7 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                     }
                 };
 
-                var createBox = function (parent, nodeInfo) {
+                var createBox = function (parent, nodeInfo, posx, posy) {
                     var box = document.createElement('div');
                     var boxContent;
                     var connCircleStart = '<div class="circle start"></div>';
@@ -516,6 +516,10 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                         circ.addEventListener('mouseup', fsc(out), false);
                     }
                     parent.appendChild(box);
+                    // var width = parseInt(box.style.width), height = parseInt(box.style.height);
+                    var wh = box.getBoundingClientRect();
+                    box.style.top = (posy - containerTop - wh.height/2) + 'px';
+                    box.style.left = (posx - containerLeft - wh.width/2) + 'px';
                     return box;
                 };
 
@@ -535,7 +539,7 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                             figure: paper.path(createPath(left + width / 2, top + height / 2, left + width / 2, top + height / 2)),
                             connectorOut: nodeConnector
                         };
-                        startingPath.figure.attr({stroke: '#4E4F4F', 'stroke-width': 1});
+                        startingPath.figure.attr({stroke: '#4E4F4F', 'stroke-width': 2});
                     }
                 };
 
@@ -555,7 +559,7 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                             figure: paper.path(createPath(left + width / 2, top + height / 2, left + width / 2, top + height / 2)),
                             connectorIn: nodeConnector
                         };
-                        endingPath.figure.attr({stroke: '#4E4F4F', 'stroke-width': 1});
+                        endingPath.figure.attr({stroke: '#4E4F4F', 'stroke-width': 2});
                     }
                 };
 
@@ -651,14 +655,17 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                 var paper = Raphael(iElm[0].children[1].children[0]);
 
                 $scope.dropHandler = function ($event, $data) {
-                    console.log("Received dropdown", $data);
-                    $scope.shapes.push(createBox(nodes, {title: $data, inputs: [{name: 'in'}], outputs: [{name: 'out'}]}));
+                    // console.log("Received dropdown", $data);
+                    scriptServices.getScript($data, ['name', 'inout']).then(function (response) {
+                        $scope.shapes.push(createBox(nodes, {
+                            title: response.data.name,
+                            inputs: (response.data.inout[0] || []).map(function (a) { return {name: a}; }),
+                            outputs: (response.data.inout[1] || []).map(function (a) { return {name: a}; })
+                        }, $event.clientX, $event.clientY));
+                    });
                 };
-                $scope.connections = [];
-                $scope.shapes = [
-                    createBox(nodes, {title: 'something.py', inputs: [{name: 'in'}], outputs: [{name: 'out'}]}),
-                    createBox(nodes, {title: 'something2.py', inputs: [{name: 'in'}, {name: 'input'}], outputs: [{name: 'out'}, {name: 'output'}]})
-                ];
+                // $scope.connections = [];
+                $scope.shapes = [];
                 $timeout(recomputeContainer, 200);
             }
         };

@@ -376,7 +376,7 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
         };
     })
 
-    .directive('pipelineTab', ['$timeout', 'scriptServices', function($timeout, scriptServices){
+    .directive('pipelineTab', ['$timeout', 'scriptServices', 'pipelineServices', '$uibModal', function($timeout, scriptServices, pipelineServices, $uibModal){
         return {
             scope: {
                 'data': '=tabData',
@@ -411,6 +411,8 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                         if (aY + element.eh > containerHeight) aY = containerHeight - element.eh;
                         element.target.style.left = aX + 'px';
                         element.target.style.top = aY + 'px';
+                        element.nodeInfo.x = aX;
+                        element.nodeInfo.y = aY;
                         var inputs = element.nodeInfo.inputs;
                         for (var i = inputs.length - 1; i >= 0; i--) {
                             var inp = inputs[i];
@@ -518,8 +520,10 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                     parent.appendChild(box);
                     // var width = parseInt(box.style.width), height = parseInt(box.style.height);
                     var wh = box.getBoundingClientRect();
-                    box.style.top = (posy - containerTop - wh.height/2) + 'px';
-                    box.style.left = (posx - containerLeft - wh.width/2) + 'px';
+                    nodeInfo.x = (posy - containerTop - wh.height/2);
+                    nodeInfo.y = (posx - containerLeft - wh.width/2);
+                    box.style.top = nodeInfo.x + 'px';
+                    box.style.left = nodeInfo.y + 'px';
                     return box;
                 };
 
@@ -634,6 +638,35 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                     return [["M", x1.toFixed(3), y1.toFixed(3)], ["C", x2, y2, x3, y3, x4.toFixed(3), y4.toFixed(3)]];
                 };
 
+                var transformOutputGraph = function (graph) {
+                    return graph.map(function(e) {
+                        return {
+                            id: e.id,
+                            path: e.path,
+                            title: e.title,
+                            x: e.x,
+                            y: e.y,
+                            inputs: e.inputs.map(function (input) {
+                                return {
+                                    name: input.name,
+                                    origin: input.input?{ node: input.input.origin.getNode().id, connector: input.input.origin.name }:null
+                                };
+                            }),
+                            outputs: e.outputs.map(function (output) {
+                                return {
+                                    name: output.name,
+                                    connections: output.connections?output.connections.map(function (conn) {
+                                        return {
+                                            node: conn.destination.getNode().id,
+                                            connector: conn.destination.name
+                                        };
+                                    }):[]
+                                };
+                            })
+                        };
+                    });
+                };
+
                 // TODO read http://stackoverflow.com/questions/24167460/how-do-i-get-the-x-and-y-positions-of-an-element-in-an-angularjs-directive
                 var nodes = iElm[0].children[1].children[1];
                 var recomputeContainer = function () {
@@ -656,15 +689,64 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
 
                 $scope.dropHandler = function ($event, $data) {
                     // console.log("Received dropdown", $data);
-                    scriptServices.getScript($data, ['name', 'inout']).then(function (response) {
-                        $scope.shapes.push(createBox(nodes, {
+                    scriptServices.getScript($data, ['name', 'inout', 'path']).then(function (response) {
+                        var nodeInfo = {
+                            id: $scope.shapes.length,  // TODO replace by proper random id
+                            path: response.data.path,
                             title: response.data.name,
                             inputs: (response.data.inout[0] || []).map(function (a) { return {name: a}; }),
                             outputs: (response.data.inout[1] || []).map(function (a) { return {name: a}; })
-                        }, $event.clientX, $event.clientY));
+                        };
+                        createBox(nodes, nodeInfo, $event.clientX, $event.clientY);
+                        $scope.shapes.push(nodeInfo);
                     });
                 };
-                // $scope.connections = [];
+
+                $scope.savePipelineAs = function () {
+                    pipelineServices.getPipelineCollection().then(function (data) {
+                        $scope.treeDirs = data.data;
+                        $scope.selectedNode = data.data[0];
+                    });
+
+                    $scope.treeOptions = {
+                        nodeChildren: "children",
+                        dirSelectable: true,
+                        allowDeselect: false,
+                        equality: function (a, b) {
+                            // return a === b || (a && b && !(a.id && !b.id || b.id && !a.id) && ((a.id && b.id && a.id === b.id) || !(a.id && b.id) && a.name === b.name));
+                            return a.id === b.id && a.name === b.name;
+                        },
+                        isLeaf: function (a) {
+                            if (!a.children) return true;
+                            for (var i = 0; i < a.children.length; ++i) {
+                                if (a.children[i].children) return false;
+                            }
+                            return true;
+                        }
+                    };
+
+                    $scope.onlyDirs = function (a) {
+                        return a.children;
+                    };
+
+                    var modalInstance = $uibModal.open({
+                        animate: true,
+                        templateUrl: 'saveAsModal.html',
+                        scope: $scope
+                    });
+
+                    modalInstance.result.then(function (info) {
+                        var location = info[0], name = info[1];
+                        pipelineServices.savePipeline(name, location, transformOutputGraph($scope.shapes)).then(function (data) {
+                            $scope.switchNew({ntab: {
+                                id: data.data.id,
+                                name: data.data.name,
+                                type: data.data.type
+                            }});
+                        });
+                    });
+                };
+
                 $scope.shapes = [];
                 $timeout(recomputeContainer, 200);
             }

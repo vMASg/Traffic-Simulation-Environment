@@ -44,4 +44,16 @@ angular.module('APIServices', [])
                 });
             }
         };
+    }])
+
+    .factory('pipelineServices', ['$http', function($http){
+        return {
+            getPipelineCollection: function () {
+                return $http.get('/pipelines');
+            },
+            savePipeline: function (name, parent, graph) {
+                var data = {name: name, parent: parent, data: angular.toJson(graph)};
+                return $http.post('/pipelines', data);
+            }
+        };
     }]);

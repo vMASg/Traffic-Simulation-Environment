@@ -60,6 +60,9 @@ angular.module('APIServices', [])
             },
             updatePipeline: function (id, graph) {
                 return $http.put('/pipelines/' + encodeURIComponent(id), angular.toJson(graph));
+            },
+            deletePipeline: function (id) {
+                return $http.delete('/pipelines/' + encodeURIComponent(id));
             }
         };
     }]);

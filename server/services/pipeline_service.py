@@ -48,15 +48,15 @@ class PipelineService(object):
         else:
             raise InvalidPathException()
 
-    # def delete_script(self, id):
-    #     abs_path, relpath = self._get_rel_abs_path(id)
-    #     if not relpath.startswith('..'):
-    #         try:
-    #             os.remove(abs_path)
-    #         except WindowsError:
-    #             pass
-    #     else:
-    #         raise InvalidPathException()
+    def delete_pipeline(self, id):
+        abs_path, relpath = self._get_rel_abs_path(id)
+        if not relpath.startswith('..'):
+            try:
+                os.remove(abs_path)
+            except WindowsError:
+                pass
+        else:
+            raise InvalidPathException()
 
     def create_pipeline(self, name, parent, content):
         id = os.path.normpath(os.path.join(self._root_folder, parent, name))

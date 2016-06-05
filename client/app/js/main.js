@@ -135,6 +135,34 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                     where.pop();
                     addNewElement($scope.treeFiles[2].children, where, data);
                 });
+
+                socket.on('deleted_pipeline', function (data) {
+                    var deletePipeline = function (currentNode, where, id) {
+                        if (where.length > 0) {
+                            var name = where[0];
+                            for (var i = 0; i < currentNode.length; ++i) {
+                                if (currentNode[i].name == name) {
+                                    where.shift();
+                                    deletePipeline(currentNode[i].children, where, id);
+                                    break;
+                                }
+                            }
+                        } else {
+                            for (var i = 0; i < currentNode.length; ++i) {
+                                if (currentNode[i].id == id) {
+                                    break;
+                                }
+                            }
+                            var tab = currentNode.splice(i, 1)[0];
+                            tab.id = undefined;
+                        }
+                    };
+                    var id = data.id;
+                    var where = id.split('\\');
+                    where.pop();
+                    deletePipeline($scope.treeFiles[2].children, where, id);
+                    $scope.deleteTab(id);
+                });
             }],
         };
     })
@@ -778,6 +806,18 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
 
                 $scope.savePipeline = function () {
                     pipelineServices.updatePipeline($scope.data.id, transformOutputGraph($scope.shapes));
+                };
+
+                $scope.deletePipeline = function () {
+                    var modalInstance = $uibModal.open({
+                        animate: true,
+                        templateUrl: 'deleteModal.html',
+                        scope: $scope
+                    });
+
+                    modalInstance.result.then(function () {
+                        pipelineServices.deletePipeline($scope.data.id);
+                    });
                 };
 
                 $scope.shapes = [];

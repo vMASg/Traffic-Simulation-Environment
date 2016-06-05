@@ -1,4 +1,4 @@
-from aimsun_executor import return_name, PythonScript
+from aimsun_scriptreg import return_name, PythonScript
 
 class BikeLanes(PythonScript):
     """docstring for BikeLanes"""

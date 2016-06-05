@@ -9,8 +9,8 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
 
     .directive('panelBrowser', function() {
         return {
-            controller: ['$scope', 'scriptServices', 'modelServices', 'socket',
-            function($scope, scriptServices, modelServices, socket) {
+            controller: ['$scope', 'scriptServices', 'modelServices', 'pipelineServices', 'socket',
+            function($scope, scriptServices, modelServices, pipelineServices, socket) {
 
                 // // TODO add API Call
                 // $scope.scriptsDirectories = [
@@ -27,7 +27,10 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                         var modelsDirectories = [
                             {name: 'Models', id: '.', type: 'dir', children: data.data}
                         ];
-                        $scope.treeFiles = scriptsDirectories.concat(modelsDirectories);
+                        pipelineServices.getPipelineCollection().then(function (data) {
+                            var pipelinesDirectories = data.data;
+                            $scope.treeFiles = scriptsDirectories.concat(modelsDirectories).concat(pipelinesDirectories);
+                        });
                     });
                 });
 
@@ -58,7 +61,7 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                 });
 
                 socket.on('new_script', function (data) {
-                    console.log(data);
+                    // console.log(data);
                     var addNewElement = function (currentNode, where, tab) {
                         if (where.length > 0) {
                             var name = where[0];
@@ -107,6 +110,30 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                     where.pop();
                     deleteScript($scope.treeFiles[0].children, where, id);
                     $scope.deleteTab(id);
+                });
+
+                socket.on('new_pipeline', function (data) {
+                    // console.log(data);
+                    var addNewElement = function (currentNode, where, tab) {
+                        if (where.length > 0) {
+                            var name = where[0];
+                            for (var i = 0; i < currentNode.length; ++i) {
+                                if (currentNode[i].name == name) {
+                                    where.shift();
+                                    addNewElement(currentNode[i].children, where, tab);
+                                    break;
+                                }
+                            }
+                        } else {
+                            currentNode.push(tab);
+                            currentNode.sort(function (a,b) {
+                                return a.name.localeCompare(b.name);
+                            });
+                        }
+                    };
+                    var where = data.id.split('\\');
+                    where.pop();
+                    addNewElement($scope.treeFiles[2].children, where, data);
                 });
             }],
         };
@@ -520,10 +547,12 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                     parent.appendChild(box);
                     // var width = parseInt(box.style.width), height = parseInt(box.style.height);
                     var wh = box.getBoundingClientRect();
-                    nodeInfo.x = (posy - containerTop - wh.height/2);
-                    nodeInfo.y = (posx - containerLeft - wh.width/2);
-                    box.style.top = nodeInfo.x + 'px';
-                    box.style.left = nodeInfo.y + 'px';
+                    if (posx && posy) {
+                        nodeInfo.y = (posy - containerTop - wh.height/2);
+                        nodeInfo.x = (posx - containerLeft - wh.width/2);
+                    }
+                    box.style.top = nodeInfo.y + 'px';
+                    box.style.left = nodeInfo.x + 'px';
                     return box;
                 };
 
@@ -747,7 +776,60 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                     });
                 };
 
+                $scope.savePipeline = function () {
+                    pipelineServices.updatePipeline($scope.data.id, transformOutputGraph($scope.shapes));
+                };
+
                 $scope.shapes = [];
+                if ($scope.data.id) {
+                    pipelineServices.getPipeline($scope.data.id).then(function (data) {
+                        recomputeContainer();
+                        var graph = angular.fromJson(data.data.graph);
+                        for (var i = 0; i < graph.length; i++) {
+                            var node = graph[i];
+                            var nodeInfo = {
+                                id: node.id,
+                                path: node.path,
+                                title: node.title,
+                                inputs: node.inputs.map(function (inp) { return {name: inp.name}; }),
+                                outputs: node.outputs.map(function (out) { return {name: out.name}; }),
+                                x: node.x,
+                                y: node.y
+                            };
+                            createBox(nodes, nodeInfo);
+                            $scope.shapes.push(nodeInfo);
+                        }
+                        for (i = 0; i < graph.length; i++) {
+                            var inputsData = graph[i].inputs;
+                            var inputsCreated = $scope.shapes[i].inputs;
+                            for (var j = 0; j < inputsData.length; ++j) {
+                                var origin = inputsData[j].origin;
+                                if (origin) {
+                                    var node = $scope.shapes.find(function (e) {
+                                        return e.id === origin.node;
+                                    });
+                                    var output = node.outputs.find(function (out) {
+                                        return out.name === origin.connector;
+                                    });
+                                    var input = inputsCreated[j];
+                                    var inpbox = input.getCircle().getBoundingClientRect();
+                                    var outbox = output.getCircle().getBoundingClientRect();
+                                    var oleft = outbox.left - containerLeft, otop = outbox.top - containerTop;
+                                    var ileft = inpbox.left - containerLeft, itop = inpbox.top - containerTop;
+                                    var path = paper.path(createPath(oleft + outbox.width / 2, otop + outbox.height / 2, ileft + inpbox.width / 2, itop + inpbox.height / 2));
+                                    path.attr({stroke: '#4E4F4F', 'stroke-width': 2});
+                                    if (!output.connections) {
+                                        output.connections = [];
+                                    }
+                                    output.connections.push({pathObj: path, destination: input});
+                                    input.input = {pathObj: path, origin: output};
+                                }
+                            }
+                        }
+                        // TODO REMOVE, this is just to validate
+                        // console.log("Testing loaded correctly:", angular.toJson(transformOutputGraph($scope.shapes)) === data.data.graph);
+                    });
+                }
                 $timeout(recomputeContainer, 200);
             }
         };

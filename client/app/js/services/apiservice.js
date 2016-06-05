@@ -51,9 +51,15 @@ angular.module('APIServices', [])
             getPipelineCollection: function () {
                 return $http.get('/pipelines');
             },
+            getPipeline: function (id) {
+                return $http.get('/pipelines/' + encodeURIComponent(id));
+            },
             savePipeline: function (name, parent, graph) {
                 var data = {name: name, parent: parent, data: angular.toJson(graph)};
                 return $http.post('/pipelines', data);
+            },
+            updatePipeline: function (id, graph) {
+                return $http.put('/pipelines/' + encodeURIComponent(id), angular.toJson(graph));
             }
         };
     }]);

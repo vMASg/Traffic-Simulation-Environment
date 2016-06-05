@@ -82,3 +82,6 @@ class AimsunService(object):
 
     def run_script(self, script_content, model_id):
         return self._aimsun_proc1.run_script(script_content, model_id)
+
+    def run_aconsole(self, script_path):
+        pass

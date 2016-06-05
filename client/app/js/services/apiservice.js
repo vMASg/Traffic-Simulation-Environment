@@ -63,6 +63,9 @@ angular.module('APIServices', [])
             },
             deletePipeline: function (id) {
                 return $http.delete('/pipelines/' + encodeURIComponent(id));
+            },
+            runPipeline: function (id) {
+                return $http.get('/pipelines/' + encodeURIComponent(id) + '/run');
             }
         };
     }]);

@@ -8,6 +8,7 @@ from server.resources.pipeline_collection import PipelineCollection
 from server.resources.pipeline import Pipeline
 from server.resources.model_collection import ModelCollection
 from server.resources.model import Model
+from server.resources.pipeline_executor import PipelineExecutor
 # Services
 from server.services.script_service import ScriptService
 from server.services.pipeline_service import PipelineService
@@ -46,9 +47,15 @@ class AppStarter(Resource):
         self._api.add_resource(Pipeline, '/pipelines/<id>', resource_class_kwargs={'pipeline_locator': pipeline_service, 'subscription_service': self._subscription})
         self._api.add_resource(ModelCollection, '/models', resource_class_kwargs={'model_locator': model_service, 'aimsun_service': aimsun_service})
         # Non RESTful routes
+
+        # Model
         model = Model(aimsun_service, model_service, script_service)
         self._app.add_url_rule('/models/<id>/runscript', 'run_script', model.run_script, defaults={'script_id': None}, methods=['GET', 'POST'])
         self._app.add_url_rule('/models/<id>/runscript/<script_id>', 'run_script', model.run_script, methods=['GET', 'POST'])
+
+        # Pipeline
+        pipeline_executor = PipelineExecutor(aimsun_service, pipeline_service)
+        self._app.add_url_rule('/pipelines/<id>/run', 'run_pipeline', pipeline_executor.run_pipeline, methods=['GET', 'POST'])
 
     def _goto_index(self):
         return self._serve_page("index.html")

@@ -820,6 +820,10 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                     });
                 };
 
+                $scope.runPipeline = function () {
+                    pipelineServices.runPipeline($scope.data.id);
+                };
+
                 $scope.shapes = [];
                 if ($scope.data.id) {
                     pipelineServices.getPipeline($scope.data.id).then(function (data) {

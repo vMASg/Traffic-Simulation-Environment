@@ -76,5 +76,8 @@ class ScriptService(object):
     def get_path(self, id):
         return id
 
+    def get_path_for_execution(self, id):
+        return self._get_rel_abs_path(id)[0]
+
     def get_input_output(self, id):
         return get_inputs_outputs(self._get_rel_abs_path(id)[0])

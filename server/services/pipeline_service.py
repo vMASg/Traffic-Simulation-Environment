@@ -1,4 +1,5 @@
 import os
+import shutil
 from collections import namedtuple
 from server.exceptions import InvalidPathException
 
@@ -63,3 +64,8 @@ class PipelineService(object):
         id = os.path.relpath(id, self._root_folder)
         self.update_pipeline(id, content)
         return id, os.path.basename(id), content
+
+    def get_path_for_execution(self, id):
+        original_path = self._get_rel_abs_path(id)[0]
+        shutil.copy2(original_path, original_path + '.tmp')
+        return original_path + '.tmp'

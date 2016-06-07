@@ -39,9 +39,9 @@ class PythonScriptType(type):
         cls_obj = super(PythonScriptType, cls).__new__(cls, name, bases, attrs)
         inputs = inspect.getargspec(cls_obj.main)[0][1:]
         if hasattr(attrs['main'], 'return_name'):
-            classregistry.register_class(cls_obj, inputs, attrs['main'].return_name)
+            classregistry.register_class(cls_obj, tuple(inputs), attrs['main'].return_name)
         else:
-            classregistry.register_class(cls_obj, inputs, ['out'])
+            classregistry.register_class(cls_obj, tuple(inputs), ['out'])
         return cls_obj
 
     def __init__(self, name, bases, attrs):

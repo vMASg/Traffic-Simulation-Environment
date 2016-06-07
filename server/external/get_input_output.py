@@ -17,7 +17,7 @@ def main(argv):
     if inputs is None:
         return 1
     outputs = aimsun_scriptreg.get_outputs(argv[1])
-    print ','.join([str(k) for k in inputs])
+    print ','.join([str(k) for k in list(inputs)])
     print ','.join([str(k) for k in list(outputs)])
     return 0
 

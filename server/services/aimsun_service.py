@@ -72,6 +72,13 @@ class AimsunProc(AimsunProcState):
         self._send_msg('EXECUTE\n{}'.format(script_content))
         return self._receive_msg()
 
+    @switch_state(AimsunProcState.UNSTARTED)
+    def run_pipeline(self, pipeline_path):
+        self._cmd = Popen(
+            [self.aconsole_path, '-script', 'external\\aimsun_executor.py', pipeline_path]
+        )
+        return "OK"
+
 
 class AimsunService(object):
     """docstring for AimsunService"""
@@ -83,5 +90,5 @@ class AimsunService(object):
     def run_script(self, script_content, model_id):
         return self._aimsun_proc1.run_script(script_content, model_id)
 
-    def run_aconsole(self, script_path):
-        pass
+    def run_pipeline(self, pipeline_path):
+        return self._aimsun_proc1.run_pipeline(pipeline_path)

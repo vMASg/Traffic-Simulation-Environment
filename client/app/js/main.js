@@ -494,12 +494,15 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                     }
                 };
 
-                var startMoving = function (ev, target, nodeInfo) {
+                var startMoving = $scope.startMoving = function (ev, target, nodeInfo) {
                     // element = target;
+                    // TODO refactor remove target parameter
+                    if (!target) target = ev.currentTarget;
                     element = {target: target};
                     var posX = ev.clientX, posY = ev.clientY;
-                    var top = target.style.top.replace('px',''), left = target.style.left.replace('px','');
-                    var width = parseInt(target.style.width), height = parseInt(target.style.height);
+                    var bcr = target.getBoundingClientRect();
+                    var top = bcr.top - containerTop, left = bcr.left - containerLeft;
+                    var width = bcr.width, height = bcr.height;
 
                     element.diffX = posX - left;
                     element.diffY = posY - top;
@@ -519,60 +522,60 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                     }
                 };
 
-                var createBox = function (parent, nodeInfo, posx, posy) {
-                    var box = document.createElement('div');
-                    var boxContent;
-                    var connCircleStart = '<div class="circle start"></div>';
-                    var connCircleEnd = '<div class="circle end"></div>';
-                    boxContent  = '<div class="title"><span>' + nodeInfo.title + '</span></div>\n';
-                    boxContent += '<div class="inputs_outputs">\n';
-                    for (var i = 0; i < nodeInfo.inputs.length && i < nodeInfo.outputs.length; ++i) {
-                        boxContent += '<div class="io-row clearfix">\n';
-                        boxContent += '<div class="io-cell">'+ connCircleEnd + '<span>' + nodeInfo.inputs[i].name + '</span></div>';
-                        boxContent += '<div class="io-cell"><span>' + nodeInfo.outputs[i].name + '</span>' + connCircleStart + '</div>';
-                        boxContent += '</div>';
-                    }
-                    while (i < nodeInfo.inputs.length) {
-                        boxContent += '<div class="io-row clearfix">\n';
-                        boxContent += '<div class="io-cell">'+ connCircleEnd + '<span>' + nodeInfo.inputs[i].name + '</span></div>';
-                        boxContent += '<div class="io-cell"></div>';
-                        boxContent += '</div>';
-                        ++i;
-                    }
-                    while (i < nodeInfo.outputs.length) {
-                        boxContent += '<div class="io-row clearfix">\n';
-                        boxContent += '<div class="io-cell"></div>';
-                        boxContent += '<div class="io-cell"><span>' + nodeInfo.outputs[i].name + '</span>' + connCircleStart + '</div>';
-                        boxContent += '</div>';
-                        ++i;
-                    }
-                    boxContent += '</div>';
-                    box.innerHTML = boxContent;
-                    box.classList.add('node-box');
-                    box.addEventListener('mousedown', function (ev) { startMoving(ev, box, nodeInfo); }, false);
+                var createBox = function (box, nodeInfo, posx, posy) {
+                    // var box = document.createElement('div');
+                    // var boxContent;
+                    // var connCircleStart = '<div class="circle start"></div>';
+                    // var connCircleEnd = '<div class="circle end"></div>';
+                    // boxContent  = '<div class="title"><span>' + nodeInfo.title + '</span></div>\n';
+                    // boxContent += '<div class="inputs_outputs">\n';
+                    // for (var i = 0; i < nodeInfo.inputs.length && i < nodeInfo.outputs.length; ++i) {
+                    //     boxContent += '<div class="io-row clearfix">\n';
+                    //     boxContent += '<div class="io-cell" uib-popover="hola" popover-trigger="contextmenu" popover-is-open="true" >'+ connCircleEnd + '<span>' + nodeInfo.inputs[i].name + '</span></div>';
+                    //     boxContent += '<div class="io-cell" uib-popover="hola" popover-trigger="contextmenu" popover-is-open="true" ><span>' + nodeInfo.outputs[i].name + '</span>' + connCircleStart + '</div>';
+                    //     boxContent += '</div>';
+                    // }
+                    // while (i < nodeInfo.inputs.length) {
+                    //     boxContent += '<div class="io-row clearfix">\n';
+                    //     boxContent += '<div class="io-cell" uib-popover="hola" popover-trigger="contextmenu" popover-is-open="true" >'+ connCircleEnd + '<span>' + nodeInfo.inputs[i].name + '</span></div>';
+                    //     boxContent += '<div class="io-cell" uib-popover="hola" popover-trigger="contextmenu" popover-is-open="true" ></div>';
+                    //     boxContent += '</div>';
+                    //     ++i;
+                    // }
+                    // while (i < nodeInfo.outputs.length) {
+                    //     boxContent += '<div class="io-row clearfix">\n';
+                    //     boxContent += '<div class="io-cell" uib-popover="hola" popover-trigger="contextmenu" popover-is-open="true" ></div>';
+                    //     boxContent += '<div class="io-cell" uib-popover="hola" popover-trigger="contextmenu" popover-is-open="true" ><span>' + nodeInfo.outputs[i].name + '</span>' + connCircleStart + '</div>';
+                    //     boxContent += '</div>';
+                    //     ++i;
+                    // }
+                    // boxContent += '</div>';
+                    // box.innerHTML = boxContent;
+                    // box.classList.add('node-box');
+                    // box.addEventListener('mousedown', function (ev) { startMoving(ev, box, nodeInfo); }, false);
                     var circles = box.querySelectorAll('.circle.start');
                     for (i = circles.length - 1; i >= 0; i--) {
                         var circ = circles[i];
                         var inp = nodeInfo.outputs[i];
-                        var csc = function(inp) { return function(ev) { createStartingConnection(ev, inp); }; };
-                        var fec = function (inp) { return function (ev) { finishEndingConnection(ev, inp); }; };
+                        // var csc = function(inp) { return function(ev) { createStartingConnection(ev, inp); }; };
+                        // var fec = function (inp) { return function (ev) { finishEndingConnection(ev, inp); }; };
                         inp.getNode = function() { return nodeInfo; };
                         inp.getCircle = (function(circ) { return function() { return circ; }; })(circ);
-                        circ.addEventListener('mousedown', csc(inp), false);
-                        circ.addEventListener('mouseup', fec(inp), false);
+                        // circ.addEventListener('mousedown', csc(inp), false);
+                        // circ.addEventListener('mouseup', fec(inp), false);
                     }
                     circles = box.querySelectorAll('.circle.end');
                     for (i = circles.length - 1; i >= 0; i--) {
                         var circ = circles[i];
                         var out = nodeInfo.inputs[i];
-                        var cec = function (out) { return function (ev) { createEndingConnection(ev, out); }; };
-                        var fsc = function (out) { return function (ev) { finishStartingConnection(ev, out); }; };
+                        // var cec = function (out) { return function (ev) { createEndingConnection(ev, out); }; };
+                        // var fsc = function (out) { return function (ev) { finishStartingConnection(ev, out); }; };
                         out.getNode = function() { return nodeInfo; };
                         out.getCircle = (function(circ) { return function() { return circ; }; })(circ);
-                        circ.addEventListener('mousedown', cec(out), false);
-                        circ.addEventListener('mouseup', fsc(out), false);
+                        // circ.addEventListener('mousedown', cec(out), false);
+                        // circ.addEventListener('mouseup', fsc(out), false);
                     }
-                    parent.appendChild(box);
+                    // parent.appendChild(box);
                     // var width = parseInt(box.style.width), height = parseInt(box.style.height);
                     var wh = box.getBoundingClientRect();
                     if (posx && posy) {
@@ -581,11 +584,11 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                     }
                     box.style.top = nodeInfo.y + 'px';
                     box.style.left = nodeInfo.x + 'px';
-                    return box;
+                    // return box;
                 };
 
                 var startingPath;
-                var createStartingConnection = function (ev, nodeConnector) {
+                var createStartingConnection = $scope.createStartingConnection = function (ev, nodeConnector) {
                     ev.stopPropagation();
                     if (!endingPath && !startingPath) {
                         var element = ev.target;
@@ -605,7 +608,7 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                 };
 
                 var endingPath;
-                var createEndingConnection = function (ev, nodeConnector) {
+                var createEndingConnection = $scope.createEndingConnection = function (ev, nodeConnector) {
                     ev.stopPropagation();
                     if (!startingPath && !endingPath) {
                         var element = ev.target;
@@ -637,7 +640,7 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                     }
                 };
 
-                var finishStartingConnection = function (ev, nodeConnector) {
+                var finishStartingConnection = $scope.finishStartingConnection = function (ev, nodeConnector) {
                     if (startingPath && nodeConnector.getNode() !== startingPath.connectorOut.getNode()) {
                         var element = ev.target;
                         var boundingClientRect = element.getBoundingClientRect();
@@ -659,7 +662,7 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                     }
                 };
 
-                var finishEndingConnection = function (ev, nodeConnector) {
+                var finishEndingConnection = $scope.finishEndingConnection = function (ev, nodeConnector) {
                     if (endingPath && nodeConnector.getNode() !== endingPath.connectorIn.getNode()) {
                         var element = ev.target;
                         var boundingClientRect = element.getBoundingClientRect();
@@ -754,8 +757,10 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                             inputs: (response.data.inout[0] || []).map(function (a) { return {name: a}; }),
                             outputs: (response.data.inout[1] || []).map(function (a) { return {name: a}; })
                         };
-                        createBox(nodes, nodeInfo, $event.clientX, $event.clientY);
                         $scope.shapes.push(nodeInfo);
+                        // $scope.$apply();
+                        var nodeboxes = nodes.querySelectorAll('.node-box');
+                        createBox(nodeboxes[nodeboxes.length-1], nodeInfo, $event.clientX, $event.clientY);
                     });
                 };
 
@@ -825,6 +830,7 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                 };
 
                 $scope.shapes = [];
+                $scope.min = Math.min;
                 if ($scope.data.id) {
                     pipelineServices.getPipeline($scope.data.id).then(function (data) {
                         recomputeContainer();
@@ -840,8 +846,10 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                                 x: node.x,
                                 y: node.y
                             };
-                            createBox(nodes, nodeInfo);
                             $scope.shapes.push(nodeInfo);
+                            // $scope.$apply();
+                            var nodeboxes = nodes.querySelectorAll('.node-box');
+                            createBox(nodes, nodeInfo);
                         }
                         for (i = 0; i < graph.length; i++) {
                             var inputsData = graph[i].inputs;

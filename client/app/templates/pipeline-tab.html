@@ -43,5 +43,35 @@
 </div>
 <div class="pipeline-container">
     <div class="connections"></div>
-    <div class="nodes" data-ui-on-drop="dropHandler($event, $data)"></div>
+    <div class="nodes" data-ui-on-drop="dropHandler($event, $data)">
+        <div class="node-box" ng-repeat="nodeInfo in shapes" ng-mousedown="startMoving($event, null, nodeInfo);">
+            <div class="title"><span>{{nodeInfo.title}}</span></div>
+            <div class="inputs_outputs">
+                <div class="io-row clearfix" ng-repeat="input in nodeInfo.inputs | limitTo:min(nodeInfo.inputs.length, nodeInfo.outputs.length)">
+                    <div class="io-cell">
+                        <div class="circle end" ng-mousedown="createEndingConnection($event, input)" ng-mouseup="finishStartingConnection($event, input)"></div>
+                        <span>{{input.name}}</span>
+                    </div>
+                    <div class="io-cell">
+                        <span>{{nodeInfo.outputs[$index].name}}</span>
+                        <div class="circle start" ng-mousedown="createStartingConnection($event, nodeInfo.outputs[$index])" ng-mouseup="finishEndingConnection($event, nodeInfo.outputs[$index])"></div>
+                    </div>
+                </div>
+                <div class="io-row clearfix" ng-repeat="input in nodeInfo.inputs | limitTo:nodeInfo.inputs.length:min(nodeInfo.inputs.length, nodeInfo.outputs.length)">
+                    <div class="io-cell">
+                        <div class="circle end" ng-mousedown="createEndingConnection($event, input)" ng-mouseup="finishStartingConnection($event, input)"></div>
+                        <span>{{input.name}}</span>
+                    </div>
+                    <div class="io-cell"></div>
+                </div>
+                <div class="io-row clearfix" ng-repeat="output in nodeInfo.outputs | limitTo:nodeInfo.outputs.length:min(nodeInfo.inputs.length, nodeInfo.outputs.length)">
+                    <div class="io-cell"></div>
+                    <div class="io-cell">
+                        <span>{{output.name}}</span>
+                        <div class="circle start" ng-mousedown="createStartingConnection($event, output)" ng-mouseup="finishEndingConnection($event, output)"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

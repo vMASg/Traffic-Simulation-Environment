@@ -23,12 +23,10 @@
   ],
   "dependencies": {
     "angular": "1.4.7",
-    "angular-route-segment": "^1.5.1",
     "angular-ui-ace": "bower",
     "angular-bootstrap": "^1.3.2",
     "angular-tree-control": "^0.2.25",
     "angular-fx": "^1.1.0",
-    "angular-resource": "^1.5.5",
     "socket.io-client": "^1.4.6",
     "angular-socket-io": "^0.7.0",
     "raphael": "^2.2.0",

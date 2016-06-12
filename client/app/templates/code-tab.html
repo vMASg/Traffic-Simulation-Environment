@@ -3,41 +3,5 @@
     <div class="btn btn-default" data-ng-disabled="!data.id" data-ng-click="saveScript()">Save</div>
     <div class="btn btn-default" data-ng-click="saveScriptAs()">Save as</div>
     <div class="btn btn-default" data-ng-disabled="!data.id" data-ng-click="deleteScript()">Delete</div>
-    <script type="text/ng-template" id="saveAsModal.html">
-        <div class="modal-header">
-            <h3>Save as</h3>
-        </div>
-        <div class="modal-body form-group">
-            <!-- <input type="text" data-ng-model="saveLocation" class="form-control"> -->
-            <div class="nav-tree-container" style="float: none; height: 300px; width: 90%; margin: auto; border-radius: 4px">
-                <treecontrol
-                    class="tree-dark"
-                    tree-model="treeDirs"
-                    options="treeOptions"
-                    selected-node="selectedNode"
-                    filter-expression="onlyDirs"
-                    >
-                    {{node.name}}
-                </treecontrol>
-            </div>
-            <input type="text" class="form-control input" data-ng-model="filename" placeholder="File name" />
-        </div>
-        <div class="modal-footer">
-            <button class='btn btn-default' data-ng-click="$close([selectedNode.id, filename])">Save</button>
-            <button class='btn btn-default' data-ng-click="$dismiss('Canceled')">Cancel</button>
-        </div>
-    </script>
-    <script type="text/ng-template" id="deleteModal.html">
-        <div class="modal-header">
-            <h3>Delete Script {{data.name}}</h3>
-        </div>
-        <div class="modal-body">
-            <p>This action cannot be undone.</p>
-        </div>
-        <div class="modal-footer">
-            <button class='btn btn-danger' data-ng-click="$close()">Delete</button>
-            <button class='btn btn-default' data-ng-click="$dismiss('Canceled')">Cancel</button>
-        </div>
-    </script>
 </div>
 <div class="code-editor" ui-ace="aceOption" ng-model="code"></div>

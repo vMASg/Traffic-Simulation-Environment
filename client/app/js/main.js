@@ -363,7 +363,7 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
 
                     var modalInstance = $uibModal.open({
                         animate: true,
-                        templateUrl: 'saveAsModal.html',
+                        templateUrl: 'templates/saveas-modal.html',
                         scope: $scope
                     });
 
@@ -382,7 +382,7 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                 $scope.deleteScript = function () {
                     var modalInstance = $uibModal.open({
                         animate: true,
-                        templateUrl: 'deleteModal.html',
+                        templateUrl: 'templates/delete-modal.html',
                         scope: $scope
                     });
 
@@ -805,7 +805,7 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
 
                     var modalInstance = $uibModal.open({
                         animate: true,
-                        templateUrl: 'saveAsModal.html',
+                        templateUrl: 'templates/saveas-modal.html',
                         scope: $scope
                     });
 
@@ -828,7 +828,7 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                 $scope.deletePipeline = function () {
                     var modalInstance = $uibModal.open({
                         animate: true,
-                        templateUrl: 'deleteModal.html',
+                        templateUrl: 'templates/delete-modal.html',
                         scope: $scope
                     });
 

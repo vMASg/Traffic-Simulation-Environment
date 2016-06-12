@@ -584,6 +584,7 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                     }
                     box.style.top = nodeInfo.y + 'px';
                     box.style.left = nodeInfo.x + 'px';
+                    box.style.visibility = 'visible';
                     // return box;
                     // var getNode = function () {
                     //     return nodeInfo;

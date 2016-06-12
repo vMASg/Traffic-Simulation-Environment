@@ -44,7 +44,7 @@
 <div class="pipeline-container">
     <div class="connections"></div>
     <div class="nodes" data-ui-on-drop="dropHandler($event, $data)">
-        <div class="node-box" ng-repeat="nodeInfo in shapes" ng-mousedown="startMoving($event, null, nodeInfo);">
+        <div class="node-box" ng-repeat="nodeInfo in shapes" ng-mousedown="startMoving($event, null, nodeInfo);" style="visibility: hidden;">
             <div class="title"><span>{{nodeInfo.title}}</span></div>
             <div class="inputs_outputs">
                 <div class="io-row clearfix" ng-repeat="input in nodeInfo.inputs | limitTo:min(nodeInfo.inputs.length, nodeInfo.outputs.length)">

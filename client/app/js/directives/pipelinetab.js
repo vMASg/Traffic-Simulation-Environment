@@ -63,7 +63,6 @@ angular.module('trafficEnv')
                 };
 
                 var startMoving = $scope.startMoving = function (ev, target, nodeInfo) {
-                    // element = target;
                     // TODO refactor remove target parameter
                     if (!target) target = ev.currentTarget;
                     element = {target: target};
@@ -91,60 +90,20 @@ angular.module('trafficEnv')
                 };
 
                 var createBox = function (box, nodeInfo, posx, posy) {
-                    // var box = document.createElement('div');
-                    // var boxContent;
-                    // var connCircleStart = '<div class="circle start"></div>';
-                    // var connCircleEnd = '<div class="circle end"></div>';
-                    // boxContent  = '<div class="title"><span>' + nodeInfo.title + '</span></div>\n';
-                    // boxContent += '<div class="inputs_outputs">\n';
-                    // for (var i = 0; i < nodeInfo.inputs.length && i < nodeInfo.outputs.length; ++i) {
-                    //     boxContent += '<div class="io-row clearfix">\n';
-                    //     boxContent += '<div class="io-cell" uib-popover="hola" popover-trigger="contextmenu" popover-is-open="true" >'+ connCircleEnd + '<span>' + nodeInfo.inputs[i].name + '</span></div>';
-                    //     boxContent += '<div class="io-cell" uib-popover="hola" popover-trigger="contextmenu" popover-is-open="true" ><span>' + nodeInfo.outputs[i].name + '</span>' + connCircleStart + '</div>';
-                    //     boxContent += '</div>';
-                    // }
-                    // while (i < nodeInfo.inputs.length) {
-                    //     boxContent += '<div class="io-row clearfix">\n';
-                    //     boxContent += '<div class="io-cell" uib-popover="hola" popover-trigger="contextmenu" popover-is-open="true" >'+ connCircleEnd + '<span>' + nodeInfo.inputs[i].name + '</span></div>';
-                    //     boxContent += '<div class="io-cell" uib-popover="hola" popover-trigger="contextmenu" popover-is-open="true" ></div>';
-                    //     boxContent += '</div>';
-                    //     ++i;
-                    // }
-                    // while (i < nodeInfo.outputs.length) {
-                    //     boxContent += '<div class="io-row clearfix">\n';
-                    //     boxContent += '<div class="io-cell" uib-popover="hola" popover-trigger="contextmenu" popover-is-open="true" ></div>';
-                    //     boxContent += '<div class="io-cell" uib-popover="hola" popover-trigger="contextmenu" popover-is-open="true" ><span>' + nodeInfo.outputs[i].name + '</span>' + connCircleStart + '</div>';
-                    //     boxContent += '</div>';
-                    //     ++i;
-                    // }
-                    // boxContent += '</div>';
-                    // box.innerHTML = boxContent;
-                    // box.classList.add('node-box');
-                    // box.addEventListener('mousedown', function (ev) { startMoving(ev, box, nodeInfo); }, false);
                     var circles = box.querySelectorAll('.circle.start');
                     for (i = circles.length - 1; i >= 0; i--) {
                         var circ = circles[i];
                         var inp = nodeInfo.outputs[i];
-                        // var csc = function(inp) { return function(ev) { createStartingConnection(ev, inp); }; };
-                        // var fec = function (inp) { return function (ev) { finishEndingConnection(ev, inp); }; };
                         inp.getNode = function() { return nodeInfo; };
                         inp.getCircle = (function(circ) { return function() { return circ; }; })(circ);
-                        // circ.addEventListener('mousedown', csc(inp), false);
-                        // circ.addEventListener('mouseup', fec(inp), false);
                     }
                     circles = box.querySelectorAll('.circle.end');
                     for (i = circles.length - 1; i >= 0; i--) {
                         var circ = circles[i];
                         var out = nodeInfo.inputs[i];
-                        // var cec = function (out) { return function (ev) { createEndingConnection(ev, out); }; };
-                        // var fsc = function (out) { return function (ev) { finishStartingConnection(ev, out); }; };
                         out.getNode = function() { return nodeInfo; };
                         out.getCircle = (function(circ) { return function() { return circ; }; })(circ);
-                        // circ.addEventListener('mousedown', cec(out), false);
-                        // circ.addEventListener('mouseup', fsc(out), false);
                     }
-                    // parent.appendChild(box);
-                    // var width = parseInt(box.style.width), height = parseInt(box.style.height);
                     var wh = box.getBoundingClientRect();
                     if (posx && posy) {
                         nodeInfo.y = (posy - containerTop - wh.height/2);
@@ -153,16 +112,6 @@ angular.module('trafficEnv')
                     box.style.top = nodeInfo.y + 'px';
                     box.style.left = nodeInfo.x + 'px';
                     box.style.visibility = 'visible';
-                    // return box;
-                    // var getNode = function () {
-                    //     return nodeInfo;
-                    // };
-                    // for (var i = 0; i < nodeInfo.inputs.length; ++i) {
-                    //     nodeInfo.inputs[i].getNode = getNode;
-                    // }
-                    // for (i = 0; i < nodeInfo.outputs.length; ++i) {
-                    //     nodeInfo.outputs[i].getNode = getNode;
-                    // }
                 };
 
                 var startingPath;
@@ -326,7 +275,6 @@ angular.module('trafficEnv')
                 var paper = Raphael(iElm[0].children[1].children[0]);
 
                 $scope.dropHandler = function ($event, $data) {
-                    // console.log("Received dropdown", $data);
                     scriptServices.getScript($data, ['name', 'inout', 'path']).then(function (response) {
                         var nodeInfo = {
                             id: $scope.shapes.length,  // TODO replace by proper random id
@@ -336,7 +284,6 @@ angular.module('trafficEnv')
                             outputs: (response.data.inout[1] || []).map(function (a) { return {name: a}; })
                         };
                         $scope.shapes.push(nodeInfo);
-                        // $scope.$apply();
                         $timeout(function(){
                             var nodeboxes = nodes.querySelectorAll('.node-box');
                             createBox(nodeboxes[nodeboxes.length-1], nodeInfo, $event.clientX, $event.clientY);
@@ -355,7 +302,6 @@ angular.module('trafficEnv')
                         dirSelectable: true,
                         allowDeselect: false,
                         equality: function (a, b) {
-                            // return a === b || (a && b && !(a.id && !b.id || b.id && !a.id) && ((a.id && b.id && a.id === b.id) || !(a.id && b.id) && a.name === b.name));
                             return a.id === b.id && a.name === b.name;
                         },
                         isLeaf: function (a) {
@@ -427,7 +373,6 @@ angular.module('trafficEnv')
                                 y: node.y
                             };
                             $scope.shapes.push(nodeInfo);
-                            // $scope.$apply();
                         }
                         $timeout(function(){
                             var nodeboxes = nodes.querySelectorAll('.node-box');
@@ -462,8 +407,6 @@ angular.module('trafficEnv')
                                 }
                             }
                         }, 5);
-                        // TODO REMOVE, this is just to validate
-                        // console.log("Testing loaded correctly:", angular.toJson(transformOutputGraph($scope.shapes)) === data.data.graph);
                     });
                 }
                 $timeout(recomputeContainer, 200);

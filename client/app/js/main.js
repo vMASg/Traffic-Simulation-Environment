@@ -585,6 +585,15 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                     box.style.top = nodeInfo.y + 'px';
                     box.style.left = nodeInfo.x + 'px';
                     // return box;
+                    // var getNode = function () {
+                    //     return nodeInfo;
+                    // };
+                    // for (var i = 0; i < nodeInfo.inputs.length; ++i) {
+                    //     nodeInfo.inputs[i].getNode = getNode;
+                    // }
+                    // for (i = 0; i < nodeInfo.outputs.length; ++i) {
+                    //     nodeInfo.outputs[i].getNode = getNode;
+                    // }
                 };
 
                 var startingPath;
@@ -759,8 +768,10 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                         };
                         $scope.shapes.push(nodeInfo);
                         // $scope.$apply();
-                        var nodeboxes = nodes.querySelectorAll('.node-box');
-                        createBox(nodeboxes[nodeboxes.length-1], nodeInfo, $event.clientX, $event.clientY);
+                        $timeout(function(){
+                            var nodeboxes = nodes.querySelectorAll('.node-box');
+                            createBox(nodeboxes[nodeboxes.length-1], nodeInfo, $event.clientX, $event.clientY);
+                        }, 5);
                     });
                 };
 
@@ -848,36 +859,40 @@ angular.module('trafficEnv', ['treeControl', 'ui.ace', 'APIServices', 'ui.bootst
                             };
                             $scope.shapes.push(nodeInfo);
                             // $scope.$apply();
-                            var nodeboxes = nodes.querySelectorAll('.node-box');
-                            createBox(nodes, nodeInfo);
                         }
-                        for (i = 0; i < graph.length; i++) {
-                            var inputsData = graph[i].inputs;
-                            var inputsCreated = $scope.shapes[i].inputs;
-                            for (var j = 0; j < inputsData.length; ++j) {
-                                var origin = inputsData[j].origin;
-                                if (origin) {
-                                    var node = $scope.shapes.find(function (e) {
-                                        return e.id === origin.node;
-                                    });
-                                    var output = node.outputs.find(function (out) {
-                                        return out.name === origin.connector;
-                                    });
-                                    var input = inputsCreated[j];
-                                    var inpbox = input.getCircle().getBoundingClientRect();
-                                    var outbox = output.getCircle().getBoundingClientRect();
-                                    var oleft = outbox.left - containerLeft, otop = outbox.top - containerTop;
-                                    var ileft = inpbox.left - containerLeft, itop = inpbox.top - containerTop;
-                                    var path = paper.path(createPath(oleft + outbox.width / 2, otop + outbox.height / 2, ileft + inpbox.width / 2, itop + inpbox.height / 2));
-                                    path.attr({stroke: '#4E4F4F', 'stroke-width': 2});
-                                    if (!output.connections) {
-                                        output.connections = [];
+                        $timeout(function(){
+                            var nodeboxes = nodes.querySelectorAll('.node-box');
+                            for (var i = 0; i < nodeboxes.length; ++i) {
+                                createBox(nodeboxes[i], $scope.shapes[i]);
+                            }
+                            for (i = 0; i < graph.length; i++) {
+                                var inputsData = graph[i].inputs;
+                                var inputsCreated = $scope.shapes[i].inputs;
+                                for (var j = 0; j < inputsData.length; ++j) {
+                                    var origin = inputsData[j].origin;
+                                    if (origin) {
+                                        var node = $scope.shapes.find(function (e) {
+                                            return e.id === origin.node;
+                                        });
+                                        var output = node.outputs.find(function (out) {
+                                            return out.name === origin.connector;
+                                        });
+                                        var input = inputsCreated[j];
+                                        var inpbox = input.getCircle().getBoundingClientRect();
+                                        var outbox = output.getCircle().getBoundingClientRect();
+                                        var oleft = outbox.left - containerLeft, otop = outbox.top - containerTop;
+                                        var ileft = inpbox.left - containerLeft, itop = inpbox.top - containerTop;
+                                        var path = paper.path(createPath(oleft + outbox.width / 2, otop + outbox.height / 2, ileft + inpbox.width / 2, itop + inpbox.height / 2));
+                                        path.attr({stroke: '#4E4F4F', 'stroke-width': 2});
+                                        if (!output.connections) {
+                                            output.connections = [];
+                                        }
+                                        output.connections.push({pathObj: path, destination: input});
+                                        input.input = {pathObj: path, origin: output};
                                     }
-                                    output.connections.push({pathObj: path, destination: input});
-                                    input.input = {pathObj: path, origin: output};
                                 }
                             }
-                        }
+                        }, 5);
                         // TODO REMOVE, this is just to validate
                         // console.log("Testing loaded correctly:", angular.toJson(transformOutputGraph($scope.shapes)) === data.data.graph);
                     });

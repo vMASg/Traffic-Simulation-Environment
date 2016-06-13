@@ -7,7 +7,7 @@
 </div>
 <div class="pipeline-container">
     <div class="connections"></div>
-    <div class="nodes" data-ui-on-drop="dropHandler($event, $data)">
+    <div class="nodes" data-ui-on-drop="dropHandler($event, $data)" ng-mousemove="mousemove($event);drawpath($event)" ng-mouseup="stopMoving($event)">
         <div class="node-box" ng-repeat="nodeInfo in shapes" ng-mousedown="startMoving($event, null, nodeInfo);" style="visibility: hidden;">
             <div class="title"><span>{{nodeInfo.title}}</span></div>
             <div class="inputs_outputs">

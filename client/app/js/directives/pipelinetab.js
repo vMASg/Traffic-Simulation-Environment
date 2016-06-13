@@ -24,7 +24,7 @@ angular.module('trafficEnv')
                     pathObj.attr({path: createPath(oleft + owidth / 2, otop + oheight / 2, dleft + dwidth / 2, dtop + dheight / 2)});
                 };
 
-                var mousemove = function (ev) {
+                $scope.mousemove = function (ev) {
                     if (element && element.moving) {
                         var posX = ev.clientX, posY = ev.clientY;
                         var aX = posX - element.diffX, aY = posY - element.diffY;
@@ -62,7 +62,7 @@ angular.module('trafficEnv')
                     }
                 };
 
-                var startMoving = $scope.startMoving = function (ev, target, nodeInfo) {
+                $scope.startMoving = function (ev, target, nodeInfo) {
                     // TODO refactor remove target parameter
                     if (!target) target = ev.currentTarget;
                     element = {target: target};
@@ -81,7 +81,7 @@ angular.module('trafficEnv')
                     target.classList.add('moving');
                 };
 
-                var stopMoving = function (ev) {
+                $scope.stopMoving = function (ev) {
                     if (element) {                    
                         element.moving = false;
                         element.target.classList.remove('moving');
@@ -115,7 +115,7 @@ angular.module('trafficEnv')
                 };
 
                 var startingPath;
-                var createStartingConnection = $scope.createStartingConnection = function (ev, nodeConnector) {
+                $scope.createStartingConnection = function (ev, nodeConnector) {
                     ev.stopPropagation();
                     if (!endingPath && !startingPath) {
                         var element = ev.target;
@@ -135,7 +135,7 @@ angular.module('trafficEnv')
                 };
 
                 var endingPath;
-                var createEndingConnection = $scope.createEndingConnection = function (ev, nodeConnector) {
+                $scope.createEndingConnection = function (ev, nodeConnector) {
                     ev.stopPropagation();
                     if (!startingPath && !endingPath) {
                         var element = ev.target;
@@ -154,7 +154,7 @@ angular.module('trafficEnv')
                     }
                 };
 
-                var drawpath = function (ev) {
+                $scope.drawpath = function (ev) {
                     var newX = ev.clientX - containerLeft;
                     var newY = ev.clientY - containerTop;
                     var newPath;
@@ -167,7 +167,7 @@ angular.module('trafficEnv')
                     }
                 };
 
-                var finishStartingConnection = $scope.finishStartingConnection = function (ev, nodeConnector) {
+                $scope.finishStartingConnection = function (ev, nodeConnector) {
                     if (startingPath && nodeConnector.getNode() !== startingPath.connectorOut.getNode()) {
                         var element = ev.target;
                         var boundingClientRect = element.getBoundingClientRect();
@@ -189,7 +189,7 @@ angular.module('trafficEnv')
                     }
                 };
 
-                var finishEndingConnection = $scope.finishEndingConnection = function (ev, nodeConnector) {
+                $scope.finishEndingConnection = function (ev, nodeConnector) {
                     if (endingPath && nodeConnector.getNode() !== endingPath.connectorIn.getNode()) {
                         var element = ev.target;
                         var boundingClientRect = element.getBoundingClientRect();
@@ -263,10 +263,7 @@ angular.module('trafficEnv')
                     containerLeft = boundingClientRect.left;
                     containerTop = boundingClientRect.top;
                 };
-                nodes.addEventListener('mousemove', mousemove, false);
-                nodes.addEventListener('mousemove', drawpath, false);
-                nodes.addEventListener('mouseup', stopMoving, false);
-                nodes.addEventListener('resize', recomputeContainer, false);
+
                 var boundingClientRect = nodes.getBoundingClientRect();
                 var containerWidth = boundingClientRect.width;
                 var containerHeight = boundingClientRect.height;

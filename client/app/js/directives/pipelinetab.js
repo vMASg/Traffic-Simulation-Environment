@@ -354,6 +354,10 @@ angular.module('trafficEnv')
 
                 $scope.shapes = [];
                 $scope.min = Math.min;
+                $scope.openContextMenu = function (nodeInfo) {
+                    nodeInfo.optionsOpen = !nodeInfo.optionsOpen;
+                };
+
                 if ($scope.data.id) {
                     pipelineServices.getPipeline($scope.data.id).then(function (data) {
                         recomputeContainer();

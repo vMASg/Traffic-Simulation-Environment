@@ -264,6 +264,8 @@ treecontrol ul {
     list-style: none;
     margin: 0;
     padding: 0;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .popover-content {
@@ -282,6 +284,10 @@ treecontrol ul {
 .pipelinenode-options > ul li:first-child {
     border: none;
     padding-top: 4px;
+}
+
+.pipelinenode-options > ul li:hover {
+    cursor: pointer;
 }
 
 ::-webkit-scrollbar,::-webkit-scrollbar {

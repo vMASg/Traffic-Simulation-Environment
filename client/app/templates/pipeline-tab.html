@@ -7,9 +7,9 @@
     <script type="text/ng-template" id="nodeOptions.html">
         <div class="pipelinenode-options">
             <ul>
-                <li>Add preceding connector</li>
-                <li>Add succeeding connector</li>
-                <li>Delete node</li>
+                <li data-ng-click="pipelineNode.addPrecedingConnector()">Add preceding connector</li>
+                <li data-ng-click="pipelineNode.addSucceedingConnector()">Add succeeding connector</li>
+                <li data-ng-click="pipelineNode.deleteNode()">Delete node</li>
             </ul>
         </div>
     </script>

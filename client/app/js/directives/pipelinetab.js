@@ -356,11 +356,15 @@ angular.module('trafficEnv')
                 $scope.min = Math.min;
                 $scope.openContextMenu = function (nodeInfo) {
                     nodeInfo.optionsOpen = !nodeInfo.optionsOpen;
+                    $scope.pipelineNode.nodeInfo = nodeInfo;
                 };
 
                 $scope.pipelineNode = {
-                    template: 'nodeOptions.html'
-                    // title: 'Node Options'
+                    template: 'nodeOptions.html',
+                    nodeInfo: null,
+                    addPrecedingConnector: function () {
+                        $scope.pipelineNode.nodeInfo.inputs.unshift({name: 'pre', origin: null});
+                    }
                 };
 
                 if ($scope.data.id) {

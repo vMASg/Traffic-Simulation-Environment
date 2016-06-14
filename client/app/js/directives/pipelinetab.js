@@ -358,6 +358,11 @@ angular.module('trafficEnv')
                     nodeInfo.optionsOpen = !nodeInfo.optionsOpen;
                 };
 
+                $scope.pipelineNode = {
+                    template: 'nodeOptions.html'
+                    // title: 'Node Options'
+                };
+
                 if ($scope.data.id) {
                     pipelineServices.getPipeline($scope.data.id).then(function (data) {
                         recomputeContainer();

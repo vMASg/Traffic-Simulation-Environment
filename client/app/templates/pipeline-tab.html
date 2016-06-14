@@ -7,9 +7,9 @@
     <script type="text/ng-template" id="nodeOptions.html">
         <div class="pipelinenode-options">
             <ul>
-                <li>01</li>
-                <li>02</li>
-                <li>03</li>
+                <li>Add preceding connector</li>
+                <li>Add succeeding connector</li>
+                <li>Delete node</li>
             </ul>
         </div>
     </script>
@@ -17,7 +17,7 @@
 <div class="pipeline-container">
     <div class="connections"></div>
     <div class="nodes" data-ui-on-drop="dropHandler($event, $data)" ng-mousemove="mousemove($event);drawpath($event)" ng-mouseup="stopMoving($event)">
-        <div class="node-box" ng-repeat="nodeInfo in shapes" ng-mousedown="startMoving($event, null, nodeInfo);" style="visibility: hidden;" uib-popover-template="nodeOptions.html" uib-popover-title="Popover" uib-popover-trigger="none" uib-popover-placement="right-top" uib-popover-is-open="nodeInfo.optionsOpen" ng-context-menu="openContextMenu(nodeInfo)">
+        <div class="node-box" ng-repeat="nodeInfo in shapes" ng-mousedown="startMoving($event, null, nodeInfo);" style="visibility: hidden;" uib-popover-template="pipelineNode.template" popover-trigger="none" popover-placement="right-top" popover-is-open="nodeInfo.optionsOpen" ng-context-menu="openContextMenu(nodeInfo)">
             <div class="title"><span>{{nodeInfo.title}}</span></div>
             <div class="inputs_outputs">
                 <div class="io-row clearfix" ng-repeat="input in nodeInfo.inputs | limitTo:min(nodeInfo.inputs.length, nodeInfo.outputs.length)">

@@ -260,6 +260,30 @@ treecontrol ul {
     margin-left: 10px;
 }
 
+.pipelinenode-options > ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.popover-content {
+    padding: 0;
+}
+
+.pipelinenode-options > ul li {
+    text-align: center;
+    border-top: 1px solid #ccc;
+    padding-top: 3px;
+    padding-bottom: 4px;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.pipelinenode-options > ul li:first-child {
+    border: none;
+    padding-top: 4px;
+}
+
 ::-webkit-scrollbar,::-webkit-scrollbar {
     width: 7px;
     height: 7px;

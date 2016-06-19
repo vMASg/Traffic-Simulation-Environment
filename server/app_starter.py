@@ -1,3 +1,5 @@
+import os
+import eventlet
 from flask import Flask, send_from_directory
 from flask_restful import Resource, Api
 from flask_socketio import SocketIO
@@ -25,8 +27,10 @@ class AppStarter(Resource):
         # super(AppStarter, self).__init__()
         self._static_files_root_folder_path = ''
         self._app = Flask(__name__)
+        self._app.config['SECRET_KEY'] = os.urandom(24).encode('hex')  # TODO check if needs to be the same key
         self._api = Api(self._app)
-        self._socketio = SocketIO(self._app)
+        eventlet.monkey_patch()
+        self._socketio = SocketIO(self._app, async_mode='eventlet')
         self._subscription = Subscription(self._socketio, '/subscription')
 
     def _register_static_server(self, static_files_root_folder_path):

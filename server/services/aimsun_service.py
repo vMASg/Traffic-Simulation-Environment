@@ -1,4 +1,6 @@
 import sys
+import threading
+from Queue import Queue, Empty as QueueEmpty
 from subprocess import Popen, PIPE
 
 def enum(*sequential, **named):
@@ -79,16 +81,108 @@ class AimsunProc(AimsunProcState):
         )
         return "OK"
 
+class PipelineThread(threading.Thread):
+    def __init__(self, pipeline, aconsole_path, subscription, output, event):
+        super(PipelineThread, self).__init__()
+        self.pipeline = pipeline
+        self.aconsole_path = aconsole_path
+        self.subscription = subscription
+        self.output = output
+        self.event = event
+        self._cmd = None
+
+    def _send_msg(self, msg):
+        self._cmd.stdin.write("%d\n" % len(msg))
+        self._cmd.stdin.write(msg)
+        self._cmd.stdin.flush()
+
+    def _receive_msg(self):
+        msg_len = int(self._cmd.stdout.readline()[:-2])
+        return self._cmd.stdout.read(msg_len)
+
+    def run(self):
+        self._cmd = Popen(
+            [self.aconsole_path, '-script', 'external\\aimsun_executor.py', self.pipeline]
+        )
+        if self._receive_msg() == 'READY':
+            self.output.put(True)
+            self._cmd.wait()
+            self.event.set()
+        else:
+            self.output.put(False)
+
+
+class ThreadSpawner(threading.Thread):
+    def __init__(self, execution_queue, subscriptor_sender, aconsole_path):
+        super(ThreadSpawner, self).__init__()
+        self.execution_queue = execution_queue
+        self.subscriptor_sender = subscriptor_sender
+        self.aconsole_path = aconsole_path
+        self.stoprequest = threading.Event()
+        self.threads = []
+        self._next_pipeline = None
+        self._event = threading.Event()
+
+    def run(self):
+        while not self.stoprequest.is_set():
+            while self._next_pipeline is None and not self.stoprequest.is_set():
+                self._spwn_pipelines()
+                for thr in self.threads:
+                    if not thr.is_alive():
+                        del thr
+
+            self._spwn_pipelines()
+            # TODO add timeout (and cancel threads) in case of final join
+            self._event.wait()
+            self._event.clear()
+            for thr in self.threads:
+                if not thr.is_alive():
+                    del thr
+
+        # TODO kill all threads (cancel executions)
+        for thr in self.threads:
+            if thr.is_alive():
+                thr.join()
+
+    def _spwn_pipelines(self):
+        spwn_success = True
+        while spwn_success:
+            try:
+                self._next_pipeline = self.execution_queue.get(True, 0.5) if self._next_pipeline is None else self._next_pipeline
+            except QueueEmpty:
+                spwn_success = False
+                self._next_pipeline = None
+            else:
+                output = Queue
+                new_thread = PipelineThread(self._next_pipeline, self.aconsole_path, self.subscriptor_sender, output, self._event)
+                new_thread.start()
+                # Check if spwn has been successful
+                try:
+                    spwn_success = output.get(True, 5.0)
+                except QueueEmpty:
+                    spwn_success = False
+                else:
+                    if spwn_success:
+                        self._next_pipeline = None
+                        self.threads.append(new_thread)
+
+    def join(self, timeout=None):
+        self.stoprequest.set()
+        super(ThreadSpawner, self).join(timeout)
+
 
 class AimsunService(object):
     """docstring for AimsunService"""
-    def __init__(self, aconsole_path, script_path):
+    def __init__(self, aconsole_path):
         super(AimsunService, self).__init__()
-        self._aimsun_proc1 = AimsunProc(aconsole_path, script_path)
-        self._aimsun_proc2 = AimsunProc(aconsole_path, script_path)
+        self._aconsole_path = aconsole_path
+        self._execution_queue = Queue()
+        self._execution_thread = ThreadSpawner(self._execution_queue, subscriptor_sender, aconsole_path)
+        self._execution_thread.start()
 
     def run_script(self, script_content, model_id):
         return self._aimsun_proc1.run_script(script_content, model_id)
 
     def run_pipeline(self, pipeline_path):
-        return self._aimsun_proc1.run_pipeline(pipeline_path)
+        self._execution_queue.append(pipeline_path)
+        # return self._aimsun_proc1.run_pipeline(pipeline_path)

@@ -1,10 +1,17 @@
-from flask_socketio import emit
+from flask_socketio import emit, join_room, leave_room
 
 def connect():
     emit('msg', 'connected')
 
 def disconnect():
-	pass
+    pass
+
+class SubscriptionChannel(object):
+    """docstring for SubscriptionChannel"""
+    def __init__(self, channel_name):
+        super(SubscriptionChannel, self).__init__()
+        self.channel_name = channel_name
+
 
 class Subscription(object):
     """docstring for Subscription"""

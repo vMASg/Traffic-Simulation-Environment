@@ -58,7 +58,7 @@ class AppStarter(Resource):
         self._app.add_url_rule('/models/<id>/runscript/<script_id>', 'run_script', model.run_script, methods=['GET', 'POST'])
 
         # Pipeline
-        pipeline_executor = PipelineExecutor(aimsun_service, pipeline_service, script_service)
+        pipeline_executor = PipelineExecutor(aimsun_service, pipeline_service, script_service, self._subscription)
         self._app.add_url_rule('/pipelines/<id>/run', 'run_pipeline', pipeline_executor.run_pipeline, methods=['GET', 'POST'])
 
     def _goto_index(self):

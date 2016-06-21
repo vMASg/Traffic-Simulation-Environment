@@ -71,6 +71,8 @@ def main(argv):
 
 
 if __name__ == '__main__':
+    sys.stderr.write('READY\n')
+    sys.stderr.flush()
     try:
         main(sys.argv)
     except:

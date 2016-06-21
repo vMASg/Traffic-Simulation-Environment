@@ -29,7 +29,7 @@ class AppStarter(Resource):
         self._app = Flask(__name__)
         self._app.config['SECRET_KEY'] = os.urandom(24).encode('hex')  # TODO check if needs to be the same key
         self._api = Api(self._app)
-        eventlet.monkey_patch()
+        eventlet.monkey_patch(os=False)
         self._socketio = SocketIO(self._app, async_mode='eventlet')
         self._subscription = Subscription(self._socketio, '/subscription')
 
@@ -44,7 +44,7 @@ class AppStarter(Resource):
         script_service = ScriptService(root_folder=SCRIPTS_ROOT_FOLDER)
         pipeline_service = PipelineService(root_folder=PIPELINES_ROOT_FOLDER)
         model_service = ModelService(root_folder=MODELS_ROOT_FOLDER)
-        aimsun_service = AimsunService(ACONSOLE_PATH, AIMSUN_SCRIPT_PATH)
+        aimsun_service = AimsunService(ACONSOLE_PATH)
         self._api.add_resource(ScriptCollection, '/scripts', resource_class_kwargs={'script_locator': script_service, 'subscription_service': self._subscription})
         self._api.add_resource(Script, '/scripts/<id>', resource_class_kwargs={'script_locator': script_service, 'subscription_service': self._subscription})
         self._api.add_resource(PipelineCollection, '/pipelines', resource_class_kwargs={'pipeline_locator': pipeline_service, 'subscription_service': self._subscription})

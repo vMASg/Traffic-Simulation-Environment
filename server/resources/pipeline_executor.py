@@ -8,6 +8,8 @@ class PipelineExecutor(object):
         self.pipeline_service = pipeline_service
         self.script_service = script_service
         self.subscription_service = subscription_service
+        self.pipeline_channel = subscription_service.create_channel('executions')
+        self.pipeline_channel.start()
 
     def run_pipeline(self, id):
         pipeline_path = self.pipeline_service.get_path_for_execution(id)
@@ -24,4 +26,5 @@ class PipelineExecutor(object):
         # Create a new channel to send output to users
         sc = self.subscription_service.create_channel('pipeline-' + id)
         self.aimsun_service.run_pipeline(pipeline_path, sc)
-        return {'channel': 'pipeline-' + id}
+        self.pipeline_channel.broadcast({'channel': sc.channel_name})
+        return 'OK'

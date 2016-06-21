@@ -155,6 +155,20 @@ angular.module('trafficEnv')
                     deletePipeline($scope.treeFiles[2].children, where, id);
                     $scope.deleteTab(id);
                 });
+
+                // Subscribe to new pipeline executions
+                socket.emit('subscribe', {'channel': 'executions'});
+
+                socket.on('executions:event', function (data) {
+                    console.log(data);
+                    socket.emit('subscribe', {'channel': data.data.channel});
+                    socket.on(data.data.channel + ':event', function (data) {
+                        console.log(data);
+                    });
+                    socket.on(data.data.channel + ':catchUp', function (data) {
+                        console.log(data);
+                    });
+                });
             }],
         };
     });

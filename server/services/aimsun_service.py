@@ -4,40 +4,50 @@ from subprocess import Popen, PIPE
 
 class PipelineThread(threading.Thread):
     def __init__(self, pipeline, aconsole_path, subscription_channel, output, event):
-        super(PipelineThread, self).__init__()
+        super(PipelineThread, self).__init__(name='PipelineThread')
         self.pipeline = pipeline
         self.aconsole_path = aconsole_path
         self.subscription_channel = subscription_channel
         self.output = output
         self.event = event
-        self._cmd = None
 
     def run(self):
-        self._cmd = Popen(
-            [self.aconsole_path, '-script', 'external\\aimsun_executor.py', self.pipeline],
-            stdin=PIPE,
+        cmd = Popen(
+            [self.aconsole_path, '-script', 'server\\external\\aimsun_executor.py', self.pipeline],
+            # stdin=PIPE,
             stdout=PIPE,
+            stderr=PIPE
             # universal_newlines=True
         )
-        if self._cmd.stderr.readline().strip() == 'READY':
+        if cmd.stderr.readline().strip() == 'READY':
+            print 'READY'
             self.output.put(True)
-            ret_code = self._cmd.poll()
+            ret_code = cmd.poll()
             self.subscription_channel.start()
             while ret_code is None:
-                output = self._cmd.stdout.readline()
+                output = cmd.stdout.readline().strip()
                 # write to subscription_channel
-                self.subscription_channel.broadcast(output)
-                ret_code = self._cmd.poll()
+                if len(output) > 0:
+                    self.subscription_channel.broadcast(output)
+                ret_code = cmd.poll()
+
             # self.output.put(ret_code)
+            # Print everything left in buffer
+            output = cmd.stdout.read()
+            cmd.stdout.close()
+            cmd.stderr.close()
+            if len(output) > 0:
+                self.subscription_channel.broadcast(output)
             self.subscription_channel.end()
             self.event.set()
         else:
+            print 'ERROR'
             self.output.put(False)
 
 
 class ThreadSpawner(threading.Thread):
     def __init__(self, execution_queue, aconsole_path):
-        super(ThreadSpawner, self).__init__()
+        super(ThreadSpawner, self).__init__(name='ThreadSpawner')
         self.execution_queue = execution_queue
         self.aconsole_path = aconsole_path
         self.stoprequest = threading.Event()
@@ -75,7 +85,7 @@ class ThreadSpawner(threading.Thread):
                 spwn_success = False
                 self._next_pipeline = None
             else:
-                output = Queue
+                output = Queue()
                 new_thread = PipelineThread(self._next_pipeline[0], self.aconsole_path, self._next_pipeline[1], output, self._event)
                 new_thread.start()
                 # Check if spwn has been successful

@@ -5,6 +5,15 @@ import imp
 from aimsun_scriptreg import get_inputs, get_outputs, get_main_class
 from itertools import izip_longest as izipl
 
+import threading
+
+def gibberish(end):
+    ev = threading.Event()
+    while not end.is_set():
+        ev.wait(0.5)
+        sys.stderr.write('[WKUP]\n')
+        sys.stderr.flush()
+
 def find(f, l):
     for elem in l:
         if f(elem):
@@ -12,6 +21,9 @@ def find(f, l):
     return None
 
 def main(argv):
+    end_thread = threading.Event()
+    t = threading.Thread(target=gibberish, args=(end_thread,))
+    t.start()
     pipeline_path = argv[1]
     with open(pipeline_path, 'r') as f:
         pipeline = json.loads(f.read())
@@ -68,6 +80,9 @@ def main(argv):
         elif len(output_names) > 1:
             for output_name, output_value in zip(output_names, list(output)):
                 setattr(node['class'], output_name, output_value)
+
+    end_thread.set()
+    t.join()
 
 
 if __name__ == '__main__':

@@ -1,6 +1,6 @@
 import threading
 from Queue import Queue, Empty as QueueEmpty
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, STDOUT
 
 class PipelineThread(threading.Thread):
     def __init__(self, pipeline, aconsole_path, subscription_channel, output, event):
@@ -13,29 +13,39 @@ class PipelineThread(threading.Thread):
 
     def run(self):
         cmd = Popen(
-            [self.aconsole_path, '-script', 'server\\external\\aimsun_executor.py', self.pipeline],
+            ['python', 'server\\external\\aimsun_executor.py', self.pipeline],
             # stdin=PIPE,
             stdout=PIPE,
-            stderr=PIPE
+            stderr=STDOUT
             # universal_newlines=True
         )
-        if cmd.stderr.readline().strip() == 'READY':
+        blocker = threading.Event()
+        if cmd.stdout.readline().strip() == 'READY':
             print 'READY'
             self.output.put(True)
             ret_code = cmd.poll()
             self.subscription_channel.start()
             while ret_code is None:
-                output = cmd.stdout.readline().strip()
+                output = '[WKUP]'
+                while output.endswith('[WKUP]'):
+                    output = output[:-6]
+                    output += cmd.stdout.readline().strip()
+                    blocker.wait(0.2)
+                    # print 'stuck'
+
+                print "out: {}".format(output)
                 # write to subscription_channel
                 if len(output) > 0:
+                    print 'yup'
                     self.subscription_channel.broadcast(output)
                 ret_code = cmd.poll()
 
             # self.output.put(ret_code)
             # Print everything left in buffer
             output = cmd.stdout.read()
+            print "finished {}: {}".format(ret_code, output)
             cmd.stdout.close()
-            cmd.stderr.close()
+            # cmd.stderr.close()
             if len(output) > 0:
                 self.subscription_channel.broadcast(output)
             self.subscription_channel.end()

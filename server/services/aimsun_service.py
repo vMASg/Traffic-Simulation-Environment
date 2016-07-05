@@ -42,7 +42,7 @@ class PipelineThread(threading.Thread):
 
             # self.output.put(ret_code)
             # Print everything left in buffer
-            output = cmd.stdout.read()
+            output = cmd.stdout.read().strip()
             print "finished {}: {}".format(ret_code, output)
             cmd.stdout.close()
             # cmd.stderr.close()

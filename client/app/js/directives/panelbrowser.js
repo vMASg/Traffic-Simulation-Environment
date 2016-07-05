@@ -159,15 +159,24 @@ angular.module('trafficEnv')
                 // Subscribe to new pipeline executions
                 socket.emit('subscribe', {'channel': 'executions'});
 
-                socket.on('executions:event', function (data) {
+                socket.on('executions:event', function onExecutionsEvent (data) {
                     console.log(data);
                     socket.emit('subscribe', {'channel': data.data.channel});
-                    socket.on(data.data.channel + ':event', function (data) {
+                    var onChannelEvent = function (data) {
                         console.log(data);
-                    });
-                    socket.on(data.data.channel + ':catchUp', function (data) {
+                    };
+                    var onChannelCatchUp = function (data) {
                         console.log(data);
-                    });
+                    };
+                    var onChannelEOT = function () {
+                        socket.emit('unsubscribe', {'channel': data.data.channel});
+                        socket.removeListener(data.data.channel + ':event', onChannelEvent);
+                        socket.removeListener(data.data.channel + ':catchUp', onChannelCatchUp);
+                        socket.removeListener(data.data.channel + ':EOT', onChannelEOT);
+                    };
+                    socket.on(data.data.channel + ':event', onChannelEvent);
+                    socket.on(data.data.channel + ':catchUp', onChannelCatchUp);
+                    socket.on(data.data.channel + ':EOT', onChannelEOT);
                 });
             }],
         };

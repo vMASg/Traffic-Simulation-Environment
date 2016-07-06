@@ -20,6 +20,18 @@
         <div class="node-box" ng-repeat="nodeInfo in shapes" ng-mousedown="startMoving($event, null, nodeInfo);" style="visibility: hidden;" uib-popover-template="pipelineNode.template" popover-trigger="none" popover-placement="right-top" popover-is-open="nodeInfo.optionsOpen" ng-context-menu="openContextMenu(nodeInfo)">
             <div class="title"><span>{{nodeInfo.title}}</span></div>
             <div class="inputs_outputs">
+                <!-- Adding special preceding & succeeding connectors -->
+                <div class="io-row clearfix">
+                    <div class="io-cell preceding">
+                        <div class="circle end" ng-mousedown="createPredecessor($event, nodeInfo)" ng-mouseup="finishSuccessor($event, nodeInfo)"></div>
+                        <span>predecessors</span>
+                    </div>
+                    <div class="io-cell succeeding">
+                        <span>successors</span>
+                        <div class="circle start" ng-mousedown="createSuccessor($event, nodeInfo)" ng-mouseup="finishPredecessor($event, nodeInfo)"></div>
+                    </div>
+                </div>
+                <!-- Adding inputs & outputs -->
                 <div class="io-row clearfix" ng-repeat="input in nodeInfo.inputs | limitTo:min(nodeInfo.inputs.length, nodeInfo.outputs.length)">
                     <div class="io-cell">
                         <div class="circle end" ng-mousedown="createEndingConnection($event, input)" ng-mouseup="finishStartingConnection($event, input)"></div>

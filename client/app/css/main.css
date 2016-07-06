@@ -250,6 +250,16 @@ treecontrol ul {
     height: 9px;
 }
 
+.io-cell.preceding > .circle,
+.io-cell.succeeding > .circle {
+    background-color: #a7761e;
+}
+
+.io-cell.preceding > span,
+.io-cell.succeeding > span {
+    font-style: italic;
+}
+
 .pipeline-container .io-cell:first-child > .circle {
     float: left;
     margin-right: 10px;

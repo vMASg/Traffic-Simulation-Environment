@@ -49,7 +49,8 @@ def main(argv):
             if script['id'] in removed_nodes:
                 continue
             inpts = filter(lambda e: e['origin'] and e['origin']['node'] not in removed_nodes, script['inputs'])
-            if len(inpts) == 0:
+            pre = filter(lambda e: e['origin'] not in removed_nodes, script['predecessors'])
+            if len(inpts) == 0 and len(pre) == 0:
                 removed_nodes.append(script['id'])
                 execution_graph.append({'script': script, 'class': get_main_class(script['path'])})
 

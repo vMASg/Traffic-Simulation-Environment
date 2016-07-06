@@ -59,6 +59,22 @@ angular.module('trafficEnv')
                                 }
                             }
                         }
+                        var predecessors = element.nodeInfo.predecessors;
+                        var circ = predecessors.getCircle();
+                        for (var i = predecessors.length - 1; i >= 0; i--) {
+                            var inp = predecessors[i];
+                            var path = inp.pathObj;
+                            var circOrig = inp.origin.successors.getCircle();
+                            updateConnection(circ, circOrig, path);
+                        }
+                        var successors = element.nodeInfo.successors;
+                        var circOrig = successors.getCircle();
+                        for (var i = successors.length - 1; i >= 0; i--) {
+                            var inp = successors[i];
+                            var path = inp.pathObj;
+                            var circ = inp.destination.predecessors.getCircle();
+                            updateConnection(circ, circOrig, path);
+                        }
                     }
                 };
 
@@ -91,19 +107,23 @@ angular.module('trafficEnv')
 
                 var createBox = function (box, nodeInfo, posx, posy) {
                     var circles = box.querySelectorAll('.circle.start');
-                    for (i = circles.length - 1; i >= 0; i--) {
+                    var i;
+                    // Ignoring first elements (preceding /succeeding connectors)
+                    for (i = circles.length - 1; i >= 1; i--) {
                         var circ = circles[i];
-                        var inp = nodeInfo.outputs[i];
+                        var inp = nodeInfo.outputs[i-1];
                         inp.getNode = function() { return nodeInfo; };
                         inp.getCircle = (function(circ) { return function() { return circ; }; })(circ);
                     }
+                    nodeInfo.successors.getCircle = (function(circ) { return function() { return circ; }; })(circles[0]);
                     circles = box.querySelectorAll('.circle.end');
-                    for (i = circles.length - 1; i >= 0; i--) {
+                    for (i = circles.length - 1; i >= 1; i--) {
                         var circ = circles[i];
-                        var out = nodeInfo.inputs[i];
+                        var out = nodeInfo.inputs[i-1];
                         out.getNode = function() { return nodeInfo; };
                         out.getCircle = (function(circ) { return function() { return circ; }; })(circ);
                     }
+                    nodeInfo.predecessors.getCircle = (function(circ) { return function() { return circ; }; })(circles[0]);
                     var wh = box.getBoundingClientRect();
                     if (posx && posy) {
                         nodeInfo.y = (posy - containerTop - wh.height/2);
@@ -168,7 +188,7 @@ angular.module('trafficEnv')
                 };
 
                 $scope.finishStartingConnection = function (ev, nodeConnector) {
-                    if (startingPath && nodeConnector.getNode() !== startingPath.connectorOut.getNode()) {
+                    if (startingPath && startingPath.connectorOut && nodeConnector.getNode() !== startingPath.connectorOut.getNode()) {
                         var element = ev.target;
                         var boundingClientRect = element.getBoundingClientRect();
                         var top = boundingClientRect.top, left = boundingClientRect.left;
@@ -180,17 +200,21 @@ angular.module('trafficEnv')
                         if (!startingPath.connectorOut.connections) {
                             startingPath.connectorOut.connections = [];
                         }
-                        startingPath.connectorOut.connections.push({pathObj: startingPath.figure, destination: nodeConnector});
-                        if (nodeConnector.input) {
-                            nodeConnector.input.pathObj.remove();
+                        if (!startingPath.connectorOut.connections.find(function (elem) { return elem.destination == nodeConnector; })) {
+                            startingPath.connectorOut.connections.push({pathObj: startingPath.figure, destination: nodeConnector});
+                            if (nodeConnector.input) {
+                                nodeConnector.input.pathObj.remove();
+                            }
+                            nodeConnector.input = {pathObj: startingPath.figure, origin: startingPath.connectorOut};
+                        } else {
+                            startingPath.figure.remove();
                         }
-                        nodeConnector.input = {pathObj: startingPath.figure, origin: startingPath.connectorOut};
                         startingPath = null;
                     }
                 };
 
                 $scope.finishEndingConnection = function (ev, nodeConnector) {
-                    if (endingPath && nodeConnector.getNode() !== endingPath.connectorIn.getNode()) {
+                    if (endingPath && endingPath.connectorIn && nodeConnector.getNode() !== endingPath.connectorIn.getNode()) {
                         var element = ev.target;
                         var boundingClientRect = element.getBoundingClientRect();
                         var top = boundingClientRect.top, left = boundingClientRect.left;
@@ -202,12 +226,108 @@ angular.module('trafficEnv')
                         if (!nodeConnector.connections) {
                             nodeConnector.connections = [];
                         }
-                        nodeConnector.connections.push({pathObj: endingPath.figure, destination: endingPath.connectorIn});
-                        if (endingPath.connectorIn.input) {
-                            endingPath.connectorIn.input.pathObj.remove();
+                        if (!nodeConnector.connections.find(function (elem) { return elem.destination == endingPath.connectorIn; })) {
+                            nodeConnector.connections.push({pathObj: endingPath.figure, destination: endingPath.connectorIn});
+                            if (endingPath.connectorIn.input) {
+                                endingPath.connectorIn.input.pathObj.remove();
+                            }
+                            endingPath.connectorIn.input = {pathObj: endingPath.figure, origin: nodeConnector};
+                        } else {
+                            endingPath.figure.remove();
                         }
-                        endingPath.connectorIn.input = {pathObj: endingPath.figure, origin: nodeConnector};
                         endingPath = null;
+                    }
+                };
+
+                $scope.createPredecessor = function (ev, nodeInfo) {
+                    ev.stopPropagation();
+                    if (!startingPath && !endingPath) {
+                        var element = ev.target;
+                        var boundingClientRect = element.getBoundingClientRect();
+                        var top = boundingClientRect.top, left = boundingClientRect.left;
+                        var width = boundingClientRect.width, height = boundingClientRect.height;
+                        top -= containerTop;
+                        left -= containerLeft;
+                        endingPath = {
+                            x: left + width / 2,
+                            y: top + height / 2,
+                            figure: paper.path(createPath(left + width / 2, top + height / 2, left + width / 2, top + height / 2)),
+                            nodeIn: nodeInfo
+                        };
+                        endingPath.figure.attr({stroke: '#6C4C13', 'stroke-width': 2, 'stroke-dasharray': '- '});
+                    }
+                };
+
+                $scope.finishPredecessor = function (ev, nodeInfo) {
+                    if (endingPath && endingPath.nodeIn && nodeInfo !== endingPath.nodeIn) {
+                        var element = ev.target;
+                        var boundingClientRect = element.getBoundingClientRect();
+                        var top = boundingClientRect.top, left = boundingClientRect.left;
+                        var width = boundingClientRect.width, height = boundingClientRect.height;
+                        top -= containerTop;
+                        left -= containerLeft;
+                        var newPath = createPath(left + width / 2, top + height / 2, endingPath.x, endingPath.y);
+                        endingPath.figure.attr({path: newPath});
+                        if (!nodeInfo.successors) {
+                            nodeInfo.successors = [];
+                        }
+                        if (!nodeInfo.successors.find(function (elem) { return elem.destination == endingPath.nodeIn; })) {
+                            // Connection does not already exist
+                            nodeInfo.successors.push({pathObj: endingPath.figure, destination: endingPath.nodeIn});
+                            if (!endingPath.nodeIn.predecessors) {
+                                endingPath.nodeIn.predecessors = [];
+                            }
+                            endingPath.nodeIn.predecessors.push({pathObj: endingPath.figure, origin: nodeInfo});
+                        } else {
+                            endingPath.figure.remove();
+                        }
+                        endingPath = null;
+                    }
+                };
+
+                $scope.createSuccessor = function (ev, nodeInfo) {
+                    ev.stopPropagation();
+                    if (!endingPath && !startingPath) {
+                        var element = ev.target;
+                        var boundingClientRect = element.getBoundingClientRect();
+                        var top = boundingClientRect.top, left = boundingClientRect.left;
+                        var width = boundingClientRect.width, height = boundingClientRect.height;
+                        top -= containerTop;
+                        left -= containerLeft;
+                        startingPath = {
+                            x: left + width / 2,
+                            y: top + height / 2,
+                            figure: paper.path(createPath(left + width / 2, top + height / 2, left + width / 2, top + height / 2)),
+                            nodeOut: nodeInfo
+                        };
+                        startingPath.figure.attr({stroke: '#6C4C13', 'stroke-width': 2, 'stroke-dasharray': '- '});
+                    }
+                };
+
+                $scope.finishSuccessor = function (ev, nodeInfo) {
+                    if (startingPath && startingPath.nodeOut && nodeInfo !== startingPath.nodeOut) {
+                        var element = ev.target;
+                        var boundingClientRect = element.getBoundingClientRect();
+                        var top = boundingClientRect.top, left = boundingClientRect.left;
+                        var width = boundingClientRect.width, height = boundingClientRect.height;
+                        top -= containerTop;
+                        left -= containerLeft;
+                        var newPath = createPath(startingPath.x, startingPath.y, left + width / 2, top + height / 2);
+                        startingPath.figure.attr({path: newPath});
+                        if (!startingPath.nodeOut.successors) {
+                            startingPath.nodeOut.successors = [];
+                        }
+                        if (!startingPath.nodeOut.successors.find(function (elem) { return elem.destination == nodeInfo; })) {
+                            // Connection does not already exist
+                            startingPath.nodeOut.successors.push({pathObj: startingPath.figure, destination: nodeInfo});
+                            if (!nodeInfo.predecessors) {
+                                nodeInfo.predecessors = [];
+                            }
+                            nodeInfo.predecessors.push({pathObj: startingPath.figure, origin: startingPath.nodeOut});
+                        } else {
+                            startingPath.figure.remove();
+                        }
+                        startingPath = null;
                     }
                 };
 
@@ -249,6 +369,16 @@ angular.module('trafficEnv')
                                         };
                                     }):[]
                                 };
+                            }),
+                            predecessors: e.predecessors.map(function (pred) {
+                                return {
+                                    origin: pred.origin.id
+                                };
+                            }),
+                            successors: e.successors.map(function (succ) {
+                                return {
+                                    destination: succ.destination.id
+                                };
                             })
                         };
                     });
@@ -278,7 +408,9 @@ angular.module('trafficEnv')
                             path: response.data.path,
                             title: response.data.name,
                             inputs: (response.data.inout[0] || []).map(function (a) { return {name: a}; }),
-                            outputs: (response.data.inout[1] || []).map(function (a) { return {name: a}; })
+                            outputs: (response.data.inout[1] || []).map(function (a) { return {name: a}; }),
+                            predecessors: [],
+                            successors: []
                         };
                         $scope.shapes.push(nodeInfo);
                         $timeout(function(){
@@ -379,6 +511,8 @@ angular.module('trafficEnv')
                                 title: node.title,
                                 inputs: node.inputs.map(function (inp) { return {name: inp.name}; }),
                                 outputs: node.outputs.map(function (out) { return {name: out.name}; }),
+                                predecessors: [], // node.predecessors.map(function (pre) { return {origin: pre.origin}; }),
+                                successors: [], // node.successors.map(function (suc) { return {destination: suc.destination}; }),
                                 x: node.x,
                                 y: node.y
                             };
@@ -414,6 +548,23 @@ angular.module('trafficEnv')
                                         output.connections.push({pathObj: path, destination: input});
                                         input.input = {pathObj: path, origin: output};
                                     }
+                                }
+                                var predecessors = graph[i].predecessors;
+                                var predecessorsCreated = $scope.shapes[i].predecessors;
+                                var predecessorsCircle = predecessorsCreated.getCircle();
+                                for (j = 0; j < predecessors.length; ++j) {
+                                    var predecessorOrigin = predecessors[j].origin;
+                                    var node = $scope.shapes.find(function (e) {
+                                        return e.id === predecessorOrigin;
+                                    });
+                                    var inpbox = predecessorsCircle.getBoundingClientRect();
+                                    var outbox = node.successors.getCircle().getBoundingClientRect();
+                                    var oleft = outbox.left - containerLeft, otop = outbox.top - containerTop;
+                                    var ileft = inpbox.left - containerLeft, itop = inpbox.top - containerTop;
+                                    var path = paper.path(createPath(oleft + outbox.width / 2, otop + outbox.height / 2, ileft + inpbox.width / 2, itop + inpbox.height / 2));
+                                    path.attr({stroke: '#6C4C13', 'stroke-width': 2, 'stroke-dasharray': '- '});
+                                    node.successors.push({ pathObj: path, destination: $scope.shapes[i] });
+                                    predecessorsCreated.push({ pathObj: path, origin: node });
                                 }
                             }
                         }, 5);

@@ -1,7 +1,7 @@
 import os
 from collections import namedtuple
 from server.exceptions import InvalidPathException
-from server.utils.script_info import get_inputs_outputs
+from server.utils.script_info import ScriptInfo
 
 class ScriptService(object):
     """docstring for ScriptService"""
@@ -79,5 +79,13 @@ class ScriptService(object):
     def get_path_for_execution(self, id):
         return self._get_rel_abs_path(id)[0]
 
-    def get_input_output(self, id):
-        return get_inputs_outputs(self._get_rel_abs_path(id)[0])
+    # def get_input_output(self, id):
+    #     si = ScriptInfo(self._get_rel_abs_path(id)[0])
+    #     return si.get_inputs_outputs()
+
+    # def get_script_type(self, id):
+    #     si = ScriptInfo(self._get_rel_abs_path(id)[0])
+    #     return si.get_script_type(), si.requires_model()
+
+    def get_script_info(self, id):
+        return ScriptInfo(self._get_rel_abs_path(id)[0])

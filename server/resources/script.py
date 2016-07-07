@@ -10,6 +10,9 @@ class Script(Resource):
         self._subscription_service = subscription_service
 
     def get(self, id):
+
+        script_content_info = self._script_locator.get_script_info(id)
+
         def get_data(data_type):
             if data_type == 'name':
                 return self._script_locator.get_name(id)
@@ -18,7 +21,11 @@ class Script(Resource):
             elif data_type == 'path':
                 return self._script_locator.get_path(id)
             elif data_type == 'inout':
-                return self._script_locator.get_input_output(id)
+                return script_content_info.get_inputs_outputs()
+            elif data_type == 'stype':
+                return script_content_info.get_script_type()
+            elif data_type == 'reqmodel':
+                return script_content_info.requires_model()
             else:
                 return None
 
@@ -27,6 +34,8 @@ class Script(Resource):
         parser.add_argument('code', type=lambda e: True, location='args', case_sensitive=False, store_missing=False)
         parser.add_argument('path', type=lambda e: True, location='args', case_sensitive=False, store_missing=False)
         parser.add_argument('inout', type=lambda e: True, location='args', case_sensitive=False, store_missing=False)
+        parser.add_argument('stype', type=lambda e: True, location='args', case_sensitive=False, store_missing=False)
+        parser.add_argument('reqmodel', type=lambda e: True, location='args', case_sensitive=False, store_missing=False)
         parser.add_argument('onlycode', type=lambda e: True, location='args', case_sensitive=False, store_missing=False)
         args = parser.parse_args()
         if 'onlycode' in args or len(args) == 0:

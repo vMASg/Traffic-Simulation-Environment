@@ -13,10 +13,12 @@ class SubscriptionChannel(object):
         pass
 
     def broadcast(self, message):
+        self.previous_broadcasts.append(message)
         self.socketio.emit(self.channel_name + ':event', {'data': message}, room=self.channel_name, namespace=self.namespace)
 
     def end(self):
         self.socketio.emit(self.channel_name + ':EOT', {'data': ''}, room=self.channel_name, namespace=self.namespace)
+        # TODO delete from Subscription.channels, save transmissions in file (?)
 
     def catch_up(self):
         emit(self.channel_name + ':catchUp', {'transmission': self.previous_broadcasts})

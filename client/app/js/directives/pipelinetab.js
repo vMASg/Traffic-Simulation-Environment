@@ -486,17 +486,31 @@ angular.module('trafficEnv')
 
                 $scope.shapes = [];
                 $scope.min = Math.min;
-                $scope.openContextMenu = function (nodeInfo) {
-                    nodeInfo.optionsOpen = !nodeInfo.optionsOpen;
-                    $scope.pipelineNode.nodeInfo = nodeInfo;
+                // $scope.openContextMenu = function ($event, nodeInfo) {
+                //     $event.preventDefault();
+                //     $event.stopPropagation();
+                //     nodeInfo.optionsOpen = !nodeInfo.optionsOpen;
+                //     $scope.pipelineNode.nodeInfo = nodeInfo;
+                // };
+
+                // $scope.pipelineNode = {
+                //     template: 'nodeOptions.html',
+                //     nodeInfo: null,
+                //     addPrecedingConnector: function () {
+                //         $scope.pipelineNode.nodeInfo.inputs.unshift({name: 'pre', origin: null});
+                //     }
+                // };
+                $scope.deleteConnetion = function ($event, obj_arr) {
+                    if ($scope.contextOptions.obj) {
+                        $scope.contextOptions.obj.isOpen = false;
+                    }
+                    obj_arr.isOpen = true;
+                    $scope.contextOptions.obj = obj_arr;
                 };
 
-                $scope.pipelineNode = {
-                    template: 'nodeOptions.html',
-                    nodeInfo: null,
-                    addPrecedingConnector: function () {
-                        $scope.pipelineNode.nodeInfo.inputs.unshift({name: 'pre', origin: null});
-                    }
+                $scope.contextOptions = {
+                    template: 'contextOptions',
+                    obj: null,
                 };
 
                 if ($scope.data.id) {

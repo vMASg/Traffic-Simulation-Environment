@@ -13,37 +13,44 @@
             </ul>
         </div>
     </script>
+    <script type="text/ng-template" id="nodeOptions.html">
+        <div class="pipelinenode-options">
+            <ul>
+                <li data-ng-click=""></li>
+            </ul>
+        </div>
+    </script>
 </div>
 <div class="pipeline-container">
     <div class="connections"></div>
     <div class="nodes" data-ui-on-drop="dropHandler($event, $data)" ng-mousemove="mousemove($event);drawpath($event)" ng-mouseup="stopMoving($event)">
-        <div class="node-box" ng-repeat="nodeInfo in shapes" ng-mousedown="startMoving($event, null, nodeInfo);" style="visibility: hidden;" uib-popover-template="pipelineNode.template" popover-trigger="none" popover-placement="right-top" popover-is-open="nodeInfo.optionsOpen" ng-context-menu="openContextMenu(nodeInfo)">
+        <div class="node-box" ng-repeat="nodeInfo in shapes" ng-mousedown="startMoving($event, null, nodeInfo);" style="visibility: hidden;">
             <div class="title"><span>{{nodeInfo.title}}</span></div>
             <div class="inputs_outputs">
                 <!-- Adding special preceding & succeeding connectors -->
                 <div class="io-row clearfix">
-                    <div class="io-cell preceding">
+                    <div class="io-cell preceding" uib-popover-template="pipelineNode.template" popover-trigger="none" popover-placement="right-top" popover-is-open="nodeInfo.optionsOpen" ng-context-menu="deleteConnetion($event, nodeInfo.predecessors)">
                         <div class="circle end" ng-mousedown="createPredecessor($event, nodeInfo)" ng-mouseup="finishSuccessor($event, nodeInfo)"></div>
                         <span>predecessors</span>
                     </div>
-                    <div class="io-cell succeeding">
+                    <div class="io-cell succeeding" uib-popover-template="pipelineNode.template" popover-trigger="none" popover-placement="right-top" popover-is-open="nodeInfo.optionsOpen" ng-context-menu="deleteConnetion($event, nodeInfo.successors)">
                         <span>successors</span>
                         <div class="circle start" ng-mousedown="createSuccessor($event, nodeInfo)" ng-mouseup="finishPredecessor($event, nodeInfo)"></div>
                     </div>
                 </div>
                 <!-- Adding inputs & outputs -->
                 <div class="io-row clearfix" ng-repeat="input in nodeInfo.inputs | limitTo:min(nodeInfo.inputs.length, nodeInfo.outputs.length)">
-                    <div class="io-cell">
+                    <div class="io-cell" uib-popover-template="pipelineNode.template" popover-trigger="none" popover-placement="right-top" popover-is-open="nodeInfo.optionsOpen" ng-context-menu="deleteConnetion($event, input)">
                         <div class="circle end" ng-mousedown="createEndingConnection($event, input)" ng-mouseup="finishStartingConnection($event, input)"></div>
                         <span>{{input.name}}</span>
                     </div>
-                    <div class="io-cell">
+                    <div class="io-cell" uib-popover-template="pipelineNode.template" popover-trigger="none" popover-placement="right-top" popover-is-open="nodeInfo.optionsOpen" ng-context-menu="deleteConnetion($event, outputs[$index])">
                         <span>{{nodeInfo.outputs[$index].name}}</span>
                         <div class="circle start" ng-mousedown="createStartingConnection($event, nodeInfo.outputs[$index])" ng-mouseup="finishEndingConnection($event, nodeInfo.outputs[$index])"></div>
                     </div>
                 </div>
                 <div class="io-row clearfix" ng-repeat="input in nodeInfo.inputs | limitTo:nodeInfo.inputs.length:min(nodeInfo.inputs.length, nodeInfo.outputs.length)">
-                    <div class="io-cell">
+                    <div class="io-cell" uib-popover-template="pipelineNode.template" popover-trigger="none" popover-placement="right-top" popover-is-open="nodeInfo.optionsOpen" ng-context-menu="deleteConnetion($event, input)">
                         <div class="circle end" ng-mousedown="createEndingConnection($event, input)" ng-mouseup="finishStartingConnection($event, input)"></div>
                         <span>{{input.name}}</span>
                     </div>
@@ -51,7 +58,7 @@
                 </div>
                 <div class="io-row clearfix" ng-repeat="output in nodeInfo.outputs | limitTo:nodeInfo.outputs.length:min(nodeInfo.inputs.length, nodeInfo.outputs.length)">
                     <div class="io-cell"></div>
-                    <div class="io-cell">
+                    <div class="io-cell" ng-context-menu="deleteConnetion($event, output)">
                         <span>{{output.name}}</span>
                         <div class="circle start" ng-mousedown="createStartingConnection($event, output)" ng-mouseup="finishEndingConnection($event, output)"></div>
                     </div>

@@ -103,6 +103,24 @@ angular.module('trafficEnv')
                         element.target.classList.remove('moving');
                         element = null;
                     }
+                    if (startingPath) {
+                        startingPath.figure.remove();
+                        startingPath = null;
+                    }
+                    if (endingPath) {
+                        endingPath.figure.remove();
+                        endingPath = null;
+                    }
+                    if ($scope.contextOptions.obj) {
+                        $scope.contextOptions.obj.isOpen = false;
+                        // $scope.contextOptions.obj = null;
+                    }
+                };
+
+                $scope.maybeStopProp = function ($event) {
+                    if (!element) {
+                        $event.stopPropagation();
+                    }
                 };
 
                 var createBox = function (box, nodeInfo, posx, posy) {
@@ -501,16 +519,60 @@ angular.module('trafficEnv')
                 //     }
                 // };
                 $scope.deleteConnetion = function ($event, obj_arr) {
-                    if ($scope.contextOptions.obj) {
+                    if (!obj_arr.isOpen && $scope.contextOptions.obj) {
                         $scope.contextOptions.obj.isOpen = false;
                     }
-                    obj_arr.isOpen = true;
+                    obj_arr.isOpen = !obj_arr.isOpen;
                     $scope.contextOptions.obj = obj_arr;
                 };
 
                 $scope.contextOptions = {
-                    template: 'contextOptions',
+                    template: 'contextOptions.html',
                     obj: null,
+                    deleteConnection: function (mode, obj_arr, index) {
+                        // TODO refactor this
+                        if (mode == 'input') {
+                            // Delete destination reference
+                            var circle = obj_arr.getCircle();
+                            var foreignConnections = obj_arr.input.origin.connections;
+                            for (var i = 0; i < foreignConnections.length; ++i) {
+                                if (foreignConnections[i].destination.getCircle() == circle) {
+                                    break;
+                                }
+                            }
+                            delete foreignConnections.splice(i, 1)[0];
+                            obj_arr.input.pathObj.remove();
+                            obj_arr.input = undefined;
+                        } else if (mode == 'output') {
+                            obj_arr.connections[index].destination.input = undefined;
+                            obj_arr.connections[index].pathObj.remove();
+                            delete obj_arr.connections.splice(index, 1)[0];
+                        } else if (mode == 'successor') {
+                            var circle = obj_arr.getCircle();
+                            var foreignPredecessors = obj_arr[index].destination.predecessors;
+                            for (var i = 0; i < foreignPredecessors.length; ++i) {
+                                if (foreignPredecessors[i].origin.successors.getCircle() == circle) {
+                                    break;
+                                }
+                            }
+                            delete foreignPredecessors.splice(i, 1)[0];
+                            obj_arr[index].pathObj.remove();
+                            delete obj_arr.splice(index, 1)[0];
+                        } else if (mode == 'predecessor') {
+                            var circle = obj_arr.getCircle();
+                            var foreignSuccessors = obj_arr[index].origin.successors;
+                            for (var i = 0; i < foreignSuccessors.length; ++i) {
+                                if (foreignSuccessors[i].destination.predecessors.getCircle() == circle) {
+                                    break;
+                                }
+                            }
+                            delete foreignSuccessors.splice(i, 1)[0];
+                            obj_arr[index].pathObj.remove();
+                            delete obj_arr.splice(index, 1)[0];
+                        }
+                        $scope.contextOptions.obj.isOpen = false;
+                        $scope.contextOptions.obj = null;
+                    }
                 };
 
                 if ($scope.data.id) {

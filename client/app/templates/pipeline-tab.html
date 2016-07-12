@@ -4,7 +4,7 @@
     <div class="btn btn-default" data-ng-click="savePipelineAs()">Save as</div>
     <div class="btn btn-default" data-ng-disabled="!data.id" data-ng-click="deletePipeline()">Delete</div>
     <div class="btn btn-default" data-ng-disabled="!data.id" data-ng-click="runPipeline()">Run Pipeline</div>
-    <script type="text/ng-template" id="nodeOptions.html">
+<!--     <script type="text/ng-template" id="nodeOptions.html">
         <div class="pipelinenode-options">
             <ul>
                 <li data-ng-click="pipelineNode.addPrecedingConnector()">Add preceding connector</li>
@@ -12,11 +12,28 @@
                 <li data-ng-click="pipelineNode.deleteNode()">Delete node</li>
             </ul>
         </div>
-    </script>
-    <script type="text/ng-template" id="nodeOptions.html">
+    </script> -->
+    <script type="text/ng-template" id="contextOptions.html">
         <div class="pipelinenode-options">
-            <ul>
-                <li data-ng-click=""></li>
+            <ul ng-if="contextOptions.obj.input">
+                <li data-ng-click="contextOptions.deleteConnection('input', contextOptions.obj)">
+                    Disconnect {{contextOptions.obj.input.origin.name}}
+                </li>
+            </ul>
+            <ul ng-if="contextOptions.obj.connections">
+                <li ng-repeat="elem in contextOptions.obj.connections" data-ng-click="contextOptions.deleteConnection('output', contextOptions.obj, $index)">
+                    Disconnect {{elem.destination.name}}
+                </li>
+            </ul>
+            <ul ng-if="contextOptions.obj.length && contextOptions.obj[0].destination">
+                <li ng-repeat="elem in contextOptions.obj" data-ng-click="contextOptions.deleteConnection('successor', contextOptions.obj, $index)">
+                    Disconnect {{elem.destination.title}}
+                </li>
+            </ul>
+            <ul ng-if="contextOptions.obj.length && contextOptions.obj[0].origin">
+                <li ng-repeat="elem in contextOptions.obj" data-ng-click="contextOptions.deleteConnection('predecessor', contextOptions.obj, $index)">
+                    Disconnect {{elem.origin.title}}
+                </li>
             </ul>
         </div>
     </script>
@@ -24,33 +41,33 @@
 <div class="pipeline-container">
     <div class="connections"></div>
     <div class="nodes" data-ui-on-drop="dropHandler($event, $data)" ng-mousemove="mousemove($event);drawpath($event)" ng-mouseup="stopMoving($event)">
-        <div class="node-box" ng-repeat="nodeInfo in shapes" ng-mousedown="startMoving($event, null, nodeInfo);" style="visibility: hidden;">
+        <div class="node-box" ng-repeat="nodeInfo in shapes" ng-mousedown="startMoving($event, null, nodeInfo);" ng-mouseup="maybeStopProp($event)" style="visibility: hidden;">
             <div class="title"><span>{{nodeInfo.title}}</span></div>
             <div class="inputs_outputs">
                 <!-- Adding special preceding & succeeding connectors -->
                 <div class="io-row clearfix">
-                    <div class="io-cell preceding" uib-popover-template="pipelineNode.template" popover-trigger="none" popover-placement="right-top" popover-is-open="nodeInfo.optionsOpen" ng-context-menu="deleteConnetion($event, nodeInfo.predecessors)">
+                    <div class="io-cell preceding" uib-popover-template="contextOptions.template" popover-trigger="none" popover-placement="left" popover-is-open="nodeInfo.predecessors.isOpen" ng-context-menu="deleteConnetion($event, nodeInfo.predecessors)" popover-append-to-body="true">
                         <div class="circle end" ng-mousedown="createPredecessor($event, nodeInfo)" ng-mouseup="finishSuccessor($event, nodeInfo)"></div>
                         <span>predecessors</span>
                     </div>
-                    <div class="io-cell succeeding" uib-popover-template="pipelineNode.template" popover-trigger="none" popover-placement="right-top" popover-is-open="nodeInfo.optionsOpen" ng-context-menu="deleteConnetion($event, nodeInfo.successors)">
+                    <div class="io-cell succeeding" uib-popover-template="contextOptions.template" popover-trigger="none" popover-placement="right" popover-is-open="nodeInfo.successors.isOpen" ng-context-menu="deleteConnetion($event, nodeInfo.successors)" popover-append-to-body="true">
                         <span>successors</span>
                         <div class="circle start" ng-mousedown="createSuccessor($event, nodeInfo)" ng-mouseup="finishPredecessor($event, nodeInfo)"></div>
                     </div>
                 </div>
                 <!-- Adding inputs & outputs -->
                 <div class="io-row clearfix" ng-repeat="input in nodeInfo.inputs | limitTo:min(nodeInfo.inputs.length, nodeInfo.outputs.length)">
-                    <div class="io-cell" uib-popover-template="pipelineNode.template" popover-trigger="none" popover-placement="right-top" popover-is-open="nodeInfo.optionsOpen" ng-context-menu="deleteConnetion($event, input)">
+                    <div class="io-cell" uib-popover-template="contextOptions.template" popover-trigger="none" popover-placement="left" popover-is-open="input.isOpen" ng-context-menu="deleteConnetion($event, input)" popover-append-to-body="true">
                         <div class="circle end" ng-mousedown="createEndingConnection($event, input)" ng-mouseup="finishStartingConnection($event, input)"></div>
                         <span>{{input.name}}</span>
                     </div>
-                    <div class="io-cell" uib-popover-template="pipelineNode.template" popover-trigger="none" popover-placement="right-top" popover-is-open="nodeInfo.optionsOpen" ng-context-menu="deleteConnetion($event, outputs[$index])">
+                    <div class="io-cell" uib-popover-template="contextOptions.template" popover-trigger="none" popover-placement="right" popover-is-open="nodeInfo.outputs[$index].isOpen" ng-context-menu="deleteConnetion($event, nodeInfo.outputs[$index])" popover-append-to-body="true">
                         <span>{{nodeInfo.outputs[$index].name}}</span>
                         <div class="circle start" ng-mousedown="createStartingConnection($event, nodeInfo.outputs[$index])" ng-mouseup="finishEndingConnection($event, nodeInfo.outputs[$index])"></div>
                     </div>
                 </div>
                 <div class="io-row clearfix" ng-repeat="input in nodeInfo.inputs | limitTo:nodeInfo.inputs.length:min(nodeInfo.inputs.length, nodeInfo.outputs.length)">
-                    <div class="io-cell" uib-popover-template="pipelineNode.template" popover-trigger="none" popover-placement="right-top" popover-is-open="nodeInfo.optionsOpen" ng-context-menu="deleteConnetion($event, input)">
+                    <div class="io-cell" uib-popover-template="contextOptions.template" popover-trigger="none" popover-placement="left" popover-is-open="input.isOpen" ng-context-menu="deleteConnetion($event, input)" popover-append-to-body="true">
                         <div class="circle end" ng-mousedown="createEndingConnection($event, input)" ng-mouseup="finishStartingConnection($event, input)"></div>
                         <span>{{input.name}}</span>
                     </div>
@@ -58,7 +75,7 @@
                 </div>
                 <div class="io-row clearfix" ng-repeat="output in nodeInfo.outputs | limitTo:nodeInfo.outputs.length:min(nodeInfo.inputs.length, nodeInfo.outputs.length)">
                     <div class="io-cell"></div>
-                    <div class="io-cell" ng-context-menu="deleteConnetion($event, output)">
+                    <div class="io-cell" uib-popover-template="contextOptions.template" popover-trigger="none" popover-placement="right" popover-is-open="output.isOpen" ng-context-menu="deleteConnetion($event, output)" popover-append-to-body="true">
                         <span>{{output.name}}</span>
                         <div class="circle start" ng-mousedown="createStartingConnection($event, output)" ng-mouseup="finishEndingConnection($event, output)"></div>
                     </div>

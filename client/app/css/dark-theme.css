@@ -99,8 +99,10 @@
     color: #C4C4C4;
 }
 
-.popover.right>.arrow:after {
+.popover.right>.arrow:after,
+.popover.left>.arrow:after {
     border-right-color: #1A1A1A;
+    border-left-color: #1A1A1A;
 }
 
 .pipelinenode-options > ul li {

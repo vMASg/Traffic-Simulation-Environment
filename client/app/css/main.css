@@ -276,6 +276,7 @@ treecontrol ul {
     padding: 0;
     -webkit-user-select: none;
     user-select: none;
+    font-size: 12px;
 }
 
 .popover-content {

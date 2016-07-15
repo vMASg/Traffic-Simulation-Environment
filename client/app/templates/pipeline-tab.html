@@ -16,22 +16,22 @@
     <script type="text/ng-template" id="contextOptions.html">
         <div class="pipelinenode-options">
             <ul ng-if="contextOptions.obj.input">
-                <li data-ng-click="contextOptions.deleteConnection('input', contextOptions.obj)">
+                <li data-ng-click="contextOptions.deleteConnectionAndCloseContext('input', contextOptions.obj)">
                     Disconnect {{contextOptions.obj.input.origin.name}}
                 </li>
             </ul>
             <ul ng-if="contextOptions.obj.connections">
-                <li ng-repeat="elem in contextOptions.obj.connections" data-ng-click="contextOptions.deleteConnection('output', contextOptions.obj, $index)">
+                <li ng-repeat="elem in contextOptions.obj.connections" data-ng-click="contextOptions.deleteConnectionAndCloseContext('output', contextOptions.obj, $index)">
                     Disconnect {{elem.destination.name}}
                 </li>
             </ul>
             <ul ng-if="contextOptions.obj.length && contextOptions.obj[0].destination">
-                <li ng-repeat="elem in contextOptions.obj" data-ng-click="contextOptions.deleteConnection('successor', contextOptions.obj, $index)">
+                <li ng-repeat="elem in contextOptions.obj" data-ng-click="contextOptions.deleteConnectionAndCloseContext('successor', contextOptions.obj, $index)">
                     Disconnect {{elem.destination.title}}
                 </li>
             </ul>
             <ul ng-if="contextOptions.obj.length && contextOptions.obj[0].origin">
-                <li ng-repeat="elem in contextOptions.obj" data-ng-click="contextOptions.deleteConnection('predecessor', contextOptions.obj, $index)">
+                <li ng-repeat="elem in contextOptions.obj" data-ng-click="contextOptions.deleteConnectionAndCloseContext('predecessor', contextOptions.obj, $index)">
                     Disconnect {{elem.origin.title}}
                 </li>
             </ul>
@@ -42,7 +42,10 @@
     <div class="connections"></div>
     <div class="nodes" data-ui-on-drop="dropHandler($event, $data)" ng-mousemove="mousemove($event);drawpath($event)" ng-mouseup="stopMoving($event)">
         <div class="node-box" ng-repeat="nodeInfo in shapes" ng-mousedown="startMoving($event, null, nodeInfo);" ng-mouseup="maybeStopProp($event)" style="visibility: hidden;">
-            <div class="title"><span>{{nodeInfo.title}}</span></div>
+            <div class="title">
+                <span>{{nodeInfo.title}}</span>
+                <div class="icon ion-trash-a" ng-dblclick="deleteNode($event, nodeInfo)"></div>
+            </div>
             <div class="inputs_outputs">
                 <!-- Adding special preceding & succeeding connectors -->
                 <div class="io-row clearfix">

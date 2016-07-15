@@ -30,6 +30,7 @@
     "socket.io-client": "^1.4.6",
     "angular-socket-io": "^0.7.0",
     "raphael": "^2.2.0",
-    "angular-native-dragdrop": "^1.2.1"
+    "angular-native-dragdrop": "^1.2.1",
+    "Ionicons": "ionicons#^2.0.1"
   }
 }

@@ -419,10 +419,11 @@ angular.module('trafficEnv')
                 var containerTop = boundingClientRect.top;
                 var paper = Raphael(iElm[0].children[1].children[0]);
 
+                var nodeIdCounter = 0;
                 $scope.dropHandler = function ($event, $data) {
                     scriptServices.getScript($data, ['name', 'inout', 'path']).then(function (response) {
                         var nodeInfo = {
-                            id: $scope.shapes.length,  // TODO replace by proper random id
+                            id: nodeIdCounter++,  // TODO replace by proper random id
                             path: response.data.path,
                             title: response.data.name,
                             inputs: (response.data.inout[0] || []).map(function (a) { return {name: a}; }),
@@ -518,6 +519,35 @@ angular.module('trafficEnv')
                 //         $scope.pipelineNode.nodeInfo.inputs.unshift({name: 'pre', origin: null});
                 //     }
                 // };
+
+                $scope.deleteNode = function ($event, nodeInfo) {
+                    var i, j;
+                    var deleteConnection = $scope.contextOptions.deleteConnection;
+                    var inputs = nodeInfo.inputs;
+                    for (i = 0;  i < inputs.length; ++i) {
+                        if (inputs[i].input) {
+                            deleteConnection('input', inputs[i]);
+                        }
+                    }
+                    var outputs = nodeInfo.outputs;
+                    for (i = 0;  i < outputs.length; ++i) {
+                        var connections = outputs[i].connections || [];
+                        for (j = 0; j < connections.length; ++j) {
+                            deleteConnection('output', outputs[i], j);
+                        }
+                    }
+                    var pre = nodeInfo.predecessors;
+                    for (i = 0; i < pre.length; ++i) {
+                        deleteConnection('predecessor', pre, i);
+                    }
+                    var post = nodeInfo.successors;
+                    for (i = 0; i < post.length; ++i) {
+                        deleteConnection('successor', post, i);
+                    }
+                    var ind = $scope.shapes.indexOf(nodeInfo);
+                    delete $scope.shapes.splice(ind, 1)[0];
+                };
+
                 $scope.deleteConnetion = function ($event, obj_arr) {
                     if (!obj_arr.isOpen && $scope.contextOptions.obj) {
                         $scope.contextOptions.obj.isOpen = false;
@@ -529,6 +559,11 @@ angular.module('trafficEnv')
                 $scope.contextOptions = {
                     template: 'contextOptions.html',
                     obj: null,
+                    deleteConnectionAndCloseContext: function (mode, obj_arr, index) {
+                        $scope.contextOptions.deleteConnection(mode, obj_arr, index);
+                        $scope.contextOptions.obj.isOpen = false;
+                        // $scope.contextOptions.obj = null;
+                    },
                     deleteConnection: function (mode, obj_arr, index) {
                         // TODO refactor this
                         if (mode == 'input') {
@@ -570,8 +605,6 @@ angular.module('trafficEnv')
                             obj_arr[index].pathObj.remove();
                             delete obj_arr.splice(index, 1)[0];
                         }
-                        $scope.contextOptions.obj.isOpen = false;
-                        $scope.contextOptions.obj = null;
                     }
                 };
 
@@ -592,6 +625,7 @@ angular.module('trafficEnv')
                                 x: node.x,
                                 y: node.y
                             };
+                            nodeIdCounter = Math.max(nodeIdCounter, node.id + 1);
                             $scope.shapes.push(nodeInfo);
                         }
                         $timeout(function(){

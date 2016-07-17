@@ -70,6 +70,18 @@
     background-color: #454545;
 }
 
+.view-panel .dropdown-menu {
+    background-color: #666;
+}
+
+.view-panel .dropdown-menu>li>a {
+    color: #ddd;
+}
+
+.view-panel .dropdown-menu>li>a:hover {
+    color: #333;
+}
+
 .immediate-results {
     /*background-color: #262626;*/
     background-color: #454545;

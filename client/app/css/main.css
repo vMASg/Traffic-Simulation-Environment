@@ -155,8 +155,15 @@ treecontrol ul {
     padding-right: 5px;
 }
 
+.view-panel .btn-group>.btn:first-child,
 .view-panel > .btn {
     margin-left: 4px;
+}
+
+.view-panel .dropdown-menu>li>a {
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .pipeline-container,

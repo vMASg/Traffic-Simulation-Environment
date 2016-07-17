@@ -532,17 +532,17 @@ angular.module('trafficEnv')
                     var outputs = nodeInfo.outputs;
                     for (i = 0;  i < outputs.length; ++i) {
                         var connections = outputs[i].connections || [];
-                        for (j = 0; j < connections.length; ++j) {
-                            deleteConnection('output', outputs[i], j);
+                        while (connections.length > 0) {
+                            deleteConnection('output', outputs[i], 0);
                         }
                     }
                     var pre = nodeInfo.predecessors;
-                    for (i = 0; i < pre.length; ++i) {
-                        deleteConnection('predecessor', pre, i);
+                    while (pre.length > 0) {
+                        deleteConnection('predecessor', pre, 0);
                     }
                     var post = nodeInfo.successors;
-                    for (i = 0; i < post.length; ++i) {
-                        deleteConnection('successor', post, i);
+                    while (post.length > 0) {
+                        deleteConnection('successor', post, 0);
                     }
                     var ind = $scope.shapes.indexOf(nodeInfo);
                     delete $scope.shapes.splice(ind, 1)[0];

@@ -556,6 +556,37 @@ angular.module('trafficEnv')
                     $scope.contextOptions.obj = obj_arr;
                 };
 
+                $scope.addNode = function (nodeType) {
+                    var inputs = [], outputs = [];
+                    switch (nodeType) {
+                        case 'Open Model':
+                            inputs  = [{name: 'path'}, {name: 'model'}];
+                            outputs = [{name: 'model'}];
+                            break;
+
+                        case 'Run Simulation':
+                            inputs  = [{name: 'model'}, {name: 'replication'}];
+                            output  = [];
+                            break;
+                    }
+                    var nodeInfo = {
+                        id: nodeIdCounter++,  // TODO replace by proper random id
+                        path: '<' + nodeType.toUpperCase() + '>',
+                        title: nodeType,
+                        inputs: inputs,
+                        outputs: outputs,
+                        predecessors: [],
+                        successors: [],
+                        x: containerLeft,
+                        y: containerTop
+                    };
+                    $scope.shapes.push(nodeInfo);
+                    $timeout(function(){
+                        var nodeboxes = nodes.querySelectorAll('.node-box');
+                        createBox(nodeboxes[nodeboxes.length-1], nodeInfo);
+                    }, 5);
+                };
+
                 $scope.contextOptions = {
                     template: 'contextOptions.html',
                     obj: null,

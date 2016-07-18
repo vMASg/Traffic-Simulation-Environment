@@ -44,7 +44,7 @@
                         on-selection="select(node)"
                         selected-node="selectedNode"
                         >
-                        <span data-ui-draggable="true" data-drag="node.id">{{node.name}}</span>
+                        <span data-ui-draggable="true" data-drag="node.id" data-drag-channel="{{node.type}}">{{node.name}}</span>
                     </treecontrol>
             </div>
             <div class="horizontal-separator"></div>

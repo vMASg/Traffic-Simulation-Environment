@@ -9,7 +9,7 @@
             Add Node <span class="caret"></span>
         </button>
         <ul class="dropdown-menu" uib-dropdown-menu role="menu" aria-labelledby="single-button">
-            <li role="menuitem" data-ng-click="addNode('Open Model')"><a>Open Model</a></li>
+            <!-- <li role="menuitem" data-ng-click="addNode('Open Model')"><a>Open Model</a></li> -->
             <li role="menuitem" data-ng-click="addNode('Run Simulation')"><a>Run Simulation</a></li>
 <!--             <li role="menuitem"><a href="#">Something else here</a></li>
             <li class="divider"></li>
@@ -52,7 +52,7 @@
 </div>
 <div class="pipeline-container">
     <div class="connections"></div>
-    <div class="nodes" data-ui-on-drop="dropHandler($event, $data)" ng-mousemove="mousemove($event);drawpath($event)" ng-mouseup="stopMoving($event)">
+    <div class="nodes" data-ui-on-drop="dropHandler($event, $data, $channel)" data-drop-channel="{{acceptedChannels}}" ng-mousemove="mousemove($event);drawpath($event)" ng-mouseup="stopMoving($event)">
         <div class="node-box" ng-repeat="nodeInfo in shapes" ng-mousedown="startMoving($event, null, nodeInfo);" ng-mouseup="maybeStopProp($event)" style="visibility: hidden;">
             <div class="title">
                 <span>{{nodeInfo.title}}</span>

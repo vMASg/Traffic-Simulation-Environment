@@ -367,6 +367,7 @@ angular.module('trafficEnv')
                     return graph.map(function(e) {
                         return {
                             id: e.id,
+                            type: e.type,
                             path: e.path,
                             title: e.title,
                             x: e.x,
@@ -420,14 +421,34 @@ angular.module('trafficEnv')
                 var paper = Raphael(iElm[0].children[1].children[0]);
 
                 var nodeIdCounter = 0;
-                $scope.dropHandler = function ($event, $data) {
-                    scriptServices.getScript($data, ['name', 'inout', 'path']).then(function (response) {
+                $scope.acceptedChannels = ['code', 'model', 'pipeline'].join(',');
+                $scope.dropHandler = function ($event, $data, $channel) {
+                    if ($channel == 'code') {
+                        scriptServices.getScript($data, ['name', 'inout', 'path']).then(function (response) {
+                            var nodeInfo = {
+                                id: nodeIdCounter++,  // TODO replace by proper random id
+                                type: $channel,
+                                path: response.data.path,
+                                title: response.data.name,
+                                inputs: (response.data.inout[0] || []).map(function (a) { return {name: a}; }),
+                                outputs: (response.data.inout[1] || []).map(function (a) { return {name: a}; }),
+                                predecessors: [],
+                                successors: []
+                            };
+                            $scope.shapes.push(nodeInfo);
+                            $timeout(function(){
+                                var nodeboxes = nodes.querySelectorAll('.node-box');
+                                createBox(nodeboxes[nodeboxes.length-1], nodeInfo, $event.clientX, $event.clientY);
+                            }, 5);
+                        });
+                    } else if ($channel == 'model') {
                         var nodeInfo = {
                             id: nodeIdCounter++,  // TODO replace by proper random id
-                            path: response.data.path,
-                            title: response.data.name,
-                            inputs: (response.data.inout[0] || []).map(function (a) { return {name: a}; }),
-                            outputs: (response.data.inout[1] || []).map(function (a) { return {name: a}; }),
+                            type: $channel,
+                            path: $data,  // TODO retrieve info from server
+                            title: 'Model ' + $data,
+                            inputs: [],
+                            outputs: [{name: 'model'}],
                             predecessors: [],
                             successors: []
                         };
@@ -436,7 +457,9 @@ angular.module('trafficEnv')
                             var nodeboxes = nodes.querySelectorAll('.node-box');
                             createBox(nodeboxes[nodeboxes.length-1], nodeInfo, $event.clientX, $event.clientY);
                         }, 5);
-                    });
+                    } else if ($channel == 'pipeline') {
+                        // TODO
+                    }
                 };
 
                 $scope.savePipelineAs = function () {
@@ -558,19 +581,13 @@ angular.module('trafficEnv')
 
                 $scope.addNode = function (nodeType) {
                     var inputs = [], outputs = [];
-                    switch (nodeType) {
-                        case 'Open Model':
-                            inputs  = [{name: 'path'}, {name: 'model'}];
-                            outputs = [{name: 'model'}];
-                            break;
-
-                        case 'Run Simulation':
-                            inputs  = [{name: 'model'}, {name: 'replication'}];
-                            output  = [];
-                            break;
+                    if (nodeType == 'Run Simulation') {
+                        inputs  = [{name: 'model'}, {name: 'replication'}];
+                        outputs = [];
                     }
                     var nodeInfo = {
                         id: nodeIdCounter++,  // TODO replace by proper random id
+                        type: 'special',
                         path: '<' + nodeType.toUpperCase() + '>',
                         title: nodeType,
                         inputs: inputs,
@@ -647,6 +664,7 @@ angular.module('trafficEnv')
                             var node = graph[i];
                             var nodeInfo = {
                                 id: node.id,
+                                type: node.type,
                                 path: node.path,
                                 title: node.title,
                                 inputs: node.inputs.map(function (inp) { return {name: inp.name}; }),

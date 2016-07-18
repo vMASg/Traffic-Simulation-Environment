@@ -8,7 +8,7 @@ class PipelineService(object):
     def __init__(self, root_folder):
         super(PipelineService, self).__init__()
         self._root_folder = root_folder if not root_folder[-1] == '\\' else root_folder[:-1]
-        self._root_folder_content = os.path.join(self._root_folder, 'Pipelines')
+        self._root_folder_content = os.path.join(self._root_folder, 'content')
         self._root_folder_tmp = os.path.join(self._root_folder, 'tmp')
         if not os.path.isdir(self._root_folder_content):
             os.mkdir(self._root_folder_content)

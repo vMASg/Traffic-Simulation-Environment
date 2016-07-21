@@ -448,7 +448,7 @@ angular.module('trafficEnv')
                             path: $data,  // TODO retrieve info from server
                             title: 'Model ' + $data,
                             inputs: [],
-                            outputs: [{name: 'model'}],
+                            outputs: [{name: 'id_model'}],
                             predecessors: [],
                             successors: []
                         };
@@ -584,11 +584,17 @@ angular.module('trafficEnv')
                     if (nodeType == 'Run Simulation') {
                         inputs  = [{name: 'model'}, {name: 'replication'}];
                         outputs = [];
+                    } else if (nodeType == 'Open Model') {
+                        inputs  = [{name: 'id_model'}];
+                        outputs = [{name: 'model'}];
+                    } else if (nodeType == 'Close Model') {
+                        inputs  = [{name: 'model'}];
+                        outputs = [];
                     }
                     var nodeInfo = {
                         id: nodeIdCounter++,  // TODO replace by proper random id
                         type: 'special',
-                        path: '<' + nodeType.toUpperCase() + '>',
+                        path: '<' + nodeType.toUpperCase().replace(/\s/gmi, '_') + '>',
                         title: nodeType,
                         inputs: inputs,
                         outputs: outputs,

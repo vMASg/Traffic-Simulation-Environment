@@ -18,11 +18,12 @@ class PipelineExecutor(object):
             pipeline = json.loads(f.read())
 
         # Change path for all scripts
-        for script in pipeline:
-            if script['type'] == 'code':
-                script['path'] = self.script_service.get_path_for_execution(script['path'])
-            elif script['type'] == 'model':
-                script['path'] = self.model_service.get_path_for_execution(script['path'])
+        pipeline_nodes = pipeline['nodes']
+        for node in pipeline_nodes:
+            if node['type'] == 'code':
+                node['path'] = self.script_service.get_path_for_execution(node['path'])
+            elif node['type'] == 'model':
+                node['path'] = self.model_service.get_path_for_execution(node['path'])
 
         with open(pipeline_path, 'w') as f:
             f.write(json.dumps(pipeline))

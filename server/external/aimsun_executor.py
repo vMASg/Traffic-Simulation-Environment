@@ -207,18 +207,19 @@ class Pipeline(object):
             node(**inputs)
 
         # Returning pipeline outputs
-        retval = []
-        for output in self.pipeline['outputs']:
-            if output['origin'] is None:
-                retval.append(None)
-            else:
-                origin_node = output['origin']['node']
-                if origin_node is None:
-                    retval.append(kwargs[output['origin']['connector']])
+        if self.pipeline['outputs']:
+            retval = []
+            for output in self.pipeline['outputs']['inputs']:
+                if output['origin'] is None:
+                    retval.append(None)
                 else:
-                    origin = find(lambda e: e.get_id() == origin_node, execution_graph)
-                    retval.append(origin.get_output(output['origin']['connector']))
-        return retval
+                    origin_node = output['origin']['node']
+                    if origin_node is None:
+                        retval.append(kwargs[output['origin']['connector']])
+                    else:
+                        origin = find(lambda e: e.get_id() == origin_node, execution_graph)
+                        retval.append(origin.get_output(output['origin']['connector']))
+            return retval
 
     def _create_node(self, node):
         if node['type'] == 'code':

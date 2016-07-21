@@ -363,22 +363,49 @@ angular.module('trafficEnv')
                     return [["M", x1.toFixed(3), y1.toFixed(3)], ["C", x2, y2, x3, y3, x4.toFixed(3), y4.toFixed(3)]];
                 };
 
-                var transformOutputGraph = function (graph) {
-                    return graph.map(function(e) {
-                        return {
-                            id: e.id,
-                            type: e.type,
-                            path: e.path,
-                            title: e.title,
-                            x: e.x,
-                            y: e.y,
-                            inputs: e.inputs.map(function (input) {
-                                return {
-                                    name: input.name,
-                                    origin: input.input?{ node: input.input.origin.getNode().id, connector: input.input.origin.name }:null
-                                };
-                            }),
-                            outputs: e.outputs.map(function (output) {
+                var transformOutputGraph = function (graph, inp, out) {
+                    return {
+                        nodes: graph.map(function(e) {
+                            return {
+                                id: e.id,
+                                type: e.type,
+                                path: e.path,
+                                title: e.title,
+                                x: e.x,
+                                y: e.y,
+                                inputs: e.inputs.map(function (input) {
+                                    return {
+                                        name: input.name,
+                                        origin: input.input?{ node: input.input.origin.getNode().id, connector: input.input.origin.name }:null
+                                    };
+                                }),
+                                outputs: e.outputs.map(function (output) {
+                                    return {
+                                        name: output.name,
+                                        connections: output.connections?output.connections.map(function (conn) {
+                                            return {
+                                                node: conn.destination.getNode().id,
+                                                connector: conn.destination.name
+                                            };
+                                        }):[]
+                                    };
+                                }),
+                                predecessors: e.predecessors.map(function (pred) {
+                                    return {
+                                        origin: pred.origin.id
+                                    };
+                                }),
+                                successors: e.successors.map(function (succ) {
+                                    return {
+                                        destination: succ.destination.id
+                                    };
+                                })
+                            };
+                        }),
+                        inputs: inp?{
+                            x: inp.x,
+                            y: inp.y,
+                            outputs: inp.outputs.map(function (output) {
                                 return {
                                     name: output.name,
                                     connections: output.connections?output.connections.map(function (conn) {
@@ -388,19 +415,19 @@ angular.module('trafficEnv')
                                         };
                                     }):[]
                                 };
-                            }),
-                            predecessors: e.predecessors.map(function (pred) {
+                            })
+                        }:null,
+                        outputs: out?{
+                            x: out.x,
+                            y: out.y,
+                            inputs: out.inputs.map(function (input) {
                                 return {
-                                    origin: pred.origin.id
-                                };
-                            }),
-                            successors: e.successors.map(function (succ) {
-                                return {
-                                    destination: succ.destination.id
+                                    name: input.name,
+                                    origin: input.input?{ node: input.input.origin.getNode().id, connector: input.input.origin.name }:null
                                 };
                             })
-                        };
-                    });
+                        }:null
+                    };
                 };
 
                 // TODO read http://stackoverflow.com/questions/24167460/how-do-i-get-the-x-and-y-positions-of-an-element-in-an-angularjs-directive
@@ -527,6 +554,8 @@ angular.module('trafficEnv')
                 };
 
                 $scope.shapes = [];
+                $scope.pipelineInputs = null;
+                $scope.pipelineOutputs = null;
                 $scope.min = Math.min;
                 // $scope.openContextMenu = function ($event, nodeInfo) {
                 //     $event.preventDefault();
@@ -665,7 +694,8 @@ angular.module('trafficEnv')
                 if ($scope.data.id) {
                     pipelineServices.getPipeline($scope.data.id).then(function (data) {
                         recomputeContainer();
-                        var graph = angular.fromJson(data.data.graph);
+                        var pipeline = angular.fromJson(data.data.graph);
+                        var graph = pipeline.nodes;
                         for (var i = 0; i < graph.length; i++) {
                             var node = graph[i];
                             var nodeInfo = {
@@ -683,10 +713,32 @@ angular.module('trafficEnv')
                             nodeIdCounter = Math.max(nodeIdCounter, node.id + 1);
                             $scope.shapes.push(nodeInfo);
                         }
+                        if (pipeline.inputs) {
+                            $scope.pipelineInputs = {
+                                x: pipeline.inputs.x,
+                                y: pipeline.inputs.y,
+                                outputs: pipeline.inputs.outputs.map(function (out) { return {name: out.name}; })
+                            };
+                        }
+                        if (pipeline.outputs) {
+                            $scope.pipelineOutputs = {
+                                x: pipeline.outputs.x,
+                                y: pipeline.outputs.y,
+                                inputs: pipeline.outputs.inputs.map(function (inp) { return {name: inp.name}; })
+                            };
+                        }
                         $timeout(function(){
                             var nodeboxes = nodes.querySelectorAll('.node-box');
                             for (var i = 0; i < nodeboxes.length; ++i) {
                                 createBox(nodeboxes[i], $scope.shapes[i]);
+                            }
+                            if (pipeline.inputs) {
+                                var inputNode = nodes.querySelector('.input-box');
+                                createBox(inputNode, $scope.pipelineInputs);
+                            }
+                            if (pipeline.outputs) {
+                                var outputNode = nodes.querySelector('.output-box');
+                                createBox(outputNode, $scope.pipelineOutputs);
                             }
                             for (i = 0; i < graph.length; i++) {
                                 var inputsData = graph[i].inputs;
@@ -730,6 +782,32 @@ angular.module('trafficEnv')
                                     path.attr({stroke: '#6C4C13', 'stroke-width': 2, 'stroke-dasharray': '- '});
                                     node.successors.push({ pathObj: path, destination: $scope.shapes[i] });
                                     predecessorsCreated.push({ pathObj: path, origin: node });
+                                }
+                            }
+                            if (pipeline.outputs) {
+                                var arr = pipeline.outputs.inputs;
+                                for (i = 0; i < arr.length; ++i) {
+                                    var origin = arr[i].origin;
+                                    if (origin) {
+                                        var node = $scope.shapes.find(function (e) {
+                                            return e.id === origin.node;
+                                        });
+                                        var output = node.outputs.find(function (out) {
+                                            return out.name === origin.connector;
+                                        });
+                                        var input = inputsCreated[j];
+                                        var inpbox = input.getCircle().getBoundingClientRect();
+                                        var outbox = output.getCircle().getBoundingClientRect();
+                                        var oleft = outbox.left - containerLeft, otop = outbox.top - containerTop;
+                                        var ileft = inpbox.left - containerLeft, itop = inpbox.top - containerTop;
+                                        var path = paper.path(createPath(oleft + outbox.width / 2, otop + outbox.height / 2, ileft + inpbox.width / 2, itop + inpbox.height / 2));
+                                        path.attr({stroke: '#4E4F4F', 'stroke-width': 2});
+                                        if (!output.connections) {
+                                            output.connections = [];
+                                        }
+                                        output.connections.push({pathObj: path, destination: input});
+                                        input.input = {pathObj: path, origin: output};
+                                    }
                                 }
                             }
                         }, 5);

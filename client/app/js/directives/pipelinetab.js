@@ -823,7 +823,7 @@ angular.module('trafficEnv')
                                 for (var j = 0; j < inputsData.length; ++j) {
                                     var origin = inputsData[j].origin;
                                     if (origin) {
-                                        var node = origin.node?$scope.shapes.find(function (e) {
+                                        var node = origin.node!==null?$scope.shapes.find(function (e) {
                                             return e.id === origin.node;
                                         }):$scope.pipelineInputs;
 
@@ -868,7 +868,7 @@ angular.module('trafficEnv')
                                 for (i = 0; i < arr.length; ++i) {
                                     var origin = arr[i].origin;
                                     if (origin) {
-                                        var node = origin.node?$scope.shapes.find(function (e) {
+                                        var node = origin.node!==null?$scope.shapes.find(function (e) {
                                             return e.id === origin.node;
                                         }):$scope.pipelineInputs;
 

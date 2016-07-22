@@ -8,8 +8,13 @@ import traceback
 
 import aimsun_scriptreg
 
-from PyANGConsole import ANGConsole
-from PyANGKernel import GKSystem, GKExperiment, GKReplication, GKSimulationTask
+try:
+    from PyANGConsole import ANGConsole
+    from PyANGKernel import GKSystem, GKExperiment, GKReplication, GKSimulationTask
+except ImportError:
+    failed_import = True
+else:
+    failed_import = False
 
 def find(f, l):
     for elem in l:
@@ -65,7 +70,7 @@ class Script(Node):
         output_names = [e['name'] for e in self.node_info['outputs']]
         if len(output_names) == 1:
             self.outputs[output_names[0]] = output
-        else:
+        elif len(output_names) > 1:
             for key, value in zip(output_names, list(output)):
                 self.outputs[key] = value
 

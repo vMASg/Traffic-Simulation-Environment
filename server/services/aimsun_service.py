@@ -13,7 +13,8 @@ class PipelineThread(threading.Thread):
 
     def run(self):
         cmd = Popen(
-            ['python', 'server\\external\\aimsun_executor.py', self.pipeline],
+            # ['python', 'server\\external\\aimsun_executor.py', self.pipeline],
+            [self.aconsole_path, '-script', 'server\\external\\aimsun_executor.py', self.pipeline],
             # stdin=PIPE,
             stdout=PIPE,
             stderr=STDOUT

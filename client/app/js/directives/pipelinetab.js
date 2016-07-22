@@ -36,7 +36,7 @@ angular.module('trafficEnv')
                         element.target.style.top = aY + 'px';
                         element.nodeInfo.x = aX;
                         element.nodeInfo.y = aY;
-                        var inputs = element.nodeInfo.inputs;
+                        var inputs = element.nodeInfo.inputs || [];
                         for (var i = inputs.length - 1; i >= 0; i--) {
                             var inp = inputs[i];
                             if (inp.input) {
@@ -46,7 +46,7 @@ angular.module('trafficEnv')
                                 updateConnection(circ, circOrig, path);
                             }
                         }
-                        var outputs = element.nodeInfo.outputs;
+                        var outputs = element.nodeInfo.outputs || [];
                         for (i = outputs.length - 1; i >= 0; i--) {
                             var out = outputs[i];
                             if (out.connections) {
@@ -60,20 +60,24 @@ angular.module('trafficEnv')
                             }
                         }
                         var predecessors = element.nodeInfo.predecessors;
-                        var circ = predecessors.getCircle();
-                        for (var i = predecessors.length - 1; i >= 0; i--) {
-                            var inp = predecessors[i];
-                            var path = inp.pathObj;
-                            var circOrig = inp.origin.successors.getCircle();
-                            updateConnection(circ, circOrig, path);
+                        if (predecessors) {
+                            var circ = predecessors.getCircle();
+                            for (var i = predecessors.length - 1; i >= 0; i--) {
+                                var inp = predecessors[i];
+                                var path = inp.pathObj;
+                                var circOrig = inp.origin.successors.getCircle();
+                                updateConnection(circ, circOrig, path);
+                            }
                         }
                         var successors = element.nodeInfo.successors;
-                        var circOrig = successors.getCircle();
-                        for (var i = successors.length - 1; i >= 0; i--) {
-                            var inp = successors[i];
-                            var path = inp.pathObj;
-                            var circ = inp.destination.predecessors.getCircle();
-                            updateConnection(circ, circOrig, path);
+                        if (successors) {
+                            var circOrig = successors.getCircle();
+                            for (var i = successors.length - 1; i >= 0; i--) {
+                                var inp = successors[i];
+                                var path = inp.pathObj;
+                                var circ = inp.destination.predecessors.getCircle();
+                                updateConnection(circ, circOrig, path);
+                            }
                         }
                     }
                 };
@@ -146,6 +150,32 @@ angular.module('trafficEnv')
                     if (posx && posy) {
                         nodeInfo.y = (posy - containerTop - wh.height/2);
                         nodeInfo.x = (posx - containerLeft - wh.width/2);
+                    }
+                    box.style.top = nodeInfo.y + 'px';
+                    box.style.left = nodeInfo.x + 'px';
+                    box.style.visibility = 'visible';
+                };
+
+                var createBoxIn = function (box, nodeInfo) {
+                    var circles = box.querySelectorAll('.circle.end');
+                    for (var i = circles.length - 1; i >= 0; i--) {
+                        var circ = circles[i];
+                        var out = nodeInfo.inputs[i-1];
+                        out.getNode = function() { return nodeInfo; };
+                        out.getCircle = (function(circ) { return function() { return circ; }; })(circ);
+                    }
+                    box.style.top = nodeInfo.y + 'px';
+                    box.style.left = nodeInfo.x + 'px';
+                    box.style.visibility = 'visible';
+                };
+
+                var createBoxOut = function (box, nodeInfo) {
+                    var circles = box.querySelectorAll('.circle.start');
+                    for (var i = circles.length - 1; i >= 0; i--) {
+                        var circ = circles[i];
+                        var inp = nodeInfo.outputs[i-1];
+                        inp.getNode = function() { return nodeInfo; };
+                        inp.getCircle = (function(circ) { return function() { return circ; }; })(circ);
                     }
                     box.style.top = nodeInfo.y + 'px';
                     box.style.left = nodeInfo.x + 'px';
@@ -464,7 +494,7 @@ angular.module('trafficEnv')
                             };
                             $scope.shapes.push(nodeInfo);
                             $timeout(function(){
-                                var nodeboxes = nodes.querySelectorAll('.node-box');
+                                var nodeboxes = nodes.querySelectorAll('.node-box.stdnodes');
                                 createBox(nodeboxes[nodeboxes.length-1], nodeInfo, $event.clientX, $event.clientY);
                             }, 5);
                         });
@@ -481,7 +511,7 @@ angular.module('trafficEnv')
                         };
                         $scope.shapes.push(nodeInfo);
                         $timeout(function(){
-                            var nodeboxes = nodes.querySelectorAll('.node-box');
+                            var nodeboxes = nodes.querySelectorAll('.node-box.stdnodes');
                             createBox(nodeboxes[nodeboxes.length-1], nodeInfo, $event.clientX, $event.clientY);
                         }, 5);
                     } else if ($channel == 'pipeline') {
@@ -523,7 +553,7 @@ angular.module('trafficEnv')
 
                     modalInstance.result.then(function (info) {
                         var location = info[0], name = info[1];
-                        pipelineServices.savePipeline(name, location, transformOutputGraph($scope.shapes)).then(function (data) {
+                        pipelineServices.savePipeline(name, location, transformOutputGraph($scope.shapes, $scope.pipelineInputs, $scope.pipelineOutputs)).then(function (data) {
                             $scope.switchNew({ntab: {
                                 id: data.data.id,
                                 name: data.data.name,
@@ -534,7 +564,7 @@ angular.module('trafficEnv')
                 };
 
                 $scope.savePipeline = function () {
-                    pipelineServices.updatePipeline($scope.data.id, transformOutputGraph($scope.shapes));
+                    pipelineServices.updatePipeline($scope.data.id, transformOutputGraph($scope.shapes, $scope.pipelineInputs, $scope.pipelineOutputs));
                 };
 
                 $scope.deletePipeline = function () {
@@ -634,8 +664,55 @@ angular.module('trafficEnv')
                     };
                     $scope.shapes.push(nodeInfo);
                     $timeout(function(){
-                        var nodeboxes = nodes.querySelectorAll('.node-box');
+                        var nodeboxes = nodes.querySelectorAll('.node-box.stdnodes');
                         createBox(nodeboxes[nodeboxes.length-1], nodeInfo);
+                    }, 5);
+                };
+
+                $scope.addInputs = function () {
+                    $scope.pipelineInputs = {
+                        x: containerLeft,
+                        y: containerTop,
+                        outputs: []
+                    };
+                    $timeout(function(){
+                        var node = nodes.querySelector('.input-box');
+                        createBoxIn(node, $scope.pipelineInputs);
+                    }, 5);
+                };
+
+                $scope.deleteInputs = function ($event) {
+                    var deleteConnection = $scope.contextOptions.deleteConnection;
+                    var out = $scope.pipelineInputs.outputs;
+                    for (var i = 0; i < out.length; ++i) {
+                        var connections = out[i].connections || [];
+                        while (connections.length > 0) {
+                            deleteConnection('output', outputs[i], 0);
+                        }
+                    }
+                    $scope.pipelineInputs = null;
+                };
+
+                $scope.deleteOutputs = function ($event) {
+                    var deleteConnection = $scope.contextOptions.deleteConnection;
+                    var inp = $scope.pipelineOutputs.inputs;
+                    for (var i = 0; i < inp.length; ++i) {
+                        if (inp[i].input) {
+                            deleteConnection('input', inp[i]);
+                        }
+                    }
+                    $scope.pipelineOutputs = null;
+                };
+
+                $scope.addOutputs = function () {
+                    $scope.pipelineOutputs = {
+                        x: containerLeft,
+                        y: containerTop,
+                        inputs: []
+                    };
+                    $timeout(function(){
+                        var node = nodes.querySelector('.output-box');
+                        createBoxOut(node, $scope.pipelineOutputs);
                     }, 5);
                 };
 
@@ -728,17 +805,17 @@ angular.module('trafficEnv')
                             };
                         }
                         $timeout(function(){
-                            var nodeboxes = nodes.querySelectorAll('.node-box');
+                            var nodeboxes = nodes.querySelectorAll('.node-box.stdnodes');
                             for (var i = 0; i < nodeboxes.length; ++i) {
                                 createBox(nodeboxes[i], $scope.shapes[i]);
                             }
                             if (pipeline.inputs) {
                                 var inputNode = nodes.querySelector('.input-box');
-                                createBox(inputNode, $scope.pipelineInputs);
+                                createBoxIn(inputNode, $scope.pipelineInputs);
                             }
                             if (pipeline.outputs) {
                                 var outputNode = nodes.querySelector('.output-box');
-                                createBox(outputNode, $scope.pipelineOutputs);
+                                createBoxOut(outputNode, $scope.pipelineOutputs);
                             }
                             for (i = 0; i < graph.length; i++) {
                                 var inputsData = graph[i].inputs;
@@ -746,9 +823,10 @@ angular.module('trafficEnv')
                                 for (var j = 0; j < inputsData.length; ++j) {
                                     var origin = inputsData[j].origin;
                                     if (origin) {
-                                        var node = $scope.shapes.find(function (e) {
+                                        var node = origin.node?$scope.shapes.find(function (e) {
                                             return e.id === origin.node;
-                                        });
+                                        }):$scope.pipelineInputs;
+
                                         var output = node.outputs.find(function (out) {
                                             return out.name === origin.connector;
                                         });
@@ -786,16 +864,18 @@ angular.module('trafficEnv')
                             }
                             if (pipeline.outputs) {
                                 var arr = pipeline.outputs.inputs;
+                                var inputsCreated = $scope.pipelineOutputs.inputs;
                                 for (i = 0; i < arr.length; ++i) {
                                     var origin = arr[i].origin;
                                     if (origin) {
-                                        var node = $scope.shapes.find(function (e) {
+                                        var node = origin.node?$scope.shapes.find(function (e) {
                                             return e.id === origin.node;
-                                        });
+                                        }):$scope.pipelineInputs;
+
                                         var output = node.outputs.find(function (out) {
                                             return out.name === origin.connector;
                                         });
-                                        var input = inputsCreated[j];
+                                        var input = inputsCreated[i];
                                         var inpbox = input.getCircle().getBoundingClientRect();
                                         var outbox = output.getCircle().getBoundingClientRect();
                                         var oleft = outbox.left - containerLeft, otop = outbox.top - containerTop;

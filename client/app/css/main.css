@@ -284,6 +284,20 @@ treecontrol ul {
     margin-left: 10px;
 }
 
+.pipeline-container .io-row > .io-cell.add-inout {
+    width: 100%;
+    margin-right: 0px;
+    -webkit-justify-content: center;
+    -moz-justify-content: center;
+    justify-content: center;
+}
+
+.pipeline-container .io-row > .io-cell.add-inout > .ion-android-add-circle {
+    font-size: large;
+    color: #2f6951;
+    margin-right: 8px;
+}
+
 .pipelinenode-options > ul {
     list-style: none;
     margin: 0;

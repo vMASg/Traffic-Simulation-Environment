@@ -681,6 +681,16 @@ angular.module('trafficEnv')
                     }, 5);
                 };
 
+                $scope.newPipelineInput = function () {
+                    $scope.pipelineInputs.outputs.push({name: '', editionMode: true});
+                    // TODO call some form of createBoxIn
+                };
+
+                $scope.newPipelineOutput = function () {
+                    $scope.pipelineOutputs.inputs.push({name: '', editionMode: true});
+                    // TODO call some form of createBoxOut
+                };
+
                 $scope.deleteInputs = function ($event) {
                     var deleteConnection = $scope.contextOptions.deleteConnection;
                     var out = $scope.pipelineInputs.outputs;

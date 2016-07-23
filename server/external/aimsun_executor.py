@@ -4,6 +4,7 @@ import json
 import imp
 
 import threading
+import subprocess
 import traceback
 
 import aimsun_scriptreg
@@ -113,9 +114,9 @@ class OpenModel(Node):
     def get_output(self, connector):
         return self.outputs[connector]
 
-    def __call__(self, model_path):
+    def __call__(self, id_model):
         console = ANGConsole()
-        if not console.open(model_path):
+        if not console.open(id_model):
             # TODO treat error if model cannot be opened
             pass
 
@@ -141,6 +142,7 @@ class RunSimulation(Node):
     def __init__(self, node_info):
         super(RunSimulation, self).__init__(node_info)
         self.outputs = {e['name']: None for e in self.node_info['outputs']}
+        self._spammer = None
 
     def get_output(self, connector):
         return self.outputs[connector]
@@ -158,7 +160,9 @@ class RunSimulation(Node):
         plugin = GKSystem.getSystem().getPlugin("GGetram")
         simulator = plugin.getCreateSimulator(model)
         simulator.addSimulationTask(GKSimulationTask(replication, GKReplication.eBatch))
+        self._start_spammer()
         simulator.simulate()
+        self._kill_spammer()
 
     def mesoscopic_simulation(self, model, replication):
         plugin = GKSystem.getSystem().getPlugin("AMesoPlugin")
@@ -168,7 +172,15 @@ class RunSimulation(Node):
         else:
             # This is the case of a DUE
             simulator.addSimulationTask(GKSimulationTask(replication, GKReplication.eBatchIterative))
+        self._start_spammer()
         simulator.simulate()
+        self._kill_spammer()
+
+    def _start_spammer(self):
+        self._spammer = subprocess.Popen(['server\\external\\spammer3.exe'])
+
+    def _kill_spammer(self):
+        self._spammer.kill()
 
 class Pipeline(object):
     """docstring for Pipeline"""
@@ -235,6 +247,8 @@ class Pipeline(object):
             return PipelineNode(node)
         elif node['type'] == 'special':
             return self._create_special_node(node)
+        else:
+            raise Exception("Unrecognized type {}".format(node['type']))
 
     def _create_special_node(self, node):
         if node['path'] == '<RUN_SIMULATION>':
@@ -243,6 +257,8 @@ class Pipeline(object):
             return OpenModel(node)
         elif node['path'] == '<CLOSE_MODEL>':
             return CloseModel(node)
+        else:
+            raise Exception("Unrecognized special node {}".format(node['path']))
 
 def gibberish(end):
     event = threading.Event()

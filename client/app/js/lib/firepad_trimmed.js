@@ -961,11 +961,12 @@ if (includes.firebaseAdapter) {
         this.setUserId(userId);
         this.setColor(userColor);
 
-        this.firebaseOn_(ref.root().child('.info/connected'), 'value', function(snapshot) {
-          if (snapshot.val() === true) {
-            self.initializeUserData_();
-          }
-        }, this);
+        // this.firebaseOn_(ref.root().child('.info/connected'), 'value', function(snapshot) {
+        //   if (snapshot.val() === true) {
+        //     self.initializeUserData_();
+        //   }
+        // }, this);
+        self.initializeUserData_();
 
         // Once we're initialized, start tracking users' cursors.
         this.on('ready', function() {

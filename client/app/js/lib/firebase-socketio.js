@@ -1,14 +1,16 @@
-function SocketIOFirebase(socket, path) {
+function SocketIOFirebase(socket, callbackFunctions, path, key_min) {
     this.socket = socket;
     this.path = path || '';
+    this.key_min = key_min || '';
+    this.callbackFunctions = callbackFunctions || {};
 }
 
 SocketIOFirebase.prototype.root = function () {
-    return new SocketIOFirebase(this.socket, '');
+    return new SocketIOFirebase(this.socket, this.callbackFunctions, '');
 };
 
 SocketIOFirebase.prototype.child = function (childname) {
-    return new SocketIOFirebase(this.socket, this.path + '/' + childname);
+    return new SocketIOFirebase(this.socket, this.callbackFunctions, this.path + '/' + childname);
 };
 
 SocketIOFirebase.prototype.push = function () {
@@ -23,7 +25,18 @@ SocketIOFirebase.prototype.push = function () {
 };
 
 SocketIOFirebase.prototype.set = function (data) {
-    this.socket.emit('set', JSON.stringify(data));
+    this.socket.emit('set', {path: this.path, data: data});
+};
+
+SocketIOFirebase.prototype.transaction = function (func, onComplete, applyLocaly) {
+    // TODO implement -- Assumes it never fails
+    this.socket.emit('set', {path: this.path, data: func(null)}, function () {
+        onComplete(null, true);
+    });
+};
+
+SocketIOFirebase.prototype.remove = function () {
+    this.socket.emit('remove', {path: this.path});
 };
 
 SocketIOFirebase.prototype.once = function (eventType, successCallback) {
@@ -35,41 +48,59 @@ SocketIOFirebase.prototype.once = function (eventType, successCallback) {
     this.on(eventType, callback);
 };
 
-SocketIOFirebase.prototype.startAt = function (argument) {
-    // TODO implement
+SocketIOFirebase.prototype.startAt = function (value, key) {
+    // simplified implementation given usage
+    return new SocketIOFirebase(this.socket, this.callbackFunctions, this.path, key);
 };
 
 SocketIOFirebase.prototype.on = function (eventType, callback, context) {
-    // TODO implement
+    // child_added, child_changed, child_removed
+    var self = this;
+    var event = this.path + ':' + eventType;
+    var registeredCallback = function (data) {
+        var json = JSON.parse(data);
+        var snapshot = new Snapshot(json.data);
+        if (self.key_min && self.key_min <= snapshot.key()) {
+            callback.call(context, snapshot);
+        }
+    };
+    if (!this.callbackFunctions[event]) {
+        this.callbackFunctions[event] = [];
+    }
+    this.callbackFunctions[event].push([callback, registeredCallback]);
+    this.socket.on(event, registeredCallback);
 };
 
 SocketIOFirebase.prototype.off = function (eventType, callback, context) {
-    // TODO implement
+    var event = this.path + ':' + eventType;
+    var registeredCallback = this.callbackFunctions[event].find(function (cb) {
+        return cb[0] === callback;
+    })[1];
+    this.socket.removeListener(event, registeredCallback);
 };
 
 SocketIOFirebase.prototype.key = function () {
     return this.path.indexOf('/') >= 0?this.path.split('/').pop():null;
 };
 
-SocketIOFirebase.prototype.remove = function () {
-    // TODO implement
-};
-
 SocketIOFirebase.prototype.onDisconnect = function () {
     return new SocketIOFirebaseOnDisconnect(this);
 };
 
-SocketIOFirebase.prototype.transaction = function (func, onComplete, applyLocaly) {
-    // TODO implement
-};
-
 SocketIOFirebase.prototype.toString = function () {
-    // TODO implement
+    return this.path;
 };
 
 function SocketIOFirebaseOnDisconnect(context) {
+    this.socket = context.socket;
     this.path = context.path;
     this.eventsQueue = [];
+
+    this.socket.on('disconnect', (function () {
+        for (var i = 0; i < this.eventsQueue.length; ++i) {
+            this.eventsQueue[i]();
+        }
+    }).bind(this));
 }
 
 SocketIOFirebaseOnDisconnect.prototype.cancel = function () {
@@ -77,5 +108,20 @@ SocketIOFirebaseOnDisconnect.prototype.cancel = function () {
 };
 
 SocketIOFirebaseOnDisconnect.prototype.remove = function () {
-    // body...
+    var self = this;
+    this.eventsQueue.push(function () {
+        self.socket.emit('remove', {path: self.path});
+    });
+};
+
+function Snapshot(data) {
+    this.data = data;
+}
+
+Snapshot.prototype.key = function () {
+    return this.data.key;
+};
+
+Snapshot.prototype.val = function () {
+    return this.data.value;
 };

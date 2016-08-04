@@ -17,7 +17,6 @@
   else if (typeof context['define'] == 'function' && context['define']['amd']) define(definition);
   else context[name] = definition();
 })('Firepad', function () {
-if (includes.utils) {
   var firepad = firepad || { };
   firepad.utils = { };
 
@@ -160,8 +159,6 @@ if (includes.utils) {
       console.log.apply(console, args);
     }
   };
-}
-if (includes.textOp) {
   var firepad = firepad || { };
 
   firepad.TextOp = (function() {
@@ -231,8 +228,6 @@ if (includes.textOp) {
 
     return TextOp;
   })();
-}
-if (includes.textOperation) {
   var firepad = firepad || { };
 
   firepad.TextOperation = (function () {
@@ -860,8 +855,6 @@ if (includes.textOperation) {
 
     return TextOperation;
   }());
-}
-if (includes.cursor) {
   var firepad = firepad || { };
   firepad.Cursor = (function () {
     'use strict';
@@ -918,8 +911,6 @@ if (includes.cursor) {
     return Cursor;
 
   }());
-}
-if (includes.firebaseAdapter) {
   var firepad = firepad || { };
 
   firepad.FirebaseAdapter = (function (global) {
@@ -1325,8 +1316,6 @@ if (includes.firebaseAdapter) {
 
     return FirebaseAdapter;
   }());
-}
-if (includes.wrappedOperation) {
   var firepad = firepad || { };
   firepad.WrappedOperation = (function (global) {
     'use strict';
@@ -1398,8 +1387,6 @@ if (includes.wrappedOperation) {
     return WrappedOperation;
 
   }());
-}
-if (includes.undoManager) {
   var firepad = firepad || { };
 
   firepad.UndoManager = (function () {
@@ -1503,8 +1490,6 @@ if (includes.undoManager) {
     return UndoManager;
 
   }());
-}
-if (includes.client) {
   var firepad = firepad || { };
   firepad.Client = (function () {
     'use strict';
@@ -1676,8 +1661,6 @@ if (includes.client) {
     return Client;
 
   }());
-}
-if (includes.editorClient) {
   var firepad = firepad || { };
 
   firepad.EditorClient = (function () {
@@ -1883,8 +1866,6 @@ if (includes.editorClient) {
   }());
 
   firepad.utils.makeEventEmitter(firepad.EditorClient, ['synced']);
-}
-if (includes.aceAdapter) {
   var firepad,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __slice = [].slice;
@@ -2165,8 +2146,6 @@ if (includes.aceAdapter) {
     return ACEAdapter;
 
   })();
-}
-if (includes.constants) {
   var firepad = firepad || { };
 
   firepad.AttributeConstants = {
@@ -2195,8 +2174,6 @@ if (includes.constants) {
     // A special character used to represent any "entity" inserted into the document (e.g. an image).
     ENTITY_SENTINEL_CHARACTER: '\uE001'
   };
-}
-if (includes.firepad) {
   var firepad = firepad || { };
 
   firepad.Firepad = (function(global) {
@@ -2733,5 +2710,4 @@ if (includes.firepad) {
   // Export adapters
   firepad.Firepad.RichTextCodeMirrorAdapter = firepad.RichTextCodeMirrorAdapter;
   firepad.Firepad.ACEAdapter = firepad.ACEAdapter;
-}
 return firepad.Firepad; }, this);

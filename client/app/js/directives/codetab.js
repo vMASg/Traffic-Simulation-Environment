@@ -5,7 +5,7 @@ angular.module('trafficEnv')
                 'data': '=tabData',
                 'switchNew': '&'
             },
-            controller: ['$scope', 'scriptServices', '$uibModal', function($scope, scriptServices, $uibModal) {
+            controller: ['$scope', 'scriptServices', '$uibModal', 'socket', function($scope, scriptServices, $uibModal, socket) {
                 $scope.aceOption = {
                     mode: 'python',
                     theme: 'monokai',
@@ -26,6 +26,18 @@ angular.module('trafficEnv')
                     scriptServices.getScript($scope.data.id).then(function (code) {
                         $scope.code = code.data.replace(/\r/gm, '');
                     });
+                    var socketIOAdapter = new SocketIOFirebase(socket, $scope.data.id);
+                    socketIOAdapter.initRoom();
+                    $scope.aceOption.onLoad = function (_ace) {
+                        // HACK to have the ace instance in the scope...
+                        $scope.modeChanged = function (_ace) {
+                            _ace.getSession().setMode("ace/mode/python");
+                        };
+                        _ace.setOption('scrollPastEnd', 0.9);
+                        _ace.$blockScrolling = Infinity;
+                        _ace.setHighlightActiveLine(false);
+                        Firepad.fromACE(socketIOAdapter, _ace);
+                    };
                 }
 
                 $scope.saveScript = function () {

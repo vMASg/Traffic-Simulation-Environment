@@ -1,16 +1,25 @@
-function SocketIOFirebase(socket, callbackFunctions, path, key_min) {
+function SocketIOFirebase(socket, room, callbackFunctions, path, key_min) {
     this.socket = socket;
+    this.room = room;
     this.path = path || '';
     this.key_min = key_min || '';
     this.callbackFunctions = callbackFunctions || {};
 }
 
+SocketIOFirebase.prototype.initRoom = function () {
+    this.socket.emit('join_code_channel', {channel: this.room});
+};
+
+SocketIOFirebase.prototype.wrap = function (msg) {
+    return {room: this.room, msg: msg};
+};
+
 SocketIOFirebase.prototype.root = function () {
-    return new SocketIOFirebase(this.socket, this.callbackFunctions, '');
+    return new SocketIOFirebase(this.socket, this.room, this.callbackFunctions, '');
 };
 
 SocketIOFirebase.prototype.child = function (childname) {
-    return new SocketIOFirebase(this.socket, this.callbackFunctions, this.path + '/' + childname);
+    return new SocketIOFirebase(this.socket, this.room, this.callbackFunctions, this.path + '/' + childname);
 };
 
 SocketIOFirebase.prototype.push = function () {
@@ -20,23 +29,27 @@ SocketIOFirebase.prototype.push = function () {
     // this.socket.emit('push', {path: this.path}, function (json) {
     //     // body...
     // });
-    console.error("Oups");
-    debugger;
+    // console.error("Oups");
+    // debugger;
+    var userName = prompt("Enter user name");
+    return {
+        key: function () { return userName; }
+    };
 };
 
 SocketIOFirebase.prototype.set = function (data) {
-    this.socket.emit('set', {path: this.path, data: data});
+    this.socket.emit('set', this.wrap({path: this.path, data: data}));
 };
 
 SocketIOFirebase.prototype.transaction = function (func, onComplete, applyLocaly) {
     // TODO implement -- Assumes it never fails
-    this.socket.emit('set', {path: this.path, data: func(null)}, function () {
+    this.socket.emit('set', this.wrap({path: this.path, data: func(null)}), function () {
         onComplete(null, true);
     });
 };
 
 SocketIOFirebase.prototype.remove = function () {
-    this.socket.emit('remove', {path: this.path});
+    this.socket.emit('remove', this.wrap({path: this.path}));
 };
 
 SocketIOFirebase.prototype.once = function (eventType, successCallback) {
@@ -50,7 +63,7 @@ SocketIOFirebase.prototype.once = function (eventType, successCallback) {
 
 SocketIOFirebase.prototype.startAt = function (value, key) {
     // simplified implementation given usage
-    return new SocketIOFirebase(this.socket, this.callbackFunctions, this.path, key);
+    return new SocketIOFirebase(this.socket, this.room, this.callbackFunctions, this.path, key);
 };
 
 SocketIOFirebase.prototype.on = function (eventType, callback, context) {
@@ -93,6 +106,7 @@ SocketIOFirebase.prototype.toString = function () {
 
 function SocketIOFirebaseOnDisconnect(context) {
     this.socket = context.socket;
+    this.room = context.room;
     this.path = context.path;
     this.eventsQueue = [];
 
@@ -103,6 +117,10 @@ function SocketIOFirebaseOnDisconnect(context) {
     }).bind(this));
 }
 
+SocketIOFirebaseOnDisconnect.prototype.wrap = function (msg) {
+    return {room: this.room, msg: msg};
+};
+
 SocketIOFirebaseOnDisconnect.prototype.cancel = function () {
     this.eventsQueue = [];
 };
@@ -110,7 +128,7 @@ SocketIOFirebaseOnDisconnect.prototype.cancel = function () {
 SocketIOFirebaseOnDisconnect.prototype.remove = function () {
     var self = this;
     this.eventsQueue.push(function () {
-        self.socket.emit('remove', {path: self.path});
+        self.socket.emit('remove', self.wrap({path: self.path}));
     });
 };
 

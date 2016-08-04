@@ -48,7 +48,7 @@ angular.module('trafficEnv')
                     $scope.selectedNode = selected;
                 };
 
-                socket.on('msg', function (data) {
+                socket.on('connect', function (data) {
                     console.log(data);
                 });
 

@@ -19,7 +19,7 @@ SocketIOFirebase.prototype.root = function () {
 };
 
 SocketIOFirebase.prototype.child = function (childname) {
-    return new SocketIOFirebase(this.socket, this.room, this.callbackFunctions, this.path + '/' + childname);
+    return new SocketIOFirebase(this.socket, this.room, this.callbackFunctions, this.path===''?childname:this.path + '/' + childname);
 };
 
 SocketIOFirebase.prototype.push = function () {
@@ -71,9 +71,9 @@ SocketIOFirebase.prototype.on = function (eventType, callback, context) {
     var self = this;
     var event = this.path + ':' + eventType;
     var registeredCallback = function (data) {
-        var json = JSON.parse(data);
-        var snapshot = new Snapshot(json.data);
-        if (self.key_min && self.key_min <= snapshot.key()) {
+        // var json = JSON.parse(data);
+        var snapshot = new Snapshot(data);
+        if (!self.key_min || self.key_min <= snapshot.key()) {
             callback.call(context, snapshot);
         }
     };
@@ -82,6 +82,10 @@ SocketIOFirebase.prototype.on = function (eventType, callback, context) {
     }
     this.callbackFunctions[event].push([callback, registeredCallback]);
     this.socket.on(event, registeredCallback);
+    // Sending initial request if eventType is value or child_added
+    if (eventType == 'value' || eventType == 'child_added') {
+        this.socket.emit('initial', this.wrap({ path: this.path, type:eventType }));
+    }
 };
 
 SocketIOFirebase.prototype.off = function (eventType, callback, context) {
@@ -137,9 +141,13 @@ function Snapshot(data) {
 }
 
 Snapshot.prototype.key = function () {
-    return this.data.key;
+    return this.data.key?this.data.key:null;
 };
 
 Snapshot.prototype.val = function () {
-    return this.data.value;
+    return this.data.value?this.data.value:null;
+};
+
+Snapshot.prototype.child = function (name) {
+    return new Snapshot(this.data.value[name]?this.data[name]:{});
 };

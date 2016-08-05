@@ -1,4 +1,7 @@
 from flask_socketio import emit, join_room, leave_room
+from collections import OrderedDict
+from time import time
+import json
 
 class Channel(object):
     """docstring for Channel"""
@@ -35,11 +38,14 @@ class SubscriptionChannel(Channel):
 class CodeChannel(Channel):
     """docstring for CodeChannel"""
 
-    class RecursiveDict(dict):
+    class RecursiveDict(OrderedDict):
         """Implementation of perl's autovivification feature."""
         def __missing__(self, key):
             value = self[key] = type(self)()
             return value
+
+        def __str__(self):
+            return '{{{}}}'.format(','.join('{}:{}'.format(k, v) for k, v in self.iteritems()))
 
     def __init__(self, script_id, socketio_obj, namespace):
         super(CodeChannel, self).__init__()
@@ -48,14 +54,21 @@ class CodeChannel(Channel):
         self.namespace = namespace
         self.receive_set = socketio_obj.on('set', namespace=namespace)(self.filter(self.receive_set))
         self.receive_remove = socketio_obj.on('remove', namespace=namespace)(self.filter(self.receive_remove))
+        self.receive_initial = socketio_obj.on('initial', namespace=namespace)(self.filter(self.receive_initial))
 
 
         self.internal_state = self.RecursiveDict()
+        # self.internal_state[''] = self.RecursiveDict()
+        self.internal_state['checkpoint'] = self.RecursiveDict()
+        self.internal_state['history'] = self.RecursiveDict()
+        self.internal_state['users'] = self.RecursiveDict()
 
     def filter(self, func):
         def decorator(data):
             if data['room'] == self.script_id:
                 func(data['msg'])
+                with open('D:\\USUARIS\\victor.mas\\Desktop\\firepad-master\\examples\\internal_state.json', 'w') as f:
+                    f.write(json.dumps(self.internal_state, indent=4))
         return decorator
 
     def navigate(self, paths):
@@ -63,6 +76,18 @@ class CodeChannel(Channel):
         for path in paths:
             retval = retval[path]
         return retval
+
+    def replace_special(self, data):
+        if isinstance(data, dict):
+            if '.sv' in data and data['.sv'] == 'timestamp':
+                data = int(time())
+            else:
+                for k, v in data.iteritems():
+                    data[k] = self.replace_special(v)
+        elif isinstance(data, list):
+            for ind, elem in enumerate(data):
+                data[ind] = self.replace_special(elem)
+        return data
 
     def propagate_changes(self, paths):
         target = self.internal_state
@@ -72,19 +97,20 @@ class CodeChannel(Channel):
             accum_path = '{}/{}'.format(accum_path, path)
             self.socketio.emit(
                 '{}:{}'.format(accum_path, 'child_changed'),
-                target,
+                {'key': path, 'value': target},
                 room=self.script_id,
                 namespace=self.namespace
             )
 
     def receive_set(self, data):
+        data['data'] = self.replace_special(data['data'])
         path = data['path'].split('/')
         parent = self.navigate(path[:-1])
         new_child = path[-1] not in parent
         parent[path[-1]] = data['data']
         self.socketio.emit(
-            '{}:{}'.format(data['path'], 'child_added' if new_child else 'child_changed'),
-            parent[path[-1]],
+            '{}:{}'.format('/'.join(path[:-1]), 'child_added' if new_child else 'child_changed'),
+            {'key': path[-1], 'value':parent[path[-1]]},
             room=self.script_id,
             namespace=self.namespace
         )
@@ -95,22 +121,36 @@ class CodeChannel(Channel):
         parent = self.navigate(path[:-1])
         self.socketio.emit(
             '{}:{}'.format(data['path'], 'child_removed'),
-            parent[path[-1]],
+            {'key': path[-1], 'value':parent[path[-1]]},
             room=self.script_id,
             namespace=self.namespace
         )
         del parent[path[-1]]
         self.propagate_changes(path[:-1])
 
-    def catch_up(self):
-        self.send_child(self.internal_state, '')
+    def receive_initial(self, data):
+        path = data['path'].split('/')
+        event_type = data['type']
+        initial_data = self.navigate(path)
+        if event_type == 'value':
+            emit('{}:{}'.format(data['path'], event_type), {'key': path[-1], 'value': initial_data})
+        elif event_type == 'child_added':
+            for k, v in initial_data.iteritems():
+                emit('{}:{}'.format(data['path'], event_type), {'key': k, 'value': v})
 
-    def send_child(self, state, path):
-        for key, child in state.iteritems():
-            joined_path = '{}/{}'.format(path, key)
-            emit('{}:child_added'.format(joined_path), child)
-            if isinstance(child, self.RecursiveDict):
-                self.send_child(child, joined_path)
+
+    # def catch_up(self):
+    #     self.send_child(self.internal_state['checkpoint'], 'checkpoint')
+    #     self.send_child(self.internal_state['history'], 'history')
+    #     self.send_child(self.internal_state['users'], 'users')
+
+    # def send_child(self, state, path):
+    #     for key, child in state.iteritems():
+    #         joined_path = '{}/{}'.format(path, key)
+    #         emit('{}:child_added'.format(joined_path), child)
+    #         if isinstance(child, self.RecursiveDict):
+    #             self.send_child(child, joined_path)
+    #         emit('{}:value'.format(joined_path), child)
 
 
 class Subscription(object):

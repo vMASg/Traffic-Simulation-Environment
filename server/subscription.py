@@ -67,7 +67,7 @@ class CodeChannel(Channel):
         def decorator(data):
             if data['room'] == self.script_id:
                 func(data['msg'])
-                with open('D:\\USUARIS\\victor.mas\\Desktop\\firepad-master\\examples\\internal_state.json', 'w') as f:
+                with open('C:\\Users\\Victor\\Downloads\\internal_state.json', 'w') as f:
                     f.write(json.dumps(self.internal_state, indent=4))
         return decorator
 
@@ -89,15 +89,15 @@ class CodeChannel(Channel):
                 data[ind] = self.replace_special(elem)
         return data
 
-    def propagate_changes(self, paths):
+    def propagate_changes(self, paths, key):
         target = self.internal_state
         accum_path = ''
-        for path in paths:
+        for path, subpath in zip(paths, paths[1:] + [key]):
             target = target[path]
-            accum_path = '{}/{}'.format(accum_path, path)
+            accum_path = '{}/{}'.format(accum_path, path) if accum_path != '' else path
             self.socketio.emit(
                 '{}:{}'.format(accum_path, 'child_changed'),
-                {'key': path, 'value': target},
+                {'key': path, 'value': target[subpath]},
                 room=self.script_id,
                 namespace=self.namespace
             )
@@ -114,19 +114,19 @@ class CodeChannel(Channel):
             room=self.script_id,
             namespace=self.namespace
         )
-        self.propagate_changes(path[:-1])
+        self.propagate_changes(path[:-2], path[-2])
 
     def receive_remove(self, data):
         path = data['path'].split('/')
         parent = self.navigate(path[:-1])
         self.socketio.emit(
-            '{}:{}'.format(data['path'], 'child_removed'),
+            '{}:{}'.format('/'.join(path[:-1]), 'child_removed'),
             {'key': path[-1], 'value':parent[path[-1]]},
             room=self.script_id,
             namespace=self.namespace
         )
         del parent[path[-1]]
-        self.propagate_changes(path[:-1])
+        self.propagate_changes(path[:-2], path[-2])
 
     def receive_initial(self, data):
         path = data['path'].split('/')

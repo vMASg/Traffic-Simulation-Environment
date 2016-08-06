@@ -149,5 +149,5 @@ Snapshot.prototype.val = function () {
 };
 
 Snapshot.prototype.child = function (name) {
-    return new Snapshot(this.data.value[name]?this.data[name]:{});
+    return new Snapshot(this.data.value[name]?{key: name, value:this.data.value[name]}:{});
 };

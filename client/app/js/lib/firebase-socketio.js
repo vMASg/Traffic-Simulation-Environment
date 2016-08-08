@@ -38,18 +38,18 @@ SocketIOFirebase.prototype.push = function () {
 };
 
 SocketIOFirebase.prototype.set = function (data) {
-    this.socket.emit('set', this.wrap({path: this.path, data: data}));
+    this.socket.emit(this.room + ':set', this.wrap({path: this.path, data: data}));
 };
 
 SocketIOFirebase.prototype.transaction = function (func, onComplete, applyLocaly) {
     // TODO implement -- Assumes it never fails
-    this.socket.emit('set', this.wrap({path: this.path, data: func(null)}), function () {
+    this.socket.emit(this.room + ':set', this.wrap({path: this.path, data: func(null)}), function () {
         onComplete(null, true);
     });
 };
 
 SocketIOFirebase.prototype.remove = function () {
-    this.socket.emit('remove', this.wrap({path: this.path}));
+    this.socket.emit(this.room + ':remove', this.wrap({path: this.path}));
 };
 
 SocketIOFirebase.prototype.once = function (eventType, successCallback) {
@@ -69,7 +69,7 @@ SocketIOFirebase.prototype.startAt = function (value, key) {
 SocketIOFirebase.prototype.on = function (eventType, callback, context) {
     // child_added, child_changed, child_removed
     var self = this;
-    var event = this.path + ':' + eventType;
+    var event = this.room + '#' + this.path + ':' + eventType;
     var registeredCallback = function (data) {
         // var json = JSON.parse(data);
         var snapshot = new Snapshot(data);
@@ -84,12 +84,12 @@ SocketIOFirebase.prototype.on = function (eventType, callback, context) {
     this.socket.on(event, registeredCallback);
     // Sending initial request if eventType is value or child_added
     if (eventType == 'value' || eventType == 'child_added') {
-        this.socket.emit('initial', this.wrap({ path: this.path, type:eventType }));
+        this.socket.emit(this.room + ':initial', this.wrap({ path: this.path, type:eventType }));
     }
 };
 
 SocketIOFirebase.prototype.off = function (eventType, callback, context) {
-    var event = this.path + ':' + eventType;
+    var event = this.room + '#' + this.path + ':' + eventType;
     var registeredCallback = this.callbackFunctions[event].find(function (cb) {
         return cb[0] === callback;
     })[1];
@@ -105,7 +105,7 @@ SocketIOFirebase.prototype.onDisconnect = function () {
 };
 
 SocketIOFirebase.prototype.toString = function () {
-    return this.path;
+    return this.room + '#' + this.path;
 };
 
 function SocketIOFirebaseOnDisconnect(context) {
@@ -132,7 +132,7 @@ SocketIOFirebaseOnDisconnect.prototype.cancel = function () {
 SocketIOFirebaseOnDisconnect.prototype.remove = function () {
     var self = this;
     this.eventsQueue.push(function () {
-        self.socket.emit('remove', self.wrap({path: self.path}));
+        self.socket.emit(self.room + ':remove', self.wrap({path: self.path}));
     });
 };
 

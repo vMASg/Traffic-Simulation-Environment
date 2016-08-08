@@ -52,9 +52,9 @@ class CodeChannel(Channel):
         self.script_id = script_id
         self.socketio = socketio_obj
         self.namespace = namespace
-        self.receive_set = socketio_obj.on('set', namespace=namespace)(self.filter(self.receive_set))
-        self.receive_remove = socketio_obj.on('remove', namespace=namespace)(self.filter(self.receive_remove))
-        self.receive_initial = socketio_obj.on('initial', namespace=namespace)(self.filter(self.receive_initial))
+        self.receive_set = socketio_obj.on('{}:set'.format(self.script_id), namespace=namespace)(self.filter(self.receive_set))
+        self.receive_remove = socketio_obj.on('{}:remove'.format(self.script_id), namespace=namespace)(self.filter(self.receive_remove))
+        self.receive_initial = socketio_obj.on('{}:initial'.format(self.script_id), namespace=namespace)(self.filter(self.receive_initial))
 
 
         self.internal_state = self.RecursiveDict()
@@ -96,7 +96,7 @@ class CodeChannel(Channel):
             target = target[path]
             accum_path = '{}/{}'.format(accum_path, path) if accum_path != '' else path
             self.socketio.emit(
-                '{}:{}'.format(accum_path, 'child_changed'),
+                '{}#{}:{}'.format(self.script_id, accum_path, 'child_changed'),
                 {'key': subpath, 'value': target[subpath]},
                 room=self.script_id,
                 namespace=self.namespace
@@ -109,34 +109,36 @@ class CodeChannel(Channel):
         new_child = path[-1] not in parent
         parent[path[-1]] = data['data']
         self.socketio.emit(
-            '{}:{}'.format('/'.join(path[:-1]), 'child_added' if new_child else 'child_changed'),
+            '{}#{}:{}'.format(self.script_id, '/'.join(path[:-1]), 'child_added' if new_child else 'child_changed'),
             {'key': path[-1], 'value':parent[path[-1]]},
             room=self.script_id,
             namespace=self.namespace
         )
-        self.propagate_changes(path[:-2], path[-2])
+        if len(path) > 1:
+            self.propagate_changes(path[:-2], path[-2])
 
     def receive_remove(self, data):
         path = data['path'].split('/')
         parent = self.navigate(path[:-1])
         self.socketio.emit(
-            '{}:{}'.format('/'.join(path[:-1]), 'child_removed'),
+            '{}#{}:{}'.format(self.script_id, '/'.join(path[:-1]), 'child_removed'),
             {'key': path[-1], 'value':parent[path[-1]]},
             room=self.script_id,
             namespace=self.namespace
         )
         del parent[path[-1]]
-        self.propagate_changes(path[:-2], path[-2])
+        if len(path) > 1:
+            self.propagate_changes(path[:-2], path[-2])
 
     def receive_initial(self, data):
         path = data['path'].split('/')
         event_type = data['type']
         initial_data = self.navigate(path)
         if event_type == 'value':
-            emit('{}:{}'.format(data['path'], event_type), {'key': path[-1], 'value': initial_data})
+            emit('{}#{}:{}'.format(self.script_id, data['path'], event_type), {'key': path[-1], 'value': initial_data})
         elif event_type == 'child_added':
             for k, v in initial_data.iteritems():
-                emit('{}:{}'.format(data['path'], event_type), {'key': k, 'value': v})
+                emit('{}#{}:{}'.format(self.script_id, data['path'], event_type), {'key': k, 'value': v})
 
 
     # def catch_up(self):
@@ -176,6 +178,7 @@ class Subscription(object):
         emit('connect', 'connected')
 
     def disconnect(self):
+        print 'disconnected'
         emit('disconnect', 'disconnected')
 
     def subscribe(self, data):

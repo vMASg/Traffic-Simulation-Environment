@@ -23,11 +23,14 @@ angular.module('trafficEnv')
 
                 $scope.code = '';
                 if ($scope.data.id) {
-                    scriptServices.getScript($scope.data.id).then(function (code) {
-                        $scope.code = code.data.replace(/\r/gm, '');
-                    });
                     var socketIOAdapter = new SocketIOFirebase(socket, $scope.data.id);
                     socketIOAdapter.initRoom();
+                    scriptServices.getScript($scope.data.id).then(function (code) {
+                        // $scope.code = code.data.replace(/\r/gm, '');
+                        var localInstance = Firepad.fromACE(socketIOAdapter, $scope._ace, {
+                            defaultText: code.data.replace(/\r/gm, '')
+                        });
+                    });
                     $scope.aceOption.onLoad = function (_ace) {
                         // HACK to have the ace instance in the scope...
                         $scope.modeChanged = function (_ace) {
@@ -36,7 +39,7 @@ angular.module('trafficEnv')
                         _ace.setOption('scrollPastEnd', 0.9);
                         _ace.$blockScrolling = Infinity;
                         _ace.setHighlightActiveLine(false);
-                        Firepad.fromACE(socketIOAdapter, _ace);
+                        $scope._ace = _ace;
                     };
                 }
 

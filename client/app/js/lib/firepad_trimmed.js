@@ -1070,7 +1070,7 @@
       }
 
       this.sent_ = { id: revisionId, op: operation };
-      doTransaction(revisionId, { a: self.userId_, o: operation.toJSON(), t: Firebase.ServerValue.TIMESTAMP });
+      doTransaction(revisionId, { a: self.userId_, o: operation.toJSON(), t: {".sv":"timestamp"} });
     };
 
     FirebaseAdapter.prototype.sendCursor = function (obj) {

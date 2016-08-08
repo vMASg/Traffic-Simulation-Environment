@@ -97,7 +97,7 @@ class CodeChannel(Channel):
             accum_path = '{}/{}'.format(accum_path, path) if accum_path != '' else path
             self.socketio.emit(
                 '{}:{}'.format(accum_path, 'child_changed'),
-                {'key': path, 'value': target[subpath]},
+                {'key': subpath, 'value': target[subpath]},
                 room=self.script_id,
                 namespace=self.namespace
             )

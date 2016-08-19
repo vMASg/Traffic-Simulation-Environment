@@ -85,6 +85,7 @@ class AppStarter(Resource):
     def _register_static_server(self, static_files_root_folder_path):
         self._static_files_root_folder_path = static_files_root_folder_path
         self._app.add_url_rule('/css/bootstrap.min.css', 'load_bootstrap', self._load_bootstrap, methods=['GET'])
+        self._app.add_url_rule('/js/lib/firebase-socketio.js', 'load_firebase-socketio', self._load_firebasesockeio, methods=['GET'])
         self._app.add_url_rule('/<path:file_relative_path_to_root>', 'serve_page', self._serve_page, methods=['GET'])
         self._app.add_url_rule('/', 'index', self._goto_index, methods=['GET'])
 
@@ -135,6 +136,10 @@ class AppStarter(Resource):
 
     def _load_bootstrap(self):
         return send_from_directory(self._static_files_root_folder_path, 'css/bootstrap.min.css')
+
+    @login_required
+    def _load_firebasesockeio(self):
+        return render_template('js/lib/firebase-socketio.js')
 
     @login_required
     def _goto_index(self):

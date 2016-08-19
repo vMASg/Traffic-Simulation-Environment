@@ -31,10 +31,12 @@ SocketIOFirebase.prototype.push = function () {
     // });
     // console.error("Oups");
     // debugger;
-    var userName = prompt("Enter user name");
-    return {
-        key: function () { return userName; }
-    };
+
+    // var userName = prompt("Enter user name");
+    // return {
+    //     key: function () { return userName; }
+    // };
+    return '{{ current_user.username }}';
 };
 
 SocketIOFirebase.prototype.set = function (data) {

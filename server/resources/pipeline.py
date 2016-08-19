@@ -1,6 +1,7 @@
-from flask_restful import Resource, reqparse
+from flask_restful import reqparse
 from flask import request, send_file
 from server.exceptions import InvalidPathException
+from server.resources.base_resource import BaseResource as Resource
 
 class Pipeline(Resource):
     """docstring for Pipeline"""

@@ -1,4 +1,4 @@
-from flask.ext.restful import Resource
+from server.resources.base_resource import BaseResource as Resource
 
 class ModelCollection(Resource):
     """docstring for ModelCollection"""

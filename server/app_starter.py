@@ -51,6 +51,7 @@ class AppStarter(Resource):
         self._app = Flask(__name__, template_folder=app_path)
         self._app.config['SECRET_KEY'] = SECRET_KEY
         self._api = Api(self._app)
+        self._app.config['ERROR_404_HELP'] = False
         eventlet.monkey_patch(os=False)
         # SocketIO init
         self._socketio = SocketIO(self._app, async_mode='eventlet')

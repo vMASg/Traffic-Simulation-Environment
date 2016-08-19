@@ -88,4 +88,5 @@ class ScriptService(object):
     #     return si.get_script_type(), si.requires_model()
 
     def get_script_info(self, id):
-        return ScriptInfo(self._get_rel_abs_path(id)[0])
+        path = self._get_rel_abs_path(id)[0]
+        return ScriptInfo(path) if os.path.isfile(path) else None

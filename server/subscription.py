@@ -1,7 +1,18 @@
-from flask_socketio import emit, join_room, leave_room
+from flask_socketio import emit, join_room, leave_room, disconnect
+from flask_login import current_user
+from functools import wraps
 from collections import OrderedDict
 from time import time
 import json
+
+def authenticated_only(f):
+    @wraps(f)
+    def wrapped(*args, **kwargs):
+        if not current_user.is_authenticated:
+            disconnect()
+        else:
+            return f(*args, **kwargs)
+    return wrapped
 
 class Channel(object):
     """docstring for Channel"""
@@ -174,22 +185,27 @@ class Subscription(object):
         self.channels[channel_name] = sc
         return sc
 
+    @authenticated_only
     def connect(self):
         emit('connect', 'connected')
 
+    @authenticated_only
     def disconnect(self):
         print 'disconnected'
         emit('disconnect', 'disconnected')
 
+    @authenticated_only
     def subscribe(self, data):
         join_room(data['channel'])
         self.channels[data['channel']].catch_up()
         print 'subscribed to {}'.format(data['channel'])
         # TODO self.channels[data['channel']].announce_joined()
 
+    @authenticated_only
     def unsubscribe(self, data):
         leave_room(data['channel'])
 
+    @authenticated_only
     def join_code_channel(self, data):
         if data['channel'] not in self.channels:
             cc = CodeChannel(data['channel'], self.socketio, self.namespace)

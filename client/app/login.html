@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
+    <style type="text/css">
+        html, body {
+            /*background-color: #3B3B3B;*/
+            /*background-color: #6e6e6e;*/
+            background-color: #222;
+        }
+
+        .form-container {
+            width: 430px;
+            margin: auto;
+            margin-top: 150px;
+            padding: 50px;
+            background-color: #3b3b3b;
+            border-radius: 5px;
+        }
+
+        legend,
+        .form-control {
+            color: #ddd;
+        }
+
+        legend {
+            margin-bottom: 30px;
+        }
+
+        .form-control {
+            background-color: #222;
+            border: 1px solid gray;
+        }
+
+        input[type='text'] {
+            margin-bottom: -1px;
+            border-bottom-right-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+
+        input[type='password'] {
+            border-top-right-radius: 0;
+            border-top-left-radius: 0;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <form method="POST" action="/login">
+            <legend>Sign in to continue</legend>
+            {{ form.hidden_tag() }}
+            <input class="form-control" type="text" name="username" value="" placeholder="Username" required="required" />
+            <input class="form-control" type="password" name="password" value="" placeholder="Password" required="required" />
+            <input class="btn btn-lg btn-block" type="submit" value="Submit" />
+        </form>
+    </div>
+</body>
+</html>

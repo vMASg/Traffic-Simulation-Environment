@@ -1,5 +1,3 @@
-SCRIPTS_ROOT_FOLDER = r'D:\TEMP\Scripts'
-MODELS_ROOT_FOLDER = r'D:\USUARIS\victor.mas\CitEffect\gitmodel'
-ACONSOLE_PATH = r'D:\SOFT\TSS-Transport Simulation Systems\Aimsun 8.0 x64\aconsole.exe'
-AIMSUN_SCRIPT_PATH = r'server\external\aimsun_servr.py'
-PIPELINES_ROOT_FOLDER = r'D:\TEMP\Pipelines'
+BASE_PATH = r'F:\Projects\TFG'
+ACONSOLE_PATH = r'F:\Projects\TFG\fake_aconsole2.py'
+SECRET_KEY = '441c0f440949e5223213f96866e29f2207a4055d43ce1b13'

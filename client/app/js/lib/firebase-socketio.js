@@ -109,6 +109,7 @@ SocketIOFirebase.prototype.toString = function () {
 };
 
 function SocketIOFirebaseOnDisconnect(context) {
+    // TODO should be implemented in the server
     this.socket = context.socket;
     this.room = context.room;
     this.path = context.path;

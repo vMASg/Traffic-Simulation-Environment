@@ -1,8 +1,13 @@
 import os
 import eventlet
-from flask import Flask, send_from_directory
+from flask import Flask, send_from_directory, redirect, url_for, render_template
 from flask_restful import Resource, Api
-from flask_socketio import SocketIO
+from flask_socketio import SocketIO, disconnect
+from flask_sqlalchemy import SQLAlchemy
+from flask_bcrypt import Bcrypt
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+# Forms
+from server.forms import UsernamePasswordForm
 # Resources
 from server.resources.script_collection import ScriptCollection
 from server.resources.script import Script
@@ -18,27 +23,76 @@ from server.services.model_service import ModelService
 from server.services.aimsun_service import AimsunService
 from server.subscription import Subscription
 # Constants
-from server.constants import SCRIPTS_ROOT_FOLDER, PIPELINES_ROOT_FOLDER, MODELS_ROOT_FOLDER, ACONSOLE_PATH, AIMSUN_SCRIPT_PATH
+from server.constants import ACONSOLE_PATH, BASE_PATH, SECRET_KEY
+
+SCRIPTS_ROOT_FOLDER = os.path.join(BASE_PATH, 'Scripts')
+MODELS_ROOT_FOLDER = os.path.join(BASE_PATH, 'Models')
+PIPELINES_ROOT_FOLDER = os.path.join(BASE_PATH, 'Pipelines')
+
+sql_alchemy_db = SQLAlchemy()
+login_manager = LoginManager()
+
+from server.resources.user import User
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 class AppStarter(Resource):
     """Based in solution http://stackoverflow.com/a/29521067"""
 
-    def __init__(self):
-        # super(AppStarter, self).__init__()
+    def __init__(self, app_path):
+        # Creating default folders for Resources
+        AppStarter._create_folder_if_nonexistent(SCRIPTS_ROOT_FOLDER)
+        AppStarter._create_folder_if_nonexistent(MODELS_ROOT_FOLDER)
+        AppStarter._create_folder_if_nonexistent(PIPELINES_ROOT_FOLDER)
+        # Initializing app
         self._static_files_root_folder_path = ''
-        self._app = Flask(__name__)
-        self._app.config['SECRET_KEY'] = os.urandom(24).encode('hex')  # TODO check if needs to be the same key
+        self._app = Flask(__name__, template_folder=app_path)
+        self._app.config['SECRET_KEY'] = SECRET_KEY
         self._api = Api(self._app)
         eventlet.monkey_patch(os=False)
+        # SocketIO init
         self._socketio = SocketIO(self._app, async_mode='eventlet')
         self._subscription = Subscription(self._socketio, '/subscription')
+        # Bcrypt
+        self._bcrypt = Bcrypt(self._app)
+        User.bcrypt = self._bcrypt
+        # SQLAlchemy init
+        self._app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///{}'.format(os.path.join(BASE_PATH, 'database.sqlite'))
+        self._app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+        self._app.config['SQLALCHEMY_ECHO'] = False
+        sql_alchemy_db.init_app(self._app)
+        self._app.app_context().push()
+        sql_alchemy_db.create_all()
+        self._create_default_user()
+        # Flask-Login
+        login_manager.init_app(self._app)
+        login_manager.login_view = 'login'
+
+    @staticmethod
+    def _create_folder_if_nonexistent(path):
+        if not os.path.exists(path):
+            os.mkdir(path)
+
+    def _create_default_user(self):
+        if User.query.filter_by(username='Admin').first() is None:
+            admin = User('Admin', None, 'pass')
+            sql_alchemy_db.session.add(admin)
+            sql_alchemy_db.session.commit()
 
     def _register_static_server(self, static_files_root_folder_path):
         self._static_files_root_folder_path = static_files_root_folder_path
+        self._app.add_url_rule('/css/bootstrap.min.css', 'load_bootstrap', self._load_bootstrap, methods=['GET'])
         self._app.add_url_rule('/<path:file_relative_path_to_root>', 'serve_page', self._serve_page, methods=['GET'])
         self._app.add_url_rule('/', 'index', self._goto_index, methods=['GET'])
 
+    def _add_login_logout_routes(self):
+        self._app.add_url_rule('/login', 'login', self._login, methods=['GET', 'POST'])
+        self._app.add_url_rule('/logout', 'logout', self._logout, methods=['GET', 'POST'])
+
     def register_routes_to_resources(self, static_files_root_folder_path):
+        self._add_login_logout_routes()
         self._register_static_server(static_files_root_folder_path)
         # TODO: update resources
         script_service = ScriptService(root_folder=SCRIPTS_ROOT_FOLDER)
@@ -61,9 +115,31 @@ class AppStarter(Resource):
         pipeline_executor = PipelineExecutor(aimsun_service, pipeline_service, script_service, model_service, self._subscription)
         self._app.add_url_rule('/pipelines/<id>/run', 'run_pipeline', pipeline_executor.run_pipeline, methods=['GET', 'POST'])
 
+    def _login(self):
+        if current_user.is_authenticated:
+            return redirect(url_for('index'))
+        form = UsernamePasswordForm()
+        if form.validate_on_submit():
+            user = User.query.filter_by(username=form.username.data).first()
+            if user is not None and user.password_matches(form.password.data):
+                login_user(user)
+                return redirect(url_for('index'))
+
+        return render_template('login.html', form=form)
+
+    def _logout(self):
+        # disconnect()
+        logout_user()
+        return redirect(url_for('login'))
+
+    def _load_bootstrap(self):
+        return send_from_directory(self._static_files_root_folder_path, 'css/bootstrap.min.css')
+
+    @login_required
     def _goto_index(self):
         return self._serve_page("index.html")
 
+    @login_required
     def _serve_page(self, file_relative_path_to_root):
         return send_from_directory(self._static_files_root_folder_path, file_relative_path_to_root)
 

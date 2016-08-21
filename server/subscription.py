@@ -18,9 +18,20 @@ class Channel(object):
     """docstring for Channel"""
     def __init__(self):
         super(Channel, self).__init__()
+        self._users = []
 
     def catch_up(self):
         pass
+
+    def user_in(self, username):
+        self._users.append(username)
+
+    def user_out(self, username):
+        if username in self._users:
+            self._users.remove(username)
+
+    def is_dead(self):
+        return len(self._users) == 0
 
 class SubscriptionChannel(Channel):
     """docstring for SubscriptionChannel"""
@@ -45,6 +56,9 @@ class SubscriptionChannel(Channel):
     def catch_up(self):
         emit(self.channel_name + ':catchUp', {'transmission': self.previous_broadcasts})
 
+    def is_dead(self):
+        return False
+
 
 class CodeChannel(Channel):
     """docstring for CodeChannel"""
@@ -63,9 +77,10 @@ class CodeChannel(Channel):
         self.script_id = script_id
         self.socketio = socketio_obj
         self.namespace = namespace
-        self.receive_set = socketio_obj.on('{}:set'.format(self.script_id), namespace=namespace)(self.filter(self.receive_set))
-        self.receive_remove = socketio_obj.on('{}:remove'.format(self.script_id), namespace=namespace)(self.filter(self.receive_remove))
-        self.receive_initial = socketio_obj.on('{}:initial'.format(self.script_id), namespace=namespace)(self.filter(self.receive_initial))
+        self._receive_set = socketio_obj.on('{}:set'.format(self.script_id), namespace=namespace)(self.filter(self.receive_set))
+        self._receive_remove = socketio_obj.on('{}:remove'.format(self.script_id), namespace=namespace)(self.filter(self.receive_remove))
+        self._receive_initial = socketio_obj.on('{}:initial'.format(self.script_id), namespace=namespace)(self.filter(self.receive_initial))
+        self._receive_on_disconnect = socketio_obj.on('{}:ondisconnect'.format(self.script_id), namespace=namespace)(self.filter(self.receive_on_disconnect))
 
 
         self.internal_state = self.RecursiveDict()
@@ -73,6 +88,8 @@ class CodeChannel(Channel):
         self.internal_state['checkpoint'] = self.RecursiveDict()
         self.internal_state['history'] = self.RecursiveDict()
         self.internal_state['users'] = self.RecursiveDict()
+
+        self.on_disconnect_operations = {}
 
     def filter(self, func):
         def decorator(data):
@@ -113,6 +130,13 @@ class CodeChannel(Channel):
                 namespace=self.namespace
             )
 
+    def user_out(self, username):
+        super(CodeChannel, self).user_out(username)
+        operations = self.on_disconnect_operations[username]
+        for operation in operations:
+            if operation['operation'] == 'remove':
+                self.receive_remove(operation)
+
     def receive_set(self, data):
         data['data'] = self.replace_special(data['data'])
         path = data['path'].split('/')
@@ -151,6 +175,15 @@ class CodeChannel(Channel):
             for k, v in initial_data.iteritems():
                 emit('{}#{}:{}'.format(self.script_id, data['path'], event_type), {'key': k, 'value': v})
 
+    def receive_on_disconnect(self, data):
+        if current_user.username not in self.on_disconnect_operations:
+            self.on_disconnect_operations[current_user.username] = []
+
+        if data['operation'] == 'cancel':
+            self.on_disconnect_operations[current_user.username] = []
+        else:
+            self.on_disconnect_operations[current_user.username].append(data)
+
 
     # def catch_up(self):
     #     self.send_child(self.internal_state['checkpoint'], 'checkpoint')
@@ -185,25 +218,34 @@ class Subscription(object):
         self.channels[channel_name] = sc
         return sc
 
+    def remove_user_from_channel(self, username, channel_name, channel):
+        channel.user_out(username)
+        if channel.is_dead():
+            del self.channels[channel_name]
+
     @authenticated_only
     def connect(self):
         emit('connect', 'connected')
 
-    @authenticated_only
     def disconnect(self):
-        print 'disconnected'
-        emit('disconnect', 'disconnected')
+        print u'disconnected {}'.format(current_user.username)
+        for channel_name, channel in self.channels.iteritems():
+            self.remove_user_from_channel(current_user.username, channel_name, channel)
 
     @authenticated_only
     def subscribe(self, data):
         join_room(data['channel'])
-        self.channels[data['channel']].catch_up()
+        channel = self.channels[data['channel']]
+        channel.user_in(current_user.username)
+        channel.catch_up()
         print 'subscribed to {}'.format(data['channel'])
         # TODO self.channels[data['channel']].announce_joined()
 
     @authenticated_only
     def unsubscribe(self, data):
-        leave_room(data['channel'])
+        channel_name, channel = data['channel'], self.channels[data['channel']]
+        leave_room(channel_name)
+        self.remove_user_from_channel(current_user.username, channel_name, channel)
 
     @authenticated_only
     def join_code_channel(self, data):

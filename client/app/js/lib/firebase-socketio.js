@@ -36,7 +36,9 @@ SocketIOFirebase.prototype.push = function () {
     // return {
     //     key: function () { return userName; }
     // };
-    return '{{ current_user.username }}';
+    return {
+        key: function () { return '{{ current_user.username }}'; }
+    };
 };
 
 SocketIOFirebase.prototype.set = function (data) {
@@ -115,13 +117,13 @@ function SocketIOFirebaseOnDisconnect(context) {
     this.socket = context.socket;
     this.room = context.room;
     this.path = context.path;
-    this.eventsQueue = [];
+    // this.eventsQueue = [];
 
-    this.socket.on('disconnect', (function () {
-        for (var i = 0; i < this.eventsQueue.length; ++i) {
-            this.eventsQueue[i]();
-        }
-    }).bind(this));
+    // this.socket.on('disconnect', (function () {
+    //     for (var i = 0; i < this.eventsQueue.length; ++i) {
+    //         this.eventsQueue[i]();
+    //     }
+    // }).bind(this));
 }
 
 SocketIOFirebaseOnDisconnect.prototype.wrap = function (msg) {
@@ -129,14 +131,16 @@ SocketIOFirebaseOnDisconnect.prototype.wrap = function (msg) {
 };
 
 SocketIOFirebaseOnDisconnect.prototype.cancel = function () {
-    this.eventsQueue = [];
+    // this.eventsQueue = [];
+    self.socket.emit(self.room + ':ondisconnect', self.wrap({ path: self.path, operation: 'cancel' }));
 };
 
 SocketIOFirebaseOnDisconnect.prototype.remove = function () {
-    var self = this;
-    this.eventsQueue.push(function () {
-        self.socket.emit(self.room + ':remove', self.wrap({path: self.path}));
-    });
+    // var self = this;
+    // this.eventsQueue.push(function () {
+    //     self.socket.emit(self.room + ':remove', self.wrap({path: self.path}));
+    // });
+    self.socket.emit(self.room + ':ondisconnect', self.wrap({ path: self.path, operation: 'remove' }));
 };
 
 function Snapshot(data) {

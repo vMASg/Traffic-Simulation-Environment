@@ -77,9 +77,13 @@ class AppStarter(Resource):
             os.mkdir(path)
 
     def _create_default_user(self):
-        if User.query.filter_by(username='Admin').first() is None:
-            admin = User('Admin', None, 'pass')
+        if User.query.filter_by(username=u'Admin').first() is None:
+            admin = User(u'Admin', None, 'pass')
             sql_alchemy_db.session.add(admin)
+            sql_alchemy_db.session.commit()
+        if User.query.filter_by(username=u'V\xedctor').first() is None:
+            user1 = User(u'V\xedctor', None, '1234')
+            sql_alchemy_db.session.add(user1)
             sql_alchemy_db.session.commit()
 
     def _register_static_server(self, static_files_root_folder_path):

@@ -6,7 +6,7 @@ class User(UserMixin, db.Model):
     "Based on http://exploreflask.com/en/latest/users.html"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    username = db.Column(db.String(128), unique=True)
+    username = db.Column(db.String(128, convert_unicode=True), unique=True)
     email = db.Column(db.String(128), unique=True)
     _password = db.Column('password', db.String(128))
 
@@ -14,9 +14,9 @@ class User(UserMixin, db.Model):
         self.username = username
         self.email = email
         self._password = User.bcrypt.generate_password_hash(password)
-        self.is_authenticated = False
-        self.is_active = True
-        self.is_anonymous = False
+        # self.is_authenticated = False
+        # self.is_active = True
+        # self.is_anonymous = False
 
     @hybrid_property
     def password(self):

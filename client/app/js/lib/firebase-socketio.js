@@ -132,7 +132,7 @@ SocketIOFirebaseOnDisconnect.prototype.wrap = function (msg) {
 
 SocketIOFirebaseOnDisconnect.prototype.cancel = function () {
     // this.eventsQueue = [];
-    self.socket.emit(self.room + ':ondisconnect', self.wrap({ path: self.path, operation: 'cancel' }));
+    this.socket.emit(this.room + ':ondisconnect', this.wrap({ path: this.path, operation: 'cancel' }));
 };
 
 SocketIOFirebaseOnDisconnect.prototype.remove = function () {
@@ -140,7 +140,7 @@ SocketIOFirebaseOnDisconnect.prototype.remove = function () {
     // this.eventsQueue.push(function () {
     //     self.socket.emit(self.room + ':remove', self.wrap({path: self.path}));
     // });
-    self.socket.emit(self.room + ':ondisconnect', self.wrap({ path: self.path, operation: 'remove' }));
+    this.socket.emit(this.room + ':ondisconnect', this.wrap({ path: this.path, operation: 'remove' }));
 };
 
 function Snapshot(data) {

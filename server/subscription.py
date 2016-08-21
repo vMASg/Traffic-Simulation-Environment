@@ -229,8 +229,16 @@ class Subscription(object):
 
     def disconnect(self):
         print u'disconnected {}'.format(current_user.username)
+        dead_channels = []
         for channel_name, channel in self.channels.iteritems():
-            self.remove_user_from_channel(current_user.username, channel_name, channel)
+            leave_room(channel_name)
+            channel.user_out(current_user.username)
+            if channel.is_dead():
+                dead_channels.append(channel_name)
+            # self.remove_user_from_channel(current_user.username, channel_name, channel)
+
+        for channel_name in dead_channels:
+            del self.channels[channel_name]
 
     @authenticated_only
     def subscribe(self, data):

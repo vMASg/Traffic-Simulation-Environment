@@ -81,8 +81,8 @@ class AppStarter(Resource):
             admin = User(u'Admin', None, 'pass')
             sql_alchemy_db.session.add(admin)
             sql_alchemy_db.session.commit()
-        if User.query.filter_by(username=u'V\xedctor').first() is None:
-            user1 = User(u'V\xedctor', None, '1234')
+        if User.query.filter_by(username=u'victor.mas').first() is None:
+            user1 = User(u'victor.mas', None, '1234')
             sql_alchemy_db.session.add(user1)
             sql_alchemy_db.session.commit()
 

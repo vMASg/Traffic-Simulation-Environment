@@ -41,6 +41,9 @@ angular.module('trafficEnv')
                         _ace.setHighlightActiveLine(false);
                         $scope._ace = _ace;
                     };
+                    $scope.$on('$destroy', function () {
+                        socket.emit('unsubscribe', {channel: $scope.data.id});
+                    });
                 }
 
                 $scope.saveScript = function () {

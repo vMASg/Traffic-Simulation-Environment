@@ -1,5 +1,5 @@
 angular.module('trafficEnv')
-    .directive('pipelineTab', ['$timeout', 'scriptServices', 'pipelineServices', '$uibModal', function($timeout, scriptServices, pipelineServices, $uibModal){
+    .directive('pipelineTab', ['$timeout', 'scriptServices', 'pipelineServices', '$uibModal', 'socket', function($timeout, scriptServices, pipelineServices, $uibModal, socket){
         return {
             scope: {
                 'data': '=tabData',
@@ -653,7 +653,7 @@ angular.module('trafficEnv')
                     var nodeInfo = {
                         id: nodeIdCounter++,  // TODO replace by proper random id
                         type: 'special',
-                        path: '<' + nodeType.toUpperCase().replace(/\s/gmi, '_') + '>',
+                        path: '<' + nodeType.toUpperCase().replace(/\s/g, '_') + '>',
                         title: nodeType,
                         inputs: inputs,
                         outputs: outputs,
@@ -901,6 +901,73 @@ angular.module('trafficEnv')
                                 }
                             }
                         }, 5);
+                    });
+                    // Try acquire write permission
+                    var role = new SocketIOFirebase(socket, $scope.data.id);
+                    role.initRoom();
+                    var usersRef = role.child('users');
+                    var users = {}, userName = role.push().key(), initialized = false;
+                    $scope.permission = 'read_only';
+
+                    var userChange = function (snapshot) {
+                        users[snapshot.key()] = snapshot.val();
+                        if (initialized && get_users_with_write().length == 0) {
+                            var randomTimeout = Math.random()*1000;
+                            $timeout(initRequest, randomTimeout);
+                        }
+                    };
+
+                    var userRemoved = function (snapshot) {
+                        users[snapshot.key()] = null;
+                        if (initialized && get_users_with_write().length == 0) {
+                            var randomTimeout = Math.random()*1000;
+                            $timeout(initRequest, randomTimeout);
+                        }
+                    };
+
+                    var get_users_with_write = function () {
+                        var retval = [];
+                        for (var user in users) {
+                            if (users[user] == 'read_write') {
+                                retval.push(user);
+                            }
+                        }
+                        return retval;
+                    };
+
+                    var initRequest = function () {
+                        var permission = get_users_with_write().length==0?'read_write':'read_only';
+                        // var child = {};
+                        // child[userName] = permission;
+
+                        usersRef.child(userName).transaction(function() {
+                            return permission;
+                        }, function () {
+                            if (permission == 'read_write' && get_users_with_write().length > 1) {
+                                permission = 'read_only';
+                                var randomTimeout = Math.random()*1000;
+                                usersRef.child(userName).transaction(function() { return permission; }, function() { $timeout(initRequest, randomTimeout); } );
+                            } else {
+                                $scope.permission = permission;
+                            }
+                        });
+                    };
+                    usersRef.on('child_added', userChange);
+                    usersRef.on('child_changed', userChange);
+                    usersRef.on('child_removed', userRemoved);
+
+                    // After loading, init request
+                    usersRef.once('value', function () {
+                        initialized = true;
+                        initRequest();
+                    });
+
+                    $scope.$on('$destroy', function() {
+                        usersRef.off('child_added', userChange);
+                        usersRef.off('child_changed', userChange);
+                        usersRef.off('child_removed', userRemoved);
+                        usersRef.child(userName).remove();
+                        socket.emit('unsubscribe', {channel: $scope.data.id});
                     });
                 }
                 $timeout(recomputeContainer, 200);

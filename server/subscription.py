@@ -95,7 +95,7 @@ class CodeChannel(Channel):
         def decorator(data):
             if data['room'] == self.script_id:
                 func(data['msg'])
-                with open('C:\\Users\\Victor\\Downloads\\internal_state.json', 'w') as f:
+                with open('D:\\USUARIS\\victor.mas\\Desktop\\firepad-master\\examples\\internal_state.json', 'w') as f:
                     f.write(json.dumps(self.internal_state, indent=4))
         return decorator
 
@@ -132,10 +132,11 @@ class CodeChannel(Channel):
 
     def user_out(self, username):
         super(CodeChannel, self).user_out(username)
-        operations = self.on_disconnect_operations[username]
-        for operation in operations:
-            if operation['operation'] == 'remove':
-                self.receive_remove(operation)
+        if username in self.on_disconnect_operations:
+            operations = self.on_disconnect_operations[username]
+            for operation in operations:
+                if operation['operation'] == 'remove':
+                    self.receive_remove(operation)
 
     def receive_set(self, data):
         data['data'] = self.replace_special(data['data'])
@@ -262,6 +263,8 @@ class Subscription(object):
             cc = CodeChannel(data['channel'], self.socketio, self.namespace)
             self.channels[data['channel']] = cc
         join_room(data['channel'])
-        self.channels[data['channel']].catch_up()
+        channel = self.channels[data['channel']]
+        channel.user_in(current_user.username)
+        channel.catch_up()
         print 'subscribed to {}'.format(data['channel'])
         # TODO self.channels[data['channel']].announce_joined()

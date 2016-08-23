@@ -23,7 +23,8 @@ angular.module('trafficEnv')
 
                 $scope.code = '';
                 if ($scope.data.id) {
-                    var socketIOAdapter = new SocketIOFirebase(socket, $scope.data.id);
+                    var roomName = $scope.data.id;
+                    var socketIOAdapter = new SocketIOFirebase(socket, roomName);
                     socketIOAdapter.initRoom();
                     scriptServices.getScript($scope.data.id).then(function (code) {
                         // $scope.code = code.data.replace(/\r/gm, '');
@@ -42,7 +43,7 @@ angular.module('trafficEnv')
                         $scope._ace = _ace;
                     };
                     $scope.$on('$destroy', function () {
-                        socket.emit('unsubscribe', {channel: $scope.data.id});
+                        socket.emit('unsubscribe', {channel: roomName});
                     });
                 }
 

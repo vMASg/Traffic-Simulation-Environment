@@ -903,7 +903,8 @@ angular.module('trafficEnv')
                         }, 5);
                     });
                     // Try acquire write permission
-                    var role = new SocketIOFirebase(socket, $scope.data.id);
+                    var roomName = $scope.data.id;
+                    var role = new SocketIOFirebase(socket, roomName);
                     role.initRoom();
                     var usersRef = role.child('users');
                     var users = {}, userName = role.push().key(), initialized = false;
@@ -967,7 +968,7 @@ angular.module('trafficEnv')
                         usersRef.off('child_changed', userChange);
                         usersRef.off('child_removed', userRemoved);
                         usersRef.child(userName).remove();
-                        socket.emit('unsubscribe', {channel: $scope.data.id});
+                        socket.emit('unsubscribe', {channel: roomName});
                     });
                 }
                 $timeout(recomputeContainer, 200);

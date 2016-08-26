@@ -23,6 +23,8 @@ class Script(Resource):
                 return self._script_locator.get_script_content(id)
             elif data_type == 'path':
                 return self._script_locator.get_path(id)
+            elif data_type == 'hash':
+                return self._script_locator.get_revision_hash(id)
             elif data_type == 'inout':
                 return script_content_info.get_inputs_outputs()
             elif data_type == 'stype':
@@ -36,6 +38,7 @@ class Script(Resource):
         parser.add_argument('name', type=lambda e: True, location='args', case_sensitive=False, store_missing=False)
         parser.add_argument('code', type=lambda e: True, location='args', case_sensitive=False, store_missing=False)
         parser.add_argument('path', type=lambda e: True, location='args', case_sensitive=False, store_missing=False)
+        parser.add_argument('hash', type=lambda e: True, location='args', case_sensitive=False, store_missing=False)
         parser.add_argument('inout', type=lambda e: True, location='args', case_sensitive=False, store_missing=False)
         parser.add_argument('stype', type=lambda e: True, location='args', case_sensitive=False, store_missing=False)
         parser.add_argument('reqmodel', type=lambda e: True, location='args', case_sensitive=False, store_missing=False)

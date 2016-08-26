@@ -400,6 +400,7 @@ angular.module('trafficEnv')
                                 id: e.id,
                                 type: e.type,
                                 path: e.path,
+                                hash: e.hash,
                                 title: e.title,
                                 x: e.x,
                                 y: e.y,
@@ -481,11 +482,12 @@ angular.module('trafficEnv')
                 $scope.acceptedChannels = ['code', 'model', 'pipeline'].join(',');
                 $scope.dropHandler = function ($event, $data, $channel) {
                     if ($channel == 'code') {
-                        scriptServices.getScript($data, ['name', 'inout', 'path']).then(function (response) {
+                        scriptServices.getScript($data, ['name', 'inout', 'path', 'hash']).then(function (response) {
                             var nodeInfo = {
                                 id: nodeIdCounter++,  // TODO replace by proper random id
                                 type: $channel,
                                 path: response.data.path,
+                                hash: response.data.hash,
                                 title: response.data.name,
                                 inputs: (response.data.inout[0] || []).map(function (a) { return {name: a}; }),
                                 outputs: (response.data.inout[1] || []).map(function (a) { return {name: a}; }),
@@ -503,6 +505,7 @@ angular.module('trafficEnv')
                             id: nodeIdCounter++,  // TODO replace by proper random id
                             type: $channel,
                             path: $data,  // TODO retrieve info from server
+                            hash: null,
                             title: 'Model ' + $data,
                             inputs: [],
                             outputs: [{name: 'id_model'}],
@@ -654,6 +657,7 @@ angular.module('trafficEnv')
                         id: nodeIdCounter++,  // TODO replace by proper random id
                         type: 'special',
                         path: '<' + nodeType.toUpperCase().replace(/\s/g, '_') + '>',
+                        hash: null,
                         title: nodeType,
                         inputs: inputs,
                         outputs: outputs,
@@ -789,6 +793,7 @@ angular.module('trafficEnv')
                                 id: node.id,
                                 type: node.type,
                                 path: node.path,
+                                hash: node.hash,
                                 title: node.title,
                                 inputs: node.inputs.map(function (inp) { return {name: inp.name}; }),
                                 outputs: node.outputs.map(function (out) { return {name: out.name}; }),

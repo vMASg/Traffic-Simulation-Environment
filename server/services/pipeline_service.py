@@ -5,8 +5,9 @@ from server.exceptions import InvalidPathException
 
 class PipelineService(object):
     """docstring for PipelineService"""
-    def __init__(self, root_folder):
+    def __init__(self, root_folder, git_service):
         super(PipelineService, self).__init__()
+        self.git_service = git_service
         self._root_folder = root_folder if not root_folder[-1] == '\\' else root_folder[:-1]
         self._root_folder_content = os.path.join(self._root_folder, 'content')
         self._root_folder_tmp = os.path.join(self._root_folder, 'tmp')
@@ -30,7 +31,7 @@ class PipelineService(object):
             return retval
 
         children = construct_response(self._root_folder_content)
-        folder_name = os.path.basename(self._root_folder_content)
+        folder_name = 'Pipelines'
         return [return_type(folder_name, 'group', '.', children)]
 
     def _get_rel_abs_path(self, id):

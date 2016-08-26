@@ -21,7 +21,7 @@ class PipelineExecutor(object):
         pipeline_nodes = pipeline['nodes']
         for node in pipeline_nodes:
             if node['type'] == 'code':
-                node['path'] = self.script_service.get_path_for_execution(node['path'])
+                node['path'] = self.script_service.get_path_for_execution(node['path'], hash=node['hash'])
             elif node['type'] == 'model':
                 node['path'] = self.model_service.get_path_for_execution(node['path'])
 

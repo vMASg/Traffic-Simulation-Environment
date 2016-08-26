@@ -21,9 +21,10 @@ from server.services.script_service import ScriptService
 from server.services.pipeline_service import PipelineService
 from server.services.model_service import ModelService
 from server.services.aimsun_service import AimsunService
+from server.services.git_service import GitService
 from server.subscription import Subscription
 # Constants
-from server.constants import ACONSOLE_PATH, BASE_PATH, SECRET_KEY
+from server.constants import ACONSOLE_PATH, GIT_PATH, BASE_PATH, SECRET_KEY
 
 SCRIPTS_ROOT_FOLDER = os.path.join(BASE_PATH, 'Scripts')
 MODELS_ROOT_FOLDER = os.path.join(BASE_PATH, 'Models')
@@ -101,9 +102,10 @@ class AppStarter(Resource):
         self._add_login_logout_routes()
         self._register_static_server(static_files_root_folder_path)
         # TODO: update resources
-        script_service = ScriptService(root_folder=SCRIPTS_ROOT_FOLDER)
-        pipeline_service = PipelineService(root_folder=PIPELINES_ROOT_FOLDER)
-        model_service = ModelService(root_folder=MODELS_ROOT_FOLDER)
+        git_service = GitService(GIT_PATH or 'git')
+        script_service = ScriptService(root_folder=SCRIPTS_ROOT_FOLDER, git_service=git_service)
+        pipeline_service = PipelineService(root_folder=PIPELINES_ROOT_FOLDER, git_service=git_service)
+        model_service = ModelService(root_folder=MODELS_ROOT_FOLDER, git_service=git_service)
         aimsun_service = AimsunService(ACONSOLE_PATH)
         self._api.add_resource(ScriptCollection, '/scripts', resource_class_kwargs={'script_locator': script_service, 'subscription_service': self._subscription})
         self._api.add_resource(Script, '/scripts/<id>', resource_class_kwargs={'script_locator': script_service, 'subscription_service': self._subscription})

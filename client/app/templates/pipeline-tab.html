@@ -69,7 +69,7 @@
                     <div class="io-cell" uib-popover-template="contextOptions.template" popover-trigger="none" popover-placement="left" popover-is-open="input.isOpen" ng-context-menu="deleteConnetion($event, input)" popover-append-to-body="true">
                         <span data-ng-hide="input.editionMode" data-ng-dblclick="input.editionMode = true">{{input.name}}</span>
                         <input data-ng-show="input.editionMode" type="text" data-ng-model="input.name" class="form-control input" data-ng-keypress="input.editionMode = $event.which != 13"/>
-                        <div class="circle start" ng-mousedown="createStartingConnection($event, output)" ng-mouseup="finishEndingConnection($event, output)"></div>
+                        <div class="circle start" ng-mousedown="createStartingConnection($event, input)" ng-mouseup="finishEndingConnection($event, input)"></div>
                     </div>
                 </div>
                 <div class="io-row clearfix">
@@ -88,7 +88,7 @@
             <div class="inputs_outputs">
                 <div class="io-row clearfix" ng-repeat="output in pipelineOutputs.inputs">
                     <div class="io-cell" uib-popover-template="contextOptions.template" popover-trigger="none" popover-placement="right" popover-is-open="output.isOpen" ng-context-menu="deleteConnetion($event, output)" popover-append-to-body="true">
-                        <div class="circle end" ng-mousedown="createEndingConnection($event, input)" ng-mouseup="finishStartingConnection($event, input)"></div>
+                        <div class="circle end" ng-mousedown="createEndingConnection($event, output)" ng-mouseup="finishStartingConnection($event, output)"></div>
                         <span data-ng-hide="output.editionMode" data-ng-dblclick="output.editionMode = true">{{output.name}}</span>
                         <input data-ng-show="output.editionMode" type="text" data-ng-model="output.name" class="form-control input" data-ng-keypress="output.editionMode = $event.which != 13"/>
                     </div>

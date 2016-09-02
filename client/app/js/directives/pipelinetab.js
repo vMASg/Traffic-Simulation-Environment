@@ -157,10 +157,10 @@ angular.module('trafficEnv')
                 };
 
                 var createBoxIn = function (box, nodeInfo) {
-                    var circles = box.querySelectorAll('.circle.end');
+                    var circles = box.querySelectorAll('.circle.start');
                     for (var i = circles.length - 1; i >= 0; i--) {
                         var circ = circles[i];
-                        var out = nodeInfo.inputs[i-1];
+                        var out = nodeInfo.outputs[i];
                         out.getNode = function() { return nodeInfo; };
                         out.getCircle = (function(circ) { return function() { return circ; }; })(circ);
                     }
@@ -170,10 +170,10 @@ angular.module('trafficEnv')
                 };
 
                 var createBoxOut = function (box, nodeInfo) {
-                    var circles = box.querySelectorAll('.circle.start');
+                    var circles = box.querySelectorAll('.circle.end');
                     for (var i = circles.length - 1; i >= 0; i--) {
                         var circ = circles[i];
-                        var inp = nodeInfo.outputs[i-1];
+                        var inp = nodeInfo.inputs[i];
                         inp.getNode = function() { return nodeInfo; };
                         inp.getCircle = (function(circ) { return function() { return circ; }; })(circ);
                     }
@@ -679,7 +679,7 @@ angular.module('trafficEnv')
                         y: containerTop,
                         outputs: []
                     };
-                    $timeout(function(){
+                    $timeout(function (){
                         var node = nodes.querySelector('.input-box');
                         createBoxIn(node, $scope.pipelineInputs);
                     }, 5);
@@ -687,12 +687,18 @@ angular.module('trafficEnv')
 
                 $scope.newPipelineInput = function () {
                     $scope.pipelineInputs.outputs.push({name: '', editionMode: true});
-                    // TODO call some form of createBoxIn
+                    $timeout(function () {
+                        // TODO call some form of createBoxIn
+                        createBoxIn(nodes.querySelector('.input-box'), $scope.pipelineInputs);
+                    }, 5);
                 };
 
                 $scope.newPipelineOutput = function () {
                     $scope.pipelineOutputs.inputs.push({name: '', editionMode: true});
-                    // TODO call some form of createBoxOut
+                    $timeout(function () {
+                        // TODO call some form of createBoxOut
+                        createBoxOut(nodes.querySelector('.output-box'), $scope.pipelineOutputs);
+                    }, 5);
                 };
 
                 $scope.deleteInputs = function ($event) {
@@ -838,7 +844,8 @@ angular.module('trafficEnv')
                                 for (var j = 0; j < inputsData.length; ++j) {
                                     var origin = inputsData[j].origin;
                                     if (origin) {
-                                        var node = origin.node!==null?$scope.shapes.find(function (e) {
+                                        var choice = origin.node!==null && origin.node!==undefined;
+                                        var node = choice?$scope.shapes.find(function (e) {
                                             return e.id === origin.node;
                                         }):$scope.pipelineInputs;
 
@@ -883,7 +890,8 @@ angular.module('trafficEnv')
                                 for (i = 0; i < arr.length; ++i) {
                                     var origin = arr[i].origin;
                                     if (origin) {
-                                        var node = origin.node!==null?$scope.shapes.find(function (e) {
+                                        var choice = origin.node !== null && origin.node !== undefined;
+                                        var node = choice?$scope.shapes.find(function (e) {
                                             return e.id === origin.node;
                                         }):$scope.pipelineInputs;
 

@@ -49,8 +49,8 @@ class SubscriptionChannel(Channel):
         self.previous_broadcasts.append(message)
         self.socketio.emit(self.channel_name + ':event', {'data': message}, room=self.channel_name, namespace=self.namespace)
 
-    def end(self):
-        self.socketio.emit(self.channel_name + ':EOT', {'data': ''}, room=self.channel_name, namespace=self.namespace)
+    def end(self, retval=None):
+        self.socketio.emit(self.channel_name + ':EOT', {'data': retval or ''}, room=self.channel_name, namespace=self.namespace)
         # TODO delete from Subscription.channels, save transmissions in file (?)
 
     def catch_up(self):
@@ -95,7 +95,7 @@ class CodeChannel(Channel):
         def decorator(data):
             if data['room'] == self.script_id:
                 func(data['msg'])
-                with open('D:\\USUARIS\\victor.mas\\Desktop\\firepad-master\\examples\\internal_state.json', 'w') as f:
+                with open('C:\\Users\\Victor\\Downloads\\internal_state.json', 'w') as f:
                     f.write(json.dumps(self.internal_state, indent=4))
         return decorator
 

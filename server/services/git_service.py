@@ -149,7 +149,7 @@ class GitService(object):
                 '--git-dir={}'.format(os.path.join(repo_dir, '.git')),
                 '--work-tree={}'.format(repo_dir),
                 'show',
-                '{}:{}'.format(hash, os.path.relpath(file_path, repo_dir))
+                '{}:{}'.format(hash, os.path.relpath(file_path, repo_dir).replace('\\', '/'))
             ],
             stdout=PIPE, stderr=STDOUT)
 

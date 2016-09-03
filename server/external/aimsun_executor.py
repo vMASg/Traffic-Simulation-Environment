@@ -199,7 +199,7 @@ class Pipeline(object):
             for node in pipeline_nodes:
                 if node['id'] in removed_nodes:
                     continue
-                inpts = filter(lambda e: e['origin'] and e['origin']['node'] not in removed_nodes, node['inputs'])
+                inpts = filter(lambda e: e['origin'] and 'node' in e['origin'] and e['origin']['node'] not in removed_nodes, node['inputs'])
                 pre = filter(lambda e: e['origin'] not in removed_nodes, node['predecessors'])
                 if len(inpts) == 0 and len(pre) == 0:
                     removed_nodes.append(node['id'])
@@ -213,10 +213,10 @@ class Pipeline(object):
                 if inp['origin'] is None:
                     values.append(None)
                 else:
-                    origin_node = inp['origin']['node']
-                    if origin_node is None:
+                    if 'node' not in inp['origin']:
                         values.append(kwargs[inp['origin']['connector']])
                     else:
+                        origin_node = inp['origin']['node']
                         origin = find(lambda e: e.get_id() == origin_node, execution_graph)
                         values.append(origin.get_output(inp['origin']['connector']))
 
@@ -224,18 +224,18 @@ class Pipeline(object):
             node(**inputs)
 
         # Returning pipeline outputs
-        if self.pipeline['outputs']:
-            retval = []
+        if self.pipeline['outputs'] and self.pipeline['outputs'] is not None:
+            retval = {}
             for output in self.pipeline['outputs']['inputs']:
                 if output['origin'] is None:
-                    retval.append(None)
+                    retval[output['name']] = None
                 else:
-                    origin_node = output['origin']['node']
-                    if origin_node is None:
-                        retval.append(kwargs[output['origin']['connector']])
+                    if 'node' not in output['origin']:
+                        retval[output['name']] = kwargs[output['origin']['connector']]
                     else:
+                        origin_node = output['origin']['node']
                         origin = find(lambda e: e.get_id() == origin_node, execution_graph)
-                        retval.append(origin.get_output(output['origin']['connector']))
+                        retval[output['name']] = origin.get_output(output['origin']['connector'])
             return retval
 
     def _create_node(self, node):
@@ -295,19 +295,30 @@ def json_loads_byteified(json_text):
 
 
 def main(argv):
-    end_thread = threading.Event()
-    t = threading.Thread(target=gibberish, args=(end_thread,))
-    t.start()
     pipeline = Pipeline(argv[1])
-    output = pipeline(**json_loads_byteified(argv[2] if len(argv) > 2 else '{}'))
-    end_thread.set()
-    t.join()
+    content = '{}'
+    if len(argv) > 2 and argv[2] != '-':
+        with open(argv[2], 'r') as inp:
+            content = inp.read()
+
+    output = pipeline(**json_loads_byteified(content))
+    if len(argv) > 3 and argv[3] != '-':
+        with open(argv[3], 'w') as out:
+            out.write(json.dumps(output))
+
+    return output
 
 
 if __name__ == '__main__':
     sys.stderr.write('READY\n')
     sys.stderr.flush()
+    end_thread = threading.Event()
+    t = threading.Thread(target=gibberish, args=(end_thread,))
+    t.start()
     try:
         main(sys.argv)
     except:
         traceback.print_exc()
+
+    end_thread.set()
+    t.join()

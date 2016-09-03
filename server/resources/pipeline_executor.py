@@ -1,4 +1,5 @@
 import json
+from flask import request
 
 class PipelineExecutor(object):
     """docstring for PipelineExecutor"""
@@ -17,6 +18,14 @@ class PipelineExecutor(object):
         with open(pipeline_path, 'r') as f:
             pipeline = json.loads(f.read())
 
+        input_path, output_path = None, pipeline_path + '.output'
+
+        if request.method == 'POST':
+            data = request.get_data()
+            input_path = pipeline_path + '.input'
+            with open(input_path, 'w') as inp:
+                inp.write(data)
+
         # Change path for all scripts
         pipeline_nodes = pipeline['nodes']
         for node in pipeline_nodes:
@@ -30,6 +39,6 @@ class PipelineExecutor(object):
 
         # Create a new channel to send output to users
         sc = self.subscription_service.create_subscription_channel('pipeline-' + id)
-        self.aimsun_service.run_pipeline(pipeline_path, sc)
+        self.aimsun_service.run_pipeline((pipeline_path, input_path, output_path), sc)
         self.pipeline_channel.broadcast({'channel': sc.channel_name})
         return 'OK'

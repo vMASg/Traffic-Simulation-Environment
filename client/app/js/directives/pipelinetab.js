@@ -593,7 +593,18 @@ angular.module('trafficEnv')
 
                         modalInstance.result.then(function () {
                             // TODO get and validate input values from $scope
-                            var info = '';
+                            var castInputValue = function (iv) {
+                                switch (iv.inputType) {
+                                    case 'null': return null;
+                                    case 'boolean': return iv.inputValue=='False'?false:true;
+                                    default: return iv.inputValue;
+                                }
+                            };
+                            var info = {};
+                            var len = $scope.inputValues.length;
+                            for (var i = 0; i < len; ++i) {
+                                info[$scope.inputValues[i].name] = castInputValue($scope.inputValues[i]);
+                            }
                             pipelineServices.runPipeline($scope.data.id, info);
                         });
                     } else {

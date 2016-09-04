@@ -5,14 +5,14 @@ from subprocess import Popen, PIPE, STDOUT
 class PipelineThread(threading.Thread):
     def __init__(self, pipeline, aconsole_path, subscription_channel, output, event):
         super(PipelineThread, self).__init__(name='PipelineThread')
-        self.pipeline, self.pipline_inputs, self.pipeline_outputs = pipeline
+        self.pipeline, self.pipeline_inputs, self.pipeline_outputs = pipeline
         self.aconsole_path = aconsole_path
         self.subscription_channel = subscription_channel
         self.output = output
         self.event = event
 
     def run(self):
-        inout = [self.pipeline_input or '-', self.pipeline_output or '-']
+        inout = [self.pipeline_inputs or '-', self.pipeline_outputs or '-']
         cmd = Popen(
             # ['python', 'server\\external\\aimsun_executor.py', self.pipeline] + inout,
             [self.aconsole_path, '-script', 'server\\external\\aimsun_executor.py', self.pipeline] + inout,
@@ -52,7 +52,7 @@ class PipelineThread(threading.Thread):
                 self.subscription_channel.broadcast(output)
             out = None
             if self.pipeline_outputs is not None:
-                with open(self.pipeline_outputs, 'w') as out_file:
+                with open(self.pipeline_outputs, 'r') as out_file:
                     out = out_file.read()
             self.subscription_channel.end(out)
             self.event.set()

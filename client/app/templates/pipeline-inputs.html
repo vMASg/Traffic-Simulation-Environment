@@ -1,0 +1,26 @@
+<div class="modal-header">
+    <h3>Set Input Values</h3>
+</div>
+<div class="modal-body form-group">
+    <div data-ng-repeat="input in inputValues" class="insert-inputs clearfix">
+        <!-- TODO type selector + input -->
+        <div class="name">{{input.name}}</div>
+        <select class="form-control input type" ng-model="input.inputType">
+            <option value="string">String</option>
+            <option value="number">Number</option>
+            <option value="boolean">Boolean</option>
+            <option value="null">None</option>
+        </select>
+        <input class="form-control input value"  ng-model="input.inputValue" type="text" ng-if="input.inputType == 'string'"></input>
+        <input class="form-control input value"  ng-model="input.inputValue" type="number" ng-if="input.inputType == 'number'"></input>
+        <select class="form-control input value" ng-model="input.inputValue"  ng-if="input.inputType == 'boolean'">
+            <option value="true">True</option>
+            <option value="false">False</option>
+        </select>
+        <input class="form-control input value" type="text" ng-if="input.inputType == 'null'" style="visibility: hidden;"></input>
+    </div>
+</div>
+<div class="modal-footer">
+    <button class='btn btn-default' data-ng-click="$close()">Run Pipeline</button>
+    <button class='btn btn-default' data-ng-click="$dismiss('Canceled')">Cancel</button>
+</div>

@@ -67,10 +67,13 @@ html, body {
     /*color: #909E9E;*/
 }
 
-.form-control.input {
+.nav-tree-container ~ .form-control.input {
     width: 90%;
     margin: auto;
     margin-top: 15px;
+}
+
+.form-control.input {
     border: 0;
 }
 
@@ -340,6 +343,42 @@ treecontrol ul {
     width: 100%;
     height: 100%;
     z-index: auto;
+}
+
+/*.insert-inputs > select {
+    width: 140px;
+    float: left;
+}
+
+.insert-inputs > input {
+    width: calc(100% - 160px);
+    float: right;
+}
+
+.insert-inputs {
+    margin-bottom: 10px;
+}
+*/
+
+.insert-inputs {
+    display: flex;
+    align-items: center;
+    /*justify-content: space-between;*/
+    margin-bottom: 10px;
+}
+
+.insert-inputs > .name {
+    margin-right: 5px;
+    flex: 1;
+}
+
+.insert-inputs > .type {
+    width: 140px;
+    margin-right: 10px;
+}
+
+.insert-inputs > .value {
+    flex: 6 4;
 }
 
 .btn.read-write {

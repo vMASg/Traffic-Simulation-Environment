@@ -583,7 +583,22 @@ angular.module('trafficEnv')
                 };
 
                 $scope.runPipeline = function () {
-                    pipelineServices.runPipeline($scope.data.id);
+                    if ($scope.pipelineInputs) {
+                        $scope.inputValues = $scope.pipelineInputs.outputs.map(function (e) { return {inputType: 'string', inputValue: '', name: e.name}; });
+                        var modalInstance = $uibModal.open({
+                            animate: true,
+                            templateUrl: 'templates/pipeline-inputs.html',
+                            scope: $scope
+                        });
+
+                        modalInstance.result.then(function () {
+                            // TODO get and validate input values from $scope
+                            var info = '';
+                            pipelineServices.runPipeline($scope.data.id, info);
+                        });
+                    } else {
+                        pipelineServices.runPipeline($scope.data.id);
+                    }
                 };
 
                 $scope.shapes = [];

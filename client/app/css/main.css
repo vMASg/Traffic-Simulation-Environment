@@ -244,11 +244,13 @@ treecontrol ul {
     margin-bottom: 5px;
 }
 
+.pipeline-container .ion-information-circled,
 .pipeline-container .icon.ion-trash-a  {
     float: right;
     font-size: larger;
     line-height: 1;
     cursor: pointer;
+    margin-left: 3px;
 }
 
 .pipeline-container .io-row > .io-cell {

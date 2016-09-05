@@ -479,7 +479,7 @@ angular.module('trafficEnv')
                 var paper = Raphael(iElm[0].children[1].children[0]);
 
                 var nodeIdCounter = 0;
-                $scope.acceptedChannels = ['code', 'model', 'pipeline'].join(',');
+                $scope.acceptedChannels = ['code', 'model'].join(',');
                 $scope.dropHandler = function ($event, $data, $channel) {
                     if ($channel == 'code') {
                         scriptServices.getScript($data, ['name', 'inout', 'path', 'hash']).then(function (response) {
@@ -630,6 +630,10 @@ angular.module('trafficEnv')
                 //         $scope.pipelineNode.nodeInfo.inputs.unshift({name: 'pre', origin: null});
                 //     }
                 // };
+
+                $scope.toggleInfoShown = function ($event, nodeInfo) {
+                    nodeInfo.infoShown = !nodeInfo.infoShown;
+                };
 
                 $scope.deleteNode = function ($event, nodeInfo) {
                     var i, j;

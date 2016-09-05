@@ -633,6 +633,10 @@ angular.module('trafficEnv')
 
                 $scope.toggleInfoShown = function ($event, nodeInfo) {
                     nodeInfo.infoShown = !nodeInfo.infoShown;
+                    if ($scope.infoNodePopover.node && $scope.infoNodePopover.node != nodeInfo) {
+                        $scope.infoNodePopover.node.infoShown = false;
+                    }
+                    $scope.infoNodePopover.node = nodeInfo;
                 };
 
                 $scope.deleteNode = function ($event, nodeInfo) {
@@ -764,6 +768,11 @@ angular.module('trafficEnv')
                         var node = nodes.querySelector('.output-box');
                         createBoxOut(node, $scope.pipelineOutputs);
                     }, 5);
+                };
+
+                $scope.infoNodePopover = {
+                    template: 'nodeInfo.html',
+                    node: null
                 };
 
                 $scope.contextOptions = {

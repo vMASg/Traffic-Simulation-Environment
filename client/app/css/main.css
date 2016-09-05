@@ -322,6 +322,11 @@ treecontrol ul {
     padding: 0;
 }
 
+.nodes .popover {
+    max-width: 400px;
+    max-height: 450px;
+}
+
 .pipelinenode-options > ul li {
     text-align: center;
     border-top: 1px solid #ccc;

@@ -19,6 +19,8 @@ class Pipeline(Resource):
             self._pipeline_locator.update_pipeline(id, request.get_data())
         except InvalidPathException as e:
             return e.msg, 403
+        else:
+            self._changed_pipeline(id)
 
     def delete(self, id):
         try:
@@ -30,3 +32,6 @@ class Pipeline(Resource):
 
     def _deleted_pipeline(self, id):
         self._subscription_service.socketio.emit('deleted_pipeline', {'id': id}, namespace=self._subscription_service.namespace)
+
+    def _changed_pipeline(self, id):
+        self._subscription_service.socketio.emit('changed_pipeline', {'id': id}, namespace=self._subscription_service.namespace)

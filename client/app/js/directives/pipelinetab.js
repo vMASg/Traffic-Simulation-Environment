@@ -819,7 +819,7 @@ angular.module('trafficEnv')
                 };
 
                 if ($scope.data.id) {
-                    pipelineServices.getPipeline($scope.data.id).then(function (data) {
+                    function loadPipeline (data) {
                         recomputeContainer();
                         var pipeline = angular.fromJson(data.data.graph);
                         var graph = pipeline.nodes;
@@ -944,6 +944,38 @@ angular.module('trafficEnv')
                                 }
                             }
                         }, 5);
+                    }
+                    pipelineServices.getPipeline($scope.data.id).then(loadPipeline);
+                    socket.on('changed_pipeline', function (data) {
+                        if ($scope.data.id === data.id && $scope.permission == 'read_only') {
+                            var i, j, input, len = $scope.shapes.length;
+                            for (i = 0; i < len; ++i) {
+                                var node = $scope.shapes[i];
+                                for (j = 0; j < node.inputs.length; ++j) {
+                                    input = node.inputs[j];
+                                    if (input.input) {
+                                        input.input.pathObj.remove();
+                                    }
+                                }
+                                for (j = 0; j < node.predecessors.length; ++j) {
+                                    node.predecessors[j].pathObj.remove();
+                                }
+                            }
+                            if ($scope.pipelineOutputs) {
+                                len = $scope.pipelineOutputs.inputs.length;
+                                for (i = 0; i < len; ++i) {
+                                    input = $scope.pipelineOutputs.inputs[i];
+                                    if (input.input) {
+                                        input.input.pathObj.remove();
+                                    }
+                                }
+                            }
+                            $scope.shapes = [];
+                            $scope.pipelineInputs = null;
+                            $scope.pipelineOutputs = null;
+                            nodeIdCounter = 0;
+                            pipelineServices.getPipeline($scope.data.id).then(loadPipeline);
+                        }
                     });
                     // Try acquire write permission
                     var roomName = $scope.data.id;

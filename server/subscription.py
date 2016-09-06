@@ -35,21 +35,25 @@ class Channel(object):
 
 class SubscriptionChannel(Channel):
     """docstring for SubscriptionChannel"""
-    def __init__(self, channel_name, socketio_obj, namespace):
+    def __init__(self, channel_name, socketio_obj, namespace, alive='always', persist=False):
         super(SubscriptionChannel, self).__init__()
         self.channel_name = channel_name
         self.previous_broadcasts = []
         self.socketio = socketio_obj
         self.namespace = namespace
+        self.alive = alive
+        self.persist = persist
+        self.has_started, self.has_ended = False, False
 
     def start(self):
-        pass
+        self.has_started = True
 
     def broadcast(self, message):
         self.previous_broadcasts.append(message)
         self.socketio.emit(self.channel_name + ':event', {'data': message}, room=self.channel_name, namespace=self.namespace)
 
     def end(self, retval=None):
+        self.has_ended = True
         self.socketio.emit(self.channel_name + ':EOT', {'data': retval or ''}, room=self.channel_name, namespace=self.namespace)
         # TODO delete from Subscription.channels, save transmissions in file (?)
 
@@ -57,7 +61,10 @@ class SubscriptionChannel(Channel):
         emit(self.channel_name + ':catchUp', {'transmission': self.previous_broadcasts})
 
     def is_dead(self):
-        return False
+        if self.alive == 'always':
+            return False
+        else:
+            return self.has_ended and super(SubscriptionChannel, self).is_dead()
 
 
 class CodeChannel(Channel):
@@ -95,8 +102,8 @@ class CodeChannel(Channel):
         def decorator(data):
             if data['room'] == self.script_id:
                 func(data['msg'])
-                with open('C:\\Users\\Victor\\Downloads\\internal_state.json', 'w') as f:
-                    f.write(json.dumps(self.internal_state, indent=4))
+                # with open('C:\\Users\\Victor\\Downloads\\internal_state.json', 'w') as f:
+                #     f.write(json.dumps(self.internal_state, indent=4))
         return decorator
 
     def navigate(self, paths):
@@ -214,8 +221,8 @@ class Subscription(object):
         self.join_code_channel = socketio.on('join_code_channel', namespace=self.namespace)(self.join_code_channel)
         self.channels = {}
 
-    def create_subscription_channel(self, channel_name):
-        sc = SubscriptionChannel(channel_name, self.socketio, self.namespace)
+    def create_subscription_channel(self, channel_name, alive="always", persist=False):
+        sc = SubscriptionChannel(channel_name, self.socketio, self.namespace, alive, persist)
         self.channels[channel_name] = sc
         return sc
 

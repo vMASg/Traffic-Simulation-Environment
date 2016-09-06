@@ -1,9 +1,14 @@
-<div class="view-panel model-panel"></div>
+<div class="view-panel model-panel">
+    <button class="btn btn-default" data-ng-click="runImmediate()">Run Immediate Script</button>
+</div>
 <div class="immediate-editor" ui-ace="aceOption" data-ng-model="code"></div>
 <div class="vertical-separator" style="visibility: hidden;"></div>
 <div class="immediate-results">
-	<div class="menu">
-		<button class="btn btn-default" data-ng-click="runImmediate()">Run Immediate Script</button>
-	</div>
-	<div class="results">{{scriptResult}}</div>
+    <div class="menu">
+        <span>Output:</span>
+    </div>
+    <div class="results">
+        <span ng-repeat-start="res in scriptResult track by $index">{{res}}</span>
+        <br ng-repeat-end="" />
+    </div>
 </div>

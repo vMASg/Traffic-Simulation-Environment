@@ -168,8 +168,8 @@ angular.module('trafficEnv')
                     var onChannelCatchUp = function (data) {
                         console.log(data);
                     };
-                    var onChannelEOT = function (data) {
-                        console.log(data);
+                    var onChannelEOT = function (finalData) {
+                        console.log(finalData);
                         socket.emit('unsubscribe', {'channel': data.data.channel});
                         socket.removeListener(data.data.channel + ':event', onChannelEvent);
                         socket.removeListener(data.data.channel + ':catchUp', onChannelCatchUp);

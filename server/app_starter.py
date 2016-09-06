@@ -29,6 +29,7 @@ from server.constants import ACONSOLE_PATH, GIT_PATH, BASE_PATH, SECRET_KEY
 SCRIPTS_ROOT_FOLDER = os.path.join(BASE_PATH, 'Scripts')
 MODELS_ROOT_FOLDER = os.path.join(BASE_PATH, 'Models')
 PIPELINES_ROOT_FOLDER = os.path.join(BASE_PATH, 'Pipelines')
+SUBSCRIPTIONS_ROOT_FOLDER = os.path.join(BASE_PATH, 'Subscriptions')
 
 sql_alchemy_db = SQLAlchemy()
 login_manager = LoginManager()
@@ -56,7 +57,7 @@ class AppStarter(Resource):
         eventlet.monkey_patch(os=False)
         # SocketIO init
         self._socketio = SocketIO(self._app, async_mode='eventlet')
-        self._subscription = Subscription(self._socketio, '/subscription')
+        self._subscription = Subscription(self._socketio, '/subscription', SUBSCRIPTIONS_ROOT_FOLDER)
         # Bcrypt
         self._bcrypt = Bcrypt(self._app)
         User.bcrypt = self._bcrypt

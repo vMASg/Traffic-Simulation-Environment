@@ -3,6 +3,7 @@ from flask_login import current_user
 from functools import wraps
 from collections import OrderedDict
 from time import time
+import os
 import json
 
 def authenticated_only(f):
@@ -35,7 +36,8 @@ class Channel(object):
 
 class SubscriptionChannel(Channel):
     """docstring for SubscriptionChannel"""
-    def __init__(self, channel_name, socketio_obj, namespace, alive='always', persist=False):
+    def __init__(self, channel_name, socketio_obj, namespace, alive='always', persist=False, persist_dir=None, persist_type="overwrite"):
+        "Persist types 'overwrite', 'continue', 'unique'"
         super(SubscriptionChannel, self).__init__()
         self.channel_name = channel_name
         self.previous_broadcasts = []
@@ -43,7 +45,23 @@ class SubscriptionChannel(Channel):
         self.namespace = namespace
         self.alive = alive
         self.persist = persist
+        self.persist_file = os.path.join(persist_dir, channel_name)
+        self.persist_type = persist_type
         self.has_started, self.has_ended = False, False
+
+        if persist and persist_type == 'continue' and os.path.exists(self.persist_file):
+            with open(self.persist_file, 'r') as trans_file:
+                for line in trans_file:
+                    self.previous_broadcasts.append(line.strip())
+
+        if persist and persist_type == 'unique':
+            count = 0
+            new_file = '{}#{}'.format(self.persist_file, count)
+            while os.path.exists(new_file):
+                count += 1
+                new_file = '{}#{}'.format(self.persist_file, count)
+
+            self.persist_file = new_file
 
     def start(self):
         self.has_started = True
@@ -54,8 +72,12 @@ class SubscriptionChannel(Channel):
 
     def end(self, retval=None):
         self.has_ended = True
+        self.previous_broadcasts.append(retval)
         self.socketio.emit(self.channel_name + ':EOT', {'data': retval or ''}, room=self.channel_name, namespace=self.namespace)
-        # TODO delete from Subscription.channels, save transmissions in file (?)
+        if self.persist:
+            with open(self.persist_file, 'w') as trans_file:
+                trans_file.write('\n'.join(self.previous_broadcasts))
+        # TODO delete from Subscription.channels, save transmissions in file (?) DONE
 
     def catch_up(self):
         emit(self.channel_name + ':catchUp', {'transmission': self.previous_broadcasts})
@@ -209,10 +231,13 @@ class CodeChannel(Channel):
 
 class Subscription(object):
     """docstring for Subscription"""
-    def __init__(self, socketio, namespace):
+    def __init__(self, socketio, namespace, root_folder):
         super(Subscription, self).__init__()
         self.namespace = namespace
         self.socketio = socketio
+        self._root_folder = root_folder if root_folder[-1] != '\\' else root_folder[:-1]
+        if not os.path.isdir(self._root_folder):
+            os.mkdir(self._root_folder)
         # bind = lambda f, p1: lambda p2: f(p1, p2)
         self.connect = socketio.on('connect', namespace=namespace)(self.connect)
         self.disconnect = socketio.on('disconnect', namespace=namespace)(self.disconnect)
@@ -221,8 +246,8 @@ class Subscription(object):
         self.join_code_channel = socketio.on('join_code_channel', namespace=self.namespace)(self.join_code_channel)
         self.channels = {}
 
-    def create_subscription_channel(self, channel_name, alive="always", persist=False):
-        sc = SubscriptionChannel(channel_name, self.socketio, self.namespace, alive, persist)
+    def create_subscription_channel(self, channel_name, alive="always", persist=False, persist_type="overwrite"):
+        sc = SubscriptionChannel(channel_name, self.socketio, self.namespace, alive=alive, persist=persist, persist_dir=self._root_folder, persist_type=persist_type)
         self.channels[channel_name] = sc
         return sc
 

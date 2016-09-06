@@ -27,6 +27,11 @@ class PipelineThread(threading.Thread):
             self.output.put(True)
             ret_code = cmd.poll()
             self.subscription_channel.start()
+            # Adding inputs
+            if self.pipeline_inputs is not None:
+                with open(self.pipeline_inputs, 'r') as f:
+                    self.subscription_channel.broadcast(f.read())
+            # End inputs
             while ret_code is None:
                 output = '[WKUP]'
                 while output.endswith('[WKUP]'):

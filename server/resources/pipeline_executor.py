@@ -42,7 +42,7 @@ class PipelineExecutor(object):
             f.write(json.dumps(pipeline))
 
         # Create a new channel to send output to users
-        sc = self.subscription_service.create_subscription_channel('pipeline-' + id, alive='while_active', persist=True)
+        sc = self.subscription_service.create_subscription_channel('pipeline-' + id, alive='while_active', persist=True, persist_type='unique')
         self.aimsun_service.run_pipeline((pipeline_path, input_path, output_path), sc)
         self.pipeline_channel.broadcast({'channel': sc.channel_name})
         return 'OK'

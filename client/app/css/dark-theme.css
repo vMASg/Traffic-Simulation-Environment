@@ -1,5 +1,8 @@
-.panel-top > .server-info {
+.panel-top {
     color: #ddd;
+}
+
+.panel-top > .server-info {
     transition: background-color 1s, box-shadow 1s;
 }
 

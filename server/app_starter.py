@@ -86,6 +86,18 @@ class AppStarter(Resource):
             user1 = User(u'victor.mas', None, '1234')
             sql_alchemy_db.session.add(user1)
             sql_alchemy_db.session.commit()
+        if User.query.filter_by(username=u'german.navarro').first() is None:
+            user1 = User(u'german.navarro', None, '1234')
+            sql_alchemy_db.session.add(user1)
+            sql_alchemy_db.session.commit()
+        if User.query.filter_by(username=u'ester.lorente').first() is None:
+            user1 = User(u'ester.lorente', None, '1234')
+            sql_alchemy_db.session.add(user1)
+            sql_alchemy_db.session.commit()
+        if User.query.filter_by(username=u'oriol.serch').first() is None:
+            user1 = User(u'oriol.serch', None, '1234')
+            sql_alchemy_db.session.add(user1)
+            sql_alchemy_db.session.commit()
 
     def _register_static_server(self, static_files_root_folder_path):
         self._static_files_root_folder_path = static_files_root_folder_path
@@ -114,14 +126,14 @@ class AppStarter(Resource):
         self._api.add_resource(ModelCollection, '/models', resource_class_kwargs={'model_locator': model_service, 'aimsun_service': aimsun_service})
         # Non RESTful routes
 
-        # Model
-        model = Model(aimsun_service, model_service, script_service)
-        self._app.add_url_rule('/models/<id>/runscript', 'run_script', model.run_script, defaults={'script_id': None}, methods=['GET', 'POST'])
-        self._app.add_url_rule('/models/<id>/runscript/<script_id>', 'run_script', model.run_script, methods=['GET', 'POST'])
-
         # Pipeline
         pipeline_executor = PipelineExecutor(aimsun_service, pipeline_service, script_service, model_service, self._subscription)
         self._app.add_url_rule('/pipelines/<id>/run', 'run_pipeline', pipeline_executor.run_pipeline, methods=['GET', 'POST'])
+
+        # Model
+        model = Model(pipeline_executor, model_service, script_service)
+        self._app.add_url_rule('/models/<id>/runscript', 'run_script', model.run_script, defaults={'script_id': None}, methods=['GET', 'POST'])
+        self._app.add_url_rule('/models/<id>/runscript/<script_id>', 'run_script', model.run_script, methods=['GET', 'POST'])
 
     def _login(self):
         if current_user.is_authenticated:

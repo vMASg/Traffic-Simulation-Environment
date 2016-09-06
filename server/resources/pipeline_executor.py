@@ -1,8 +1,12 @@
 import json
 from flask import request
+from flask_login import current_user
 
 class PipelineExecutor(object):
     """docstring for PipelineExecutor"""
+
+    _RUN_SCRIPT_PIPELINE_PATH = 'server\\external\\run_script.pipeline'
+
     def __init__(self, aimsun_service, pipeline_service, script_service, model_service, subscription_service):
         super(PipelineExecutor, self).__init__()
         self.aimsun_service = aimsun_service
@@ -42,3 +46,18 @@ class PipelineExecutor(object):
         self.aimsun_service.run_pipeline((pipeline_path, input_path, output_path), sc)
         self.pipeline_channel.broadcast({'channel': sc.channel_name})
         return 'OK'
+
+    def run_script(self, script_content, model_id):
+        # return self._aimsun_proc1.run_script(script_content, model_id)
+        # raise DeprecationWarning()
+        model_path = self.model_service.get_path_for_execution(model_id)
+        input_path = model_path + '.input'
+
+        content = {'model_id': model_path, 'script_content': script_content}
+        with open(input_path, 'w') as f:
+            f.write(json.dumps(content))
+
+        channel_name = '{}-script-{}'.format(current_user.username, model_id)
+        subs_chan = self.subscription_service.create_subscription_channel(channel_name)
+        self.aimsun_service.run_pipeline((self._RUN_SCRIPT_PIPELINE_PATH, input_path, None), subs_chan)
+        return channel_name

@@ -1,0 +1,131 @@
+{
+  "nodes": [
+    {
+      "id": 0,
+      "type": "special",
+      "path": "<OPEN_MODEL>",
+      "hash": null,
+      "title": "Open Model",
+      "x": 310,
+      "y": 75,
+      "inputs": [
+        {
+          "name": "id_model",
+          "origin": {
+            "connector": "model_id"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "model",
+          "connections": [
+            {
+              "node": 1,
+              "connector": "model"
+            },
+            {
+              "node": 2,
+              "connector": "model"
+            }
+          ]
+        }
+      ],
+      "predecessors": [
+        
+      ],
+      "successors": [
+        
+      ]
+    },
+    {
+      "id": 1,
+      "type": "code",
+      "path": "server\\external\\run_script.py",
+      "hash": null,
+      "title": "run_script.py",
+      "x": 558,
+      "y": 227.5,
+      "inputs": [
+        {
+          "name": "model",
+          "origin": {
+            "node": 0,
+            "connector": "model"
+          }
+        },
+        {
+          "name": "script",
+          "origin": {
+            "connector": "script_content"
+          }
+        }
+      ],
+      "outputs": [
+        
+      ],
+      "predecessors": [
+        
+      ],
+      "successors": [
+        {
+          "destination": 2
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "special",
+      "path": "<CLOSE_MODEL>",
+      "hash": null,
+      "title": "Close Model",
+      "x": 808,
+      "y": 74,
+      "inputs": [
+        {
+          "name": "model",
+          "origin": {
+            "node": 0,
+            "connector": "model"
+          }
+        }
+      ],
+      "outputs": [
+        
+      ],
+      "predecessors": [
+        {
+          "origin": 1
+        }
+      ],
+      "successors": [
+        
+      ]
+    }
+  ],
+  "inputs": {
+    "x": 135,
+    "y": 225,
+    "outputs": [
+      {
+        "name": "model_id",
+        "connections": [
+          {
+            "node": 0,
+            "connector": "id_model"
+          }
+        ]
+      },
+      {
+        "name": "script_content",
+        "connections": [
+          {
+            "node": 1,
+            "connector": "script"
+          }
+        ]
+      }
+    ]
+  },
+  "outputs": null
+}

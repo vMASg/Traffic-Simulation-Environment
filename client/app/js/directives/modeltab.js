@@ -5,7 +5,7 @@ angular.module('trafficEnv')
                 'data': '=tabData',
                 'switchNew': '&'
             },
-            controller: ['$scope', 'modelServices', function($scope, modelServices) {
+            controller: ['$scope', 'modelServices', 'socket', function($scope, modelServices, socket) {
                 $scope.aceOption = {
                     mode: 'python',
                     theme: 'monokai',
@@ -25,8 +25,18 @@ angular.module('trafficEnv')
                 $scope.scriptResult = '';
 
                 $scope.runImmediate = function () {
+                    $scope.scriptResult = '';
                     modelServices.runImmediateScript($scope.data.id, $scope.code).then(function (data) {
-                        $scope.scriptResult = data.data.output;
+                        // $scope.scriptResult = data.data.output;
+                        console.log(data);
+                        var channel_name = data.data.channel_name;
+                        socket.emit('subscribe', {'channel': channel_name});
+                        socket.on(channel_name + ':event', function (data_r) {
+                            $scope.scriptResult += data_r.data;
+                        });
+                        socket.on(channel_name + ':EOT', function () {
+                            socket.emit('unsubscribe', {'channel': channel_name});
+                        });
                     });
                 };
             }],

@@ -1,10 +1,11 @@
+import json
 from flask import request
 
 class Model(object):
     """docstring for Model"""
-    def __init__(self, aimsun_service, model_service, script_service):
+    def __init__(self, pipeline_executor, model_service, script_service):
         super(Model, self).__init__()
-        self.aimsun_service = aimsun_service
+        self.pipeline_executor = pipeline_executor
         self.model_service = model_service
         self.script_service = script_service
 
@@ -14,4 +15,4 @@ class Model(object):
             script = request.get_data()
         else:
             script = self.script_service.get_script_content(script_id)
-        return self.aimsun_service.run_script(script, id)
+        return json.dumps({'channel_name': self.pipeline_executor.run_script(script, id)})

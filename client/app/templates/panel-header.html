@@ -1,0 +1,6 @@
+<div class="server-info" ng-class="{'status-ok': status=='ok', 'status-busy': status=='busy', 'status-ko': status=='ko'}">
+    <div class="inner">
+        <span style="margin-right: 5px;">Server Status:</span>
+        <span>{{running_tasks}} running tasks, {{queue_size}} jobs enqueued</span>
+    </div>
+</div>

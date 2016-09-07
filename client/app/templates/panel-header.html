@@ -2,7 +2,7 @@
 <div class="server-info" ng-class="serverStatus" ng-click="openStatusDetail()">
     <div class="inner">
         <span style="margin-right: 5px;">Server Status:</span>
-        <span>{{runningJobs.length}} running tasks, {{executionQueue.length}} jobs enqueued</span>
+        <span>{{runningJobs.length}} running {{runningJobs.length==1?'task':'tasks'}}, {{executionQueue.length}} enqueued {{executionQueue.length==1?'task':'tasks'}}</span>
     </div>
 </div>
 <a href="/logout"><div class="ion-android-exit"></div></a>

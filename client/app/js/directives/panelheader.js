@@ -7,14 +7,14 @@ angular.module('trafficEnv')
 
                 $scope.running_tasks = 0;
                 $scope.queue_size = 0;
-                $scope.status = 'ok';
+                $scope.serverStatus = 'ok';
 
                 // $timeout(function () {
-                //     $scope.status = 'busy';
+                //     $scope.serverStatus = 'busy';
                 // }, 2000);
 
                 // $timeout(function () {
-                //     $scope.status = 'ko';
+                //     $scope.serverStatus = 'ko';
                 // }, 5000);
 
                 // Subscribe to new pipeline executions

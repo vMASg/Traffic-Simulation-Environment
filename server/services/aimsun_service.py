@@ -133,9 +133,9 @@ class AimsunService(object):
         self._execution_thread = ThreadSpawner(self._execution_queue, aconsole_path)
         self._execution_thread.start()
 
-    def run_script(self, script_content, model_id):
-        # return self._aimsun_proc1.run_script(script_content, model_id)
-        raise DeprecationWarning()
+    # def run_script(self, script_content, model_id):
+    #     # return self._aimsun_proc1.run_script(script_content, model_id)
+    #     raise DeprecationWarning()
 
     def run_pipeline(self, pipeline_path, subscription_channel):
         self._execution_queue.put((pipeline_path, subscription_channel))

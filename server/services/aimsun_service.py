@@ -67,10 +67,11 @@ class PipelineThread(threading.Thread):
 
 
 class ThreadSpawner(threading.Thread):
-    def __init__(self, execution_queue, aconsole_path):
+    def __init__(self, execution_queue, aconsole_path, pipeline_channel):
         super(ThreadSpawner, self).__init__(name='ThreadSpawner')
         self.execution_queue = execution_queue
         self.aconsole_path = aconsole_path
+        self.pipeline_channel = pipeline_channel
         self.stoprequest = threading.Event()
         self.threads = []
         self._next_pipeline = None
@@ -80,17 +81,28 @@ class ThreadSpawner(threading.Thread):
         while not self.stoprequest.is_set():
             while self._next_pipeline is None and not self.stoprequest.is_set():
                 self._spwn_pipelines()
+                to_remove = []
                 for thr in self.threads:
                     if not thr.is_alive():
-                        del thr
+                        self.pipeline_channel.broadcast({'channel': thr.subscription_channel.channel_name, 'operation': 'finished'})
+                        thr.join()
+                        to_remove.append(thr)
+
+                for thr in to_remove:
+                    self.threads.remove(thr)
 
             self._spwn_pipelines()
             # TODO add timeout (and cancel threads) in case of final join
             self._event.wait(10.0)
             self._event.clear()
+            to_remove = []
             for thr in self.threads:
                 if not thr.is_alive():
-                    del thr
+                    thr.join()
+                    to_remove.append(thr)
+
+            for thr in to_remove:
+                self.threads.remove(thr)
 
         # TODO kill all threads (cancel executions)
         for thr in self.threads:
@@ -116,6 +128,7 @@ class ThreadSpawner(threading.Thread):
                     spwn_success = False
                 else:
                     if spwn_success:
+                        self.pipeline_channel.broadcast({'channel': self._next_pipeline[1].channel_name, 'operation': 'dequeued'})
                         self._next_pipeline = None
                         self.threads.append(new_thread)
 
@@ -126,11 +139,14 @@ class ThreadSpawner(threading.Thread):
 
 class AimsunService(object):
     """docstring for AimsunService"""
-    def __init__(self, aconsole_path):
+    def __init__(self, aconsole_path, subscription_service):
         super(AimsunService, self).__init__()
         self._aconsole_path = aconsole_path
+        self._subscription_service = subscription_service
+        self.pipeline_channel = subscription_service.create_subscription_channel('executions')
+        self.pipeline_channel.start()
         self._execution_queue = Queue()
-        self._execution_thread = ThreadSpawner(self._execution_queue, aconsole_path)
+        self._execution_thread = ThreadSpawner(self._execution_queue, aconsole_path, self.pipeline_channel)
         self._execution_thread.start()
 
     # def run_script(self, script_content, model_id):
@@ -139,4 +155,5 @@ class AimsunService(object):
 
     def run_pipeline(self, pipeline_path, subscription_channel):
         self._execution_queue.put((pipeline_path, subscription_channel))
+        self.pipeline_channel.broadcast({'channel': subscription_channel.channel_name, 'operation': 'enqueued'})
         # return self._aimsun_proc1.run_pipeline(pipeline_path)

@@ -1,8 +1,8 @@
 <div class="ion-android-exit dummy"></div>
-<div class="server-info" ng-class="{'status-ok': serverStatus=='ok', 'status-busy': serverStatus=='busy', 'status-ko': serverStatus=='ko'}">
+<div class="server-info" ng-class="serverStatus">
     <div class="inner">
         <span style="margin-right: 5px;">Server Status:</span>
-        <span>{{running_tasks}} running tasks, {{queue_size}} jobs enqueued</span>
+        <span>{{runningJobs.length}} running tasks, {{executionQueue.length}} jobs enqueued</span>
     </div>
 </div>
 <a href="/logout"><div class="ion-android-exit"></div></a>

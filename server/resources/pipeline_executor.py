@@ -14,8 +14,8 @@ class PipelineExecutor(object):
         self.script_service = script_service
         self.model_service = model_service
         self.subscription_service = subscription_service
-        self.pipeline_channel = subscription_service.create_subscription_channel('executions')
-        self.pipeline_channel.start()
+        # self.pipeline_channel = subscription_service.create_subscription_channel('executions')
+        # self.pipeline_channel.start()
 
     def run_pipeline(self, id):
         pipeline_path = self.pipeline_service.get_path_for_execution(id)
@@ -44,7 +44,7 @@ class PipelineExecutor(object):
         # Create a new channel to send output to users
         sc = self.subscription_service.create_subscription_channel('pipeline-' + id, alive='while_active', persist=True, persist_type='unique')
         self.aimsun_service.run_pipeline((pipeline_path, input_path, output_path), sc)
-        self.pipeline_channel.broadcast({'channel': sc.channel_name})
+        # self.pipeline_channel.broadcast({'channel': sc.channel_name})
         return 'OK'
 
     def run_script(self, script_content, model_id):

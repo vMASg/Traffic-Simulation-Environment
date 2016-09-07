@@ -284,9 +284,11 @@ class Subscription(object):
 
     @authenticated_only
     def unsubscribe(self, data):
-        channel_name, channel = data['channel'], self.channels[data['channel']]
+        channel_name = data['channel']
         leave_room(channel_name)
-        self.remove_user_from_channel(current_user.username, channel_name, channel)
+        if channel_name in self.channels:
+            channel = self.channels[channel_name]
+            self.remove_user_from_channel(current_user.username, channel_name, channel)
         print 'unsubscribed from {}'.format(channel_name)
 
     @authenticated_only

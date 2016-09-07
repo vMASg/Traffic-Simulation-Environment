@@ -1,5 +1,5 @@
 <div class="ion-android-exit dummy"></div>
-<div class="server-info" ng-class="serverStatus">
+<div class="server-info" ng-class="serverStatus" ng-click="openStatusDetail()">
     <div class="inner">
         <span style="margin-right: 5px;">Server Status:</span>
         <span>{{runningJobs.length}} running tasks, {{executionQueue.length}} jobs enqueued</span>

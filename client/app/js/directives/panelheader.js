@@ -33,6 +33,14 @@ angular.module('trafficEnv')
                     computeStatus();
                 };
 
+                $scope.openStatusDetail = function () {
+                    $scope.select({
+                        id: '<SERVER_STATUS>',
+                        name: 'Server status detail',
+                        type: 'status'
+                    });
+                };
+
                 // $timeout(function () {
                 //     $scope.serverStatus = 'status-busy';
                 // }, 2000);

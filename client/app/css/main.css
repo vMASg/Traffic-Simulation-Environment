@@ -184,6 +184,12 @@ treecontrol ul {
     opacity: 1;
 }
 
+.special-pane {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
 .view-panel {
     position: relative;
     /*width: 100%;*/

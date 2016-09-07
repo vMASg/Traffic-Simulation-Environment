@@ -7,7 +7,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 # Forms
-from server.forms import UsernamePasswordForm
+from server.forms import UsernamePasswordForm, RegistrationForm
 # Resources
 from server.resources.script_collection import ScriptCollection
 from server.resources.script import Script
@@ -110,6 +110,7 @@ class AppStarter(Resource):
     def _add_login_logout_routes(self):
         self._app.add_url_rule('/login', 'login', self._login, methods=['GET', 'POST'])
         self._app.add_url_rule('/logout', 'logout', self._logout, methods=['GET', 'POST'])
+        self._app.add_url_rule('/register', 'register', self._register, methods=['GET', 'POST'])
 
     def register_routes_to_resources(self, static_files_root_folder_path):
         self._add_login_logout_routes()
@@ -135,6 +136,19 @@ class AppStarter(Resource):
         model = Model(pipeline_executor, model_service, script_service)
         self._app.add_url_rule('/models/<id>/runscript', 'run_script', model.run_script, defaults={'script_id': None}, methods=['GET', 'POST'])
         self._app.add_url_rule('/models/<id>/runscript/<script_id>', 'run_script', model.run_script, methods=['GET', 'POST'])
+
+    def _register(self):
+        if current_user.is_authenticated:
+            return redirect(url_for('index'))
+
+        form = RegistrationForm()
+        if form.validate_on_submit():
+            usr = User(unicode(form.username), form.email, form.password)
+            sql_alchemy_db.session.add(usr)
+            sql_alchemy_db.session.commit()
+            return redirect(url_for('login'))
+
+        return render_template('register.html', form=form)
 
     def _login(self):
         if current_user.is_authenticated:
@@ -170,5 +184,5 @@ class AppStarter(Resource):
 
     def run(self, module_name):
         if module_name == '__main__':
-            # self._socketio.run(self._app, debug=True, host="0.0.0.0", port=8000)
-            self._socketio.run(self._app, debug=True, port=8000)
+            self._socketio.run(self._app, debug=True, host="0.0.0.0", port=8000)
+            # self._socketio.run(self._app, debug=True, port=8000)

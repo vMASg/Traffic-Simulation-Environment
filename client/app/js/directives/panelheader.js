@@ -52,6 +52,7 @@ angular.module('trafficEnv')
                 // Subscribe to new pipeline executions
                 socket.emit('subscribe', {'channel': 'executions'});
 
+                // TODO add catchup listener
                 socket.on('executions:event', function onExecutionsEvent (data) {
                     processEvent(data.data);
                     console.log(data);

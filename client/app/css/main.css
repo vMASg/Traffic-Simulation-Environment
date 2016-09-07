@@ -184,6 +184,14 @@ treecontrol ul {
     opacity: 1;
 }
 
+
+.tab.special-tab {
+    height: calc(100% - 4px);
+}
+.tab.special-tab.active-tab {
+    height: 100%;
+}
+
 .special-pane {
     position: relative;
     width: 100%;

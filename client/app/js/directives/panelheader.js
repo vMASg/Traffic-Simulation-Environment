@@ -70,10 +70,10 @@ angular.module('trafficEnv')
                         socket.removeListener(data.data.channel + ':EOT', onChannelEOT);
                     };
                     if (data.data.operation == 'enqueued') {
-                        socket.emit('subscribe', {'channel': data.data.channel});
-                        socket.on(data.data.channel + ':event', onChannelEvent);
-                        socket.on(data.data.channel + ':catchUp', onChannelCatchUp);
-                        socket.on(data.data.channel + ':EOT', onChannelEOT);
+                        // socket.emit('subscribe', {'channel': data.data.channel});
+                        // socket.on(data.data.channel + ':event', onChannelEvent);
+                        // socket.on(data.data.channel + ':catchUp', onChannelCatchUp);
+                        // socket.on(data.data.channel + ':EOT', onChannelEOT);
                     }
                 });
 

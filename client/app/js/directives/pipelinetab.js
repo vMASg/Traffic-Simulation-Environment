@@ -607,8 +607,8 @@ angular.module('trafficEnv')
                                 info[$scope.inputValues[i].name] = castInputValue($scope.inputValues[i]);
                             }
                             info['comment'] = $scope.comment;
-                            delete $scope.comment;
                             pipelineServices.runPipeline($scope.data.id, info);
+                            delete $scope.comment;
                         });
                     // } else {
                     //     pipelineServices.runPipeline($scope.data.id);

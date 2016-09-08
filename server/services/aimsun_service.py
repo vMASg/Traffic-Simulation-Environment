@@ -30,7 +30,7 @@ class PipelineThread(threading.Thread):
             ret_code = cmd.poll()
             self.subscription_channel.start()
             # Adding inputs
-            self.subscription_channel.meta['startTime'] = int(time)
+            self.subscription_channel.meta['startTime'] = int(time())
             if self.pipeline_inputs is not None:
                 with open(self.pipeline_inputs, 'r') as f:
                     input_json = json.loads(f.read())

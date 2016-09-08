@@ -3,10 +3,11 @@
     <div class="section">
         <div class="title">Running Tasks</div>
         <div class="content">
-            <table id="workers-table" class="table">
+            <table class="table">
               <thead>
                 <tr>
                     <th>User</th>
+                    <th>Request Time</th>
                     <th>Start Time</th>
                     <th>Type</th>
                     <th>Task</th>
@@ -15,25 +16,43 @@
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                    <td>name</td>
-                    <td>info.get('status', None)</td>
-                    <td>info.get('active', 0) or 0</td>
-                    <td>info.get('task-received', 0)</td>
-                    <td>info.get('task-failed', 0)</td>
-                    <td>info.get('task-succeeded', 0)</td>
-                    <!-- <td>info.get('task-retried', 0)</td> -->
-                    <!-- <td>humanize(info.get('loadavg', 'N/A'))</td> -->
+                <tr ng-repeat="(channelName, metaData) in runningTasks">
+                    <td>{{metaData.user || '-'}}</td>
+                    <td>{{metaData.requestTime || '-'}}</td>
+                    <td>{{metaData.startTime || '-'}}</td>
+                    <td>{{metaData.type || '-'}}</td>
+                    <td>{{metaData.task || '-'}}</td>
+                    <td>{{metaData.comment || '-'}}</td>
+                    <td>kill</td>
                 </tr>
+              </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="section">
+        <div class="title">Enqueued Tasks</div>
+        <div class="content">
+            <table class="table">
+              <thead>
                 <tr>
-                    <td>name</td>
-                    <td>info.get('status', None)</td>
-                    <td>info.get('active', 0) or 0</td>
-                    <td>info.get('task-received', 0)</td>
-                    <td>info.get('task-failed', 0)</td>
-                    <td>info.get('task-succeeded', 0)</td>
-                    <!-- <td>info.get('task-retried', 0)</td> -->
-                    <!-- <td>humanize(info.get('loadavg', 'N/A'))</td> -->
+                    <th>User</th>
+                    <th>Request Time</th>
+                    <th>Start Time</th>
+                    <th>Type</th>
+                    <th>Task</th>
+                    <th>Comment</th>
+                    <th>Kill</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr ng-repeat="(channelName, metaData) in enqueuedTasks">
+                    <td>{{metaData.user || '-'}}</td>
+                    <td>{{metaData.requestTime || '-'}}</td>
+                    <td>{{metaData.startTime || '-'}}</td>
+                    <td>{{metaData.type || '-'}}</td>
+                    <td>{{metaData.task || '-'}}</td>
+                    <td>{{metaData.comment || '-'}}</td>
+                    <td>kill</td>
                 </tr>
               </tbody>
             </table>

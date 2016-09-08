@@ -20,7 +20,7 @@
         <input class="form-control input value" type="text" ng-if="input.inputType == 'null'" style="visibility: hidden;" />
     </div>
     <label>Execution Comment</label>
-    <textarea class="form-control input" ng-model="comment" required="required"></textarea>
+    <textarea class="form-control input" ng-model="$parent.comment" required="required"></textarea>
 </div>
 <div class="modal-footer">
     <button class='btn btn-default' data-ng-click="$close()">Run Pipeline</button>

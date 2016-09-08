@@ -25,7 +25,8 @@ class Channel(object):
         pass
 
     def user_in(self, username):
-        self._users.append(username)
+        if username not in self._users:
+            self._users.append(username)
 
     def user_out(self, username):
         if username in self._users:
@@ -48,12 +49,12 @@ class SubscriptionChannel(Channel):
         self.persist_file = os.path.join(persist_dir, channel_name)
         self.persist_type = persist_type
         self.has_started, self.has_ended = False, False
-        self._meta = None
+        self.meta = None
 
         if persist and persist_type == 'continue' and os.path.exists(self.persist_file):
             with open(self.persist_file, 'r') as trans_file:
                 trans_file_json = json.loads(trans_file.read())
-                self._meta = trans_file_json['meta']
+                self.meta = trans_file_json['meta']
                 self.previous_broadcasts = trans_file['transmissions']
                 # for line in trans_file:
                 #     self.previous_broadcasts.append(line.strip())
@@ -67,13 +68,13 @@ class SubscriptionChannel(Channel):
 
             self.persist_file = new_file
 
-    @property
-    def meta(self):
-        return self._meta
+    # @property
+    # def meta(self):
+    #     return self._meta
 
-    @meta.setter
-    def set_meta(self, value):
-        self._meta = value
+    # @meta.setter
+    # def set_meta(self, value):
+    #     self._meta = value
         # self.send_meta()
 
     def start(self):
@@ -85,12 +86,13 @@ class SubscriptionChannel(Channel):
 
     def end(self, retval=None):
         self.has_ended = True
-        self.previous_broadcasts.append(retval)
+        if retval is not None:
+            self.previous_broadcasts.append()
         self.socketio.emit(self.channel_name + ':EOT', {'data': retval or ''}, room=self.channel_name, namespace=self.namespace)
         if self.persist:
             with open(self.persist_file, 'w') as trans_file:
                 # trans_file.write('\n'.join(self.previous_broadcasts))
-                trans_file.write(json.dumps({'meta': self._meta, 'transmissions': self.previous_broadcasts}))
+                trans_file.write(json.dumps({'meta': self.meta, 'transmissions': self.previous_broadcasts}))
         # TODO delete from Subscription.channels, save transmissions in file (?) DONE
 
     def catch_up(self):
@@ -99,9 +101,9 @@ class SubscriptionChannel(Channel):
 
     def send_meta(self, broadcast=True):
         if broadcast:
-            self.socketio.emit(self.channel_name + ':meta', self._meta or {}, room=self.channel_name, namespace=self.namespace)
+            self.socketio.emit(self.channel_name + ':meta', self.meta or {}, room=self.channel_name, namespace=self.namespace)
         else:
-            emit(self.channel_name + ':meta', self._meta or {})
+            emit(self.channel_name + ':meta', self.meta or {})
 
     def is_dead(self):
         if self.alive == 'always':

@@ -203,6 +203,10 @@ treecontrol ul {
     font-size: x-large;
 }
 
+.special-pane > .section {
+    margin-bottom: 50px;
+}
+
 .special-pane > .section > .content {
     padding: 15px;
     width: 100%;

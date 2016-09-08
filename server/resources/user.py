@@ -9,13 +9,14 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(128, convert_unicode=True), unique=True)
     email = db.Column(db.String(128), unique=True)
     _password = db.Column('password', db.String(128))
+    is_active = db.Column(db.Boolean(), default=False)
 
-    def __init__(self, username, email, password):
+    def __init__(self, username, email, password, is_active=False):
         self.username = username
         self.email = email
         self._password = User.bcrypt.generate_password_hash(password)
         # self.is_authenticated = False
-        # self.is_active = True
+        self.is_active = is_active
         # self.is_anonymous = False
 
     @hybrid_property

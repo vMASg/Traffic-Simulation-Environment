@@ -80,23 +80,23 @@ class AppStarter(Resource):
 
     def _create_default_user(self):
         if User.query.filter_by(username=u'Admin').first() is None:
-            admin = User(u'Admin', None, 'pass')
+            admin = User(u'Admin', None, 'pass', is_active=True)
             sql_alchemy_db.session.add(admin)
             sql_alchemy_db.session.commit()
         if User.query.filter_by(username=u'victor.mas').first() is None:
-            user1 = User(u'victor.mas', None, '1234')
+            user1 = User(u'victor.mas', None, '1234', is_active=True)
             sql_alchemy_db.session.add(user1)
             sql_alchemy_db.session.commit()
         if User.query.filter_by(username=u'german.navarro').first() is None:
-            user1 = User(u'german.navarro', None, '1234')
+            user1 = User(u'german.navarro', None, '1234', is_active=True)
             sql_alchemy_db.session.add(user1)
             sql_alchemy_db.session.commit()
         if User.query.filter_by(username=u'ester.lorente').first() is None:
-            user1 = User(u'ester.lorente', None, '1234')
+            user1 = User(u'ester.lorente', None, '1234', is_active=True)
             sql_alchemy_db.session.add(user1)
             sql_alchemy_db.session.commit()
         if User.query.filter_by(username=u'oriol.serch').first() is None:
-            user1 = User(u'oriol.serch', None, '1234')
+            user1 = User(u'oriol.serch', None, '1234', is_active=True)
             sql_alchemy_db.session.add(user1)
             sql_alchemy_db.session.commit()
 
@@ -111,6 +111,7 @@ class AppStarter(Resource):
         self._app.add_url_rule('/login', 'login', self._login, methods=['GET', 'POST'])
         self._app.add_url_rule('/logout', 'logout', self._logout, methods=['GET', 'POST'])
         self._app.add_url_rule('/register', 'register', self._register, methods=['GET', 'POST'])
+        self._app.add_url_rule('/admin', 'admin', self._admin, methods=['GET', 'POST'])
 
     def register_routes_to_resources(self, static_files_root_folder_path):
         self._add_login_logout_routes()
@@ -143,7 +144,7 @@ class AppStarter(Resource):
 
         form = RegistrationForm()
         if form.validate_on_submit():
-            usr = User(unicode(form.username), form.email, form.password)
+            usr = User(unicode(form.username.data), form.email.data, form.password.data)
             sql_alchemy_db.session.add(usr)
             sql_alchemy_db.session.commit()
             return redirect(url_for('login'))
@@ -175,8 +176,15 @@ class AppStarter(Resource):
         return render_template('js/lib/firebase-socketio.js')
 
     @login_required
+    def _admin(self):
+        if current_user.id != 0:
+            return redirect(url_for('index'))
+
+        return self._serve_page("admin.html")
+
+    @login_required
     def _goto_index(self):
-        return self._serve_page("index.html")
+        return self._serve_page("index.html") if current_user.id != 0 else redirect(url_for('admin'))
 
     @login_required
     def _serve_page(self, file_relative_path_to_root):

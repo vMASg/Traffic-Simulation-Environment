@@ -583,8 +583,9 @@ angular.module('trafficEnv')
                 };
 
                 $scope.runPipeline = function () {
-                    if ($scope.pipelineInputs) {
-                        $scope.inputValues = $scope.pipelineInputs.outputs.map(function (e) { return {inputType: 'string', inputValue: '', name: e.name}; });
+                    // if ($scope.pipelineInputs) {
+                        // TODO request comment for execution (and maybe name)
+                        $scope.inputValues = $scope.pipelineInputs?$scope.pipelineInputs.outputs.map(function (e) { return {inputType: 'string', inputValue: '', name: e.name}; }):[];
                         var modalInstance = $uibModal.open({
                             animate: true,
                             templateUrl: 'templates/pipeline-inputs.html',
@@ -605,11 +606,13 @@ angular.module('trafficEnv')
                             for (var i = 0; i < len; ++i) {
                                 info[$scope.inputValues[i].name] = castInputValue($scope.inputValues[i]);
                             }
+                            info['comment'] = $scope.comment;
+                            delete $scope.comment;
                             pipelineServices.runPipeline($scope.data.id, info);
                         });
-                    } else {
-                        pipelineServices.runPipeline($scope.data.id);
-                    }
+                    // } else {
+                    //     pipelineServices.runPipeline($scope.data.id);
+                    // }
                 };
 
                 $scope.shapes = [];

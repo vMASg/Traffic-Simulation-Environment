@@ -1,4 +1,6 @@
 import threading
+import json
+from time import time
 from Queue import Queue, Empty as QueueEmpty
 from subprocess import Popen, PIPE, STDOUT
 
@@ -28,9 +30,12 @@ class PipelineThread(threading.Thread):
             ret_code = cmd.poll()
             self.subscription_channel.start()
             # Adding inputs
+            self.subscription_channel.meta['startTime'] = int(time)
             if self.pipeline_inputs is not None:
                 with open(self.pipeline_inputs, 'r') as f:
-                    self.subscription_channel.broadcast(f.read())
+                    input_json = json.loads(f.read())
+                self.subscription_channel.meta['inputs'] = input_json
+            self.subscription_channel.send_meta()
             # End inputs
             while ret_code is None:
                 output = '[WKUP]'
@@ -58,8 +63,10 @@ class PipelineThread(threading.Thread):
             out = None
             if self.pipeline_outputs is not None:
                 with open(self.pipeline_outputs, 'r') as out_file:
-                    out = out_file.read()
-            self.subscription_channel.end(out)
+                    out = json.loads(out_file.read())
+                self.subscription_channel.meta['outputs'] = out
+                self.subscription_channel.send_meta()
+            self.subscription_channel.end()
             self.event.set()
         else:
             print 'ERROR'

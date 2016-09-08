@@ -131,7 +131,7 @@ class AppStarter(Resource):
 
         # Pipeline
         pipeline_executor = PipelineExecutor(aimsun_service, pipeline_service, script_service, model_service, self._subscription)
-        self._app.add_url_rule('/pipelines/<id>/run', 'run_pipeline', pipeline_executor.run_pipeline, methods=['GET', 'POST'])
+        self._app.add_url_rule('/pipelines/<id>/run', 'run_pipeline', pipeline_executor.run_pipeline, methods=['POST'])
 
         # Model
         model = Model(pipeline_executor, model_service, script_service)

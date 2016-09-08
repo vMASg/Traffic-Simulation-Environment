@@ -1,4 +1,5 @@
 import json
+from time import time
 from flask import request
 from flask_login import current_user
 
@@ -25,10 +26,20 @@ class PipelineExecutor(object):
         input_path, output_path = None, pipeline_path + '.output'
 
         if request.method == 'POST':
-            data = request.get_data()
+            data = json.loads(request.get_data())
+            comment = data['comment']
+            del data['comment']
             input_path = pipeline_path + '.input'
             with open(input_path, 'w') as inp:
-                inp.write(data)
+                inp.write(json.dumps(data))
+
+            meta = {
+                'user': current_user.username,
+                'requestTime': int(time()),
+                'type': 'pipeline',
+                'comment': comment,
+                'task': id
+            }
 
         # Change path for all scripts
         pipeline_nodes = pipeline['nodes']
@@ -43,6 +54,7 @@ class PipelineExecutor(object):
 
         # Create a new channel to send output to users
         sc = self.subscription_service.create_subscription_channel('pipeline-' + id, alive='while_active', persist=True, persist_type='unique')
+        sc.meta = meta
         self.aimsun_service.run_pipeline((pipeline_path, input_path, output_path), sc)
         # self.pipeline_channel.broadcast({'channel': sc.channel_name})
         return 'OK'
@@ -57,7 +69,16 @@ class PipelineExecutor(object):
         with open(input_path, 'w') as f:
             f.write(json.dumps(content))
 
+        meta = {
+            'user': current_user.username,
+            'requestTime': int(time()),
+            'type': 'immediate script',
+            'comment': '',
+            'task': model_id
+        }
+
         channel_name = '{}-script-{}'.format(current_user.username, model_id)
         subs_chan = self.subscription_service.create_subscription_channel(channel_name, alive="while_active", persist=False)
+        subs_chan.meta = meta
         self.aimsun_service.run_pipeline((self._RUN_SCRIPT_PIPELINE_PATH, input_path, None), subs_chan)
         return channel_name

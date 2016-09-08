@@ -1,7 +1,7 @@
 <div class="modal-header">
     <h3>Set Input Values</h3>
 </div>
-<div class="modal-body form-group">
+<div class="modal-body form-group pipeline-inputs">
     <div data-ng-repeat="input in inputValues" class="insert-inputs clearfix">
         <!-- TODO type selector + input -->
         <div class="name">{{input.name}}</div>
@@ -11,14 +11,16 @@
             <option value="boolean">Boolean</option>
             <option value="null">None</option>
         </select>
-        <input class="form-control input value"  ng-model="input.inputValue" type="text" ng-if="input.inputType == 'string'"></input>
-        <input class="form-control input value"  ng-model="input.inputValue" type="number" ng-if="input.inputType == 'number'"></input>
+        <input class="form-control input value"  ng-model="input.inputValue" type="text" ng-if="input.inputType == 'string'" />
+        <input class="form-control input value"  ng-model="input.inputValue" type="number" ng-if="input.inputType == 'number'" />
         <select class="form-control input value" ng-model="input.inputValue"  ng-if="input.inputType == 'boolean'">
             <option value="true">True</option>
             <option value="false">False</option>
         </select>
-        <input class="form-control input value" type="text" ng-if="input.inputType == 'null'" style="visibility: hidden;"></input>
+        <input class="form-control input value" type="text" ng-if="input.inputType == 'null'" style="visibility: hidden;" />
     </div>
+    <label>Execution Comment</label>
+    <textarea class="form-control input" ng-model="comment" required="required"></textarea>
 </div>
 <div class="modal-footer">
     <button class='btn btn-default' data-ng-click="$close()">Run Pipeline</button>

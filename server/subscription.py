@@ -48,11 +48,15 @@ class SubscriptionChannel(Channel):
         self.persist_file = os.path.join(persist_dir, channel_name)
         self.persist_type = persist_type
         self.has_started, self.has_ended = False, False
+        self._meta = None
 
         if persist and persist_type == 'continue' and os.path.exists(self.persist_file):
             with open(self.persist_file, 'r') as trans_file:
-                for line in trans_file:
-                    self.previous_broadcasts.append(line.strip())
+                trans_file_json = json.loads(trans_file.read())
+                self._meta = trans_file_json['meta']
+                self.previous_broadcasts = trans_file['transmissions']
+                # for line in trans_file:
+                #     self.previous_broadcasts.append(line.strip())
 
         if persist and persist_type == 'unique':
             count = 0
@@ -62,6 +66,15 @@ class SubscriptionChannel(Channel):
                 new_file = '{}#{}'.format(self.persist_file, count)
 
             self.persist_file = new_file
+
+    @property
+    def meta(self):
+        return self._meta
+
+    @meta.setter
+    def set_meta(self, value):
+        self._meta = value
+        # self.send_meta()
 
     def start(self):
         self.has_started = True
@@ -76,11 +89,19 @@ class SubscriptionChannel(Channel):
         self.socketio.emit(self.channel_name + ':EOT', {'data': retval or ''}, room=self.channel_name, namespace=self.namespace)
         if self.persist:
             with open(self.persist_file, 'w') as trans_file:
-                trans_file.write('\n'.join(self.previous_broadcasts))
+                # trans_file.write('\n'.join(self.previous_broadcasts))
+                trans_file.write(json.dumps({'meta': self._meta, 'transmissions': self.previous_broadcasts}))
         # TODO delete from Subscription.channels, save transmissions in file (?) DONE
 
     def catch_up(self):
         emit(self.channel_name + ':catchUp', {'transmission': self.previous_broadcasts})
+        self.send_meta(broadcast=False)
+
+    def send_meta(self, broadcast=True):
+        if broadcast:
+            self.socketio.emit(self.channel_name + ':meta', self._meta or {}, room=self.channel_name, namespace=self.namespace)
+        else:
+            emit(self.channel_name + ':meta', self._meta or {})
 
     def is_dead(self):
         if self.alive == 'always':

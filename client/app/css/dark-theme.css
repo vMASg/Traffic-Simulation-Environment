@@ -145,6 +145,7 @@
     background: -webkit-linear-gradient(top,  #172229 0%,#2c4352 100%); /* Chrome10-25,Safari5.1-6 */
     background: linear-gradient(to bottom,  #172229 0%,#2c4352 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#172229', endColorstr='#2c4352',GradientType=0 ); /* IE6-9 */
+    color: #ddd;
 }
 
 .view-panel {

@@ -1,3 +1,42 @@
 <div class="special-pane">
     <!-- TODO -->
+    <div class="section">
+        <div class="title">Running Tasks</div>
+        <div class="content">
+            <table id="workers-table" class="table">
+              <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Start Time</th>
+                    <th>Type</th>
+                    <th>Task</th>
+                    <th>Comment</th>
+                    <th>Kill</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                    <td>name</td>
+                    <td>info.get('status', None)</td>
+                    <td>info.get('active', 0) or 0</td>
+                    <td>info.get('task-received', 0)</td>
+                    <td>info.get('task-failed', 0)</td>
+                    <td>info.get('task-succeeded', 0)</td>
+                    <!-- <td>info.get('task-retried', 0)</td> -->
+                    <!-- <td>humanize(info.get('loadavg', 'N/A'))</td> -->
+                </tr>
+                <tr>
+                    <td>name</td>
+                    <td>info.get('status', None)</td>
+                    <td>info.get('active', 0) or 0</td>
+                    <td>info.get('task-received', 0)</td>
+                    <td>info.get('task-failed', 0)</td>
+                    <td>info.get('task-succeeded', 0)</td>
+                    <!-- <td>info.get('task-retried', 0)</td> -->
+                    <!-- <td>humanize(info.get('loadavg', 'N/A'))</td> -->
+                </tr>
+              </tbody>
+            </table>
+        </div>
+    </div>
 </div>

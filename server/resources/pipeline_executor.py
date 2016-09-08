@@ -53,7 +53,7 @@ class PipelineExecutor(object):
             f.write(json.dumps(pipeline))
 
         # Create a new channel to send output to users
-        sc = self.subscription_service.create_subscription_channel('pipeline-' + id, alive='while_active', persist=True, persist_type='unique')
+        sc = self.subscription_service.create_subscription_channel('pipeline-{}-{}'.format(id, meta['requestTime']), alive='while_active', persist=True, persist_type='unique')
         sc.meta = meta
         self.aimsun_service.run_pipeline((pipeline_path, input_path, output_path), sc)
         # self.pipeline_channel.broadcast({'channel': sc.channel_name})
@@ -78,7 +78,7 @@ class PipelineExecutor(object):
         }
 
         channel_name = '{}-script-{}'.format(current_user.username, model_id)
-        subs_chan = self.subscription_service.create_subscription_channel(channel_name, alive="while_active", persist=False)
+        subs_chan = self.subscription_service.create_subscription_channel('{}-{}'.format(channel_name, meta['requestTime']), alive="while_active", persist=False)
         subs_chan.meta = meta
         self.aimsun_service.run_pipeline((self._RUN_SCRIPT_PIPELINE_PATH, input_path, None), subs_chan)
         return channel_name

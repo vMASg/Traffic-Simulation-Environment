@@ -77,8 +77,8 @@ class PipelineExecutor(object):
             'task': model_id
         }
 
-        channel_name = '{}-script-{}'.format(current_user.username, model_id)
-        subs_chan = self.subscription_service.create_subscription_channel('{}-{}'.format(channel_name, meta['requestTime']), alive="while_active", persist=False)
+        channel_name = '{}-script-{}-{}'.format(current_user.username, model_id, meta['requestTime'])
+        subs_chan = self.subscription_service.create_subscription_channel(channel_name, alive="while_active", persist=False)
         subs_chan.meta = meta
         self.aimsun_service.run_pipeline((self._RUN_SCRIPT_PIPELINE_PATH, input_path, None), subs_chan)
         return channel_name

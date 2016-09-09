@@ -18,6 +18,8 @@ from server.resources.model_collection import ModelCollection
 from server.resources.model import Model
 from server.resources.interface_collection import InterfaceCollection
 from server.resources.interface import Interface
+from server.resources.execution_collection import ExecutionCollection
+from server.resources.execution import Execution
 from server.resources.pipeline_executor import PipelineExecutor
 # Services
 from server.services.script_service import ScriptService
@@ -122,6 +124,8 @@ class AppStarter(Resource):
         self._api.add_resource(ModelCollection, '/models', resource_class_kwargs={'model_locator': model_service, 'aimsun_service': aimsun_service})
         self._api.add_resource(InterfaceCollection, '/interfaces', resource_class_kwargs={'interface_locator': interface_service, 'subscription_service': self._subscription})
         self._api.add_resource(Interface, '/interfaces/<id>', resource_class_kwargs={'interface_locator': interface_service, 'subscription_service': self._subscription})
+        self._api.add_resource(ExecutionCollection, '/executions', resource_class_kwargs={'root_folder': SUBSCRIPTIONS_ROOT_FOLDER, 'subscription_service': self._subscription})
+        self._api.add_resource(Execution, '/execution/<id>', resource_class_kwargs={'root_folder': SUBSCRIPTIONS_ROOT_FOLDER, 'subscription_service': self._subscription})
         # Non RESTful routes
 
         # Pipeline

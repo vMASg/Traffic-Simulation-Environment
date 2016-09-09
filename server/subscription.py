@@ -90,9 +90,12 @@ class SubscriptionChannel(Channel):
             self.previous_broadcasts.append()
         self.socketio.emit(self.channel_name + ':EOT', {'data': retval or ''}, room=self.channel_name, namespace=self.namespace)
         if self.persist:
+            content = {'meta': self.meta, 'transmissions': self.previous_broadcasts}
             with open(self.persist_file, 'w') as trans_file:
                 # trans_file.write('\n'.join(self.previous_broadcasts))
-                trans_file.write(json.dumps({'meta': self.meta, 'transmissions': self.previous_broadcasts}))
+                trans_file.write(json.dumps(content))
+            # TODO find better place to send the message
+            self.socketio.emit('new_finished_task', {'id': self.persist_file, 'name': self.persist_file[:self.persist_file.rfind('-', 0, self.persist_file.rfind('#'))], 'data': content}, namespace=self.namespace)
         # TODO delete from Subscription.channels, save transmissions in file (?) DONE
 
     def catch_up(self):

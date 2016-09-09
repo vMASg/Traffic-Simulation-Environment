@@ -1,6 +1,7 @@
 import os
 import eventlet
-from flask import Flask, send_from_directory, redirect, url_for, render_template
+import json
+from flask import Flask, send_from_directory, redirect, url_for, render_template, request
 from flask_restful import Resource, Api
 from flask_socketio import SocketIO, disconnect
 from flask_sqlalchemy import SQLAlchemy
@@ -27,7 +28,7 @@ from server.services.aimsun_service import AimsunService
 from server.services.git_service import GitService
 from server.subscription import Subscription
 # Constants
-from server.constants import ACONSOLE_PATH, GIT_PATH, BASE_PATH, SECRET_KEY
+from server.constants import ACONSOLE_PATH, GIT_PATH, BASE_PATH, SECRET_KEY, ADMIN_PASSWORD
 
 SCRIPTS_ROOT_FOLDER = os.path.join(BASE_PATH, 'Scripts')
 MODELS_ROOT_FOLDER = os.path.join(BASE_PATH, 'Models')
@@ -86,24 +87,8 @@ class AppStarter(Resource):
 
     def _create_default_user(self):
         if User.query.filter_by(username=u'Admin').first() is None:
-            admin = User(u'Admin', None, 'pass', is_active=True)
+            admin = User(u'Admin', None, ADMIN_PASSWORD, is_active=True)
             sql_alchemy_db.session.add(admin)
-            sql_alchemy_db.session.commit()
-        if User.query.filter_by(username=u'victor.mas').first() is None:
-            user1 = User(u'victor.mas', None, '1234', is_active=True)
-            sql_alchemy_db.session.add(user1)
-            sql_alchemy_db.session.commit()
-        if User.query.filter_by(username=u'german.navarro').first() is None:
-            user1 = User(u'german.navarro', None, '1234', is_active=True)
-            sql_alchemy_db.session.add(user1)
-            sql_alchemy_db.session.commit()
-        if User.query.filter_by(username=u'ester.lorente').first() is None:
-            user1 = User(u'ester.lorente', None, '1234', is_active=True)
-            sql_alchemy_db.session.add(user1)
-            sql_alchemy_db.session.commit()
-        if User.query.filter_by(username=u'oriol.serch').first() is None:
-            user1 = User(u'oriol.serch', None, '1234', is_active=True)
-            sql_alchemy_db.session.add(user1)
             sql_alchemy_db.session.commit()
 
     def _register_static_server(self, static_files_root_folder_path):
@@ -186,14 +171,22 @@ class AppStarter(Resource):
 
     @login_required
     def _admin(self):
-        if current_user.id != 0:
+        if current_user.username != 'Admin':
             return redirect(url_for('index'))
 
-        return self._serve_page("admin.html")
+        if request.method == 'POST':
+            data = json.loads(request.get_data())
+            for user_id, active in data.iteritems():
+                if user_id > 1:
+                    User.query.get(user_id).is_active = active
+            sql_alchemy_db.session.commit()
+            return 'OK'
+
+        return render_template("admin.html", users=User.query.all())
 
     @login_required
     def _goto_index(self):
-        return self._serve_page("index.html") if current_user.id != 0 else redirect(url_for('admin'))
+        return self._serve_page("index.html") if current_user.username != 'Admin' else redirect(url_for('admin'))
 
     @login_required
     def _serve_page(self, file_relative_path_to_root):
@@ -201,5 +194,5 @@ class AppStarter(Resource):
 
     def run(self, module_name):
         if module_name == '__main__':
-            self._socketio.run(self._app, debug=True, host="0.0.0.0", port=8000)
-            # self._socketio.run(self._app, debug=True, port=8000)
+            # self._socketio.run(self._app, debug=True, host="0.0.0.0", port=8000)
+            self._socketio.run(self._app, debug=True, port=8000)

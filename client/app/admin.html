@@ -2,22 +2,35 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Login</title>
+    <title>Admin</title>
     <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="js/vendor/Ionicons/css/ionicons.min.css" />
     <style type="text/css">
         html, body {
             /*background-color: #3B3B3B;*/
             /*background-color: #6e6e6e;*/
             background-color: #222;
+            color: #ddd;
+        }
+
+        .btn {
+            color: initial;
         }
 
         .form-container {
-            width: 430px;
+            width: 800px;
             margin: auto;
             margin-top: 150px;
             padding: 50px;
             background-color: #3b3b3b;
             border-radius: 5px;
+        }
+
+        a.logout {
+            color: #ddd;
+            font-size: 3em;
+            text-align: center;
+            margin-top: 10px;
         }
 
         legend,
@@ -46,16 +59,46 @@
             margin-bottom: 30px;
         }
     </style>
+    <script type="text/javascript">
+
+    function sendActive() {
+        var data = {};
+        var users = document.querySelectorAll('input[type=checkbox]');
+        var l = users.length;
+        for (var i = 0; i < l; ++i) {
+            data[users[i].name] = users[i].checked;
+        }
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/admin');
+        xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+        xhr.send(JSON.stringify(data));
+    }
+
+    </script>
 </head>
 <body>
     <div class="form-container">
-        <form method="POST" action="/login">
-            <legend>TODO</legend>
-            {{ form.hidden_tag() }}
-            <input class="form-control" type="text" name="username" value="" placeholder="Username" required="required" />
-            <input class="form-control" type="password" name="password" value="" placeholder="Password" required="required" />
-            <input class="btn btn-lg btn-block" type="submit" value="Submit" />
-        </form>
+        <table id="users" class="table">
+            <legend>Users panel</legend>
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Active</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.email }}</td>
+                    <td><input type="checkbox" name="{{ user.id }}" value="{{ user.id }}" {{ 'checked' if user.is_active else '' }} {{ 'disabled' if user.username == 'Admin' else '' }} /></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <input class="btn btn-lg btn-block" type="button" value="Save" onclick="sendActive();" />
+        <a href="/logout" class="logout"><div class="ion-android-exit">&nbsp;Logout</div></a>
     </div>
 </body>
 </html>

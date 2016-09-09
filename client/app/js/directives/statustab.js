@@ -5,7 +5,7 @@ angular.module('trafficEnv')
                 'data': '=tabData',
                 'switchNew': '&'
             },
-            controller: ['$scope', 'socket', function($scope, socket) {
+            controller: ['$scope', 'socket', 'finishedTasksServices', function($scope, socket, finishedTasksServices) {
 
                 var self = this;
                 var channelInfo = {};
@@ -64,6 +64,14 @@ angular.module('trafficEnv')
                     for (var i = 0; i < channels.length; ++i) {
                         unsubscribe(channels[i]);
                     }
+                });
+
+                // Adding finished tasks queue
+
+                $scope.finishedTasks = [];
+
+                finishedTasksServices.getFinishedTaskCollection().then(function (data) {
+                    $scope.finishedTasks = data.data;
                 });
 
             }],

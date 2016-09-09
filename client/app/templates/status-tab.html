@@ -9,10 +9,11 @@
                     <th>User</th>
                     <th>Request Time</th>
                     <th>Start Time</th>
+                    <th>Finish Time</th>
                     <th>Type</th>
                     <th>Task</th>
                     <th>Comment</th>
-                    <th>Kill</th>
+                    <th>Delete</th>
                 </tr>
               </thead>
               <tbody>
@@ -20,10 +21,11 @@
                     <td>{{metaData.user || '-'}}</td>
                     <td>{{metaData.requestTime || '-'}}</td>
                     <td>{{metaData.startTime || '-'}}</td>
+                    <td>{{metaData.finishTime || '-'}}</td>
                     <td>{{metaData.type || '-'}}</td>
                     <td>{{metaData.task || '-'}}</td>
                     <td>{{metaData.comment || '-'}}</td>
-                    <td>kill</td>
+                    <td>delete</td>
                 </tr>
               </tbody>
             </table>
@@ -38,10 +40,11 @@
                     <th>User</th>
                     <th>Request Time</th>
                     <th>Start Time</th>
+                    <th>Finish Time</th>
                     <th>Type</th>
                     <th>Task</th>
                     <th>Comment</th>
-                    <th>Kill</th>
+                    <th>Delete</th>
                 </tr>
               </thead>
               <tbody>
@@ -49,10 +52,42 @@
                     <td>{{metaData.user || '-'}}</td>
                     <td>{{metaData.requestTime || '-'}}</td>
                     <td>{{metaData.startTime || '-'}}</td>
+                    <td>{{metaData.finishTime || '-'}}</td>
                     <td>{{metaData.type || '-'}}</td>
                     <td>{{metaData.task || '-'}}</td>
                     <td>{{metaData.comment || '-'}}</td>
-                    <td>kill</td>
+                    <td>delete</td>
+                </tr>
+              </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="section">
+        <div class="title">Finished Tasks</div>
+        <div class="content">
+            <table class="table">
+              <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Request Time</th>
+                    <th>Start Time</th>
+                    <th>Finish Time</th>
+                    <th>Type</th>
+                    <th>Task</th>
+                    <th>Comment</th>
+                    <th>Delete</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr ng-repeat="(channelName, data) in finishedTasks">
+                    <td>{{data.data.meta.user || '-'}}</td>
+                    <td>{{data.data.meta.requestTime || '-'}}</td>
+                    <td>{{data.data.meta.startTime || '-'}}</td>
+                    <td>{{data.data.meta.finishTime || '-'}}</td>
+                    <td>{{data.data.meta.type || '-'}}</td>
+                    <td>{{data.data.meta.task || '-'}}</td>
+                    <td>{{data.data.meta.comment || '-'}}</td>
+                    <td>delete</td>
                 </tr>
               </tbody>
             </table>

@@ -94,4 +94,19 @@ angular.module('APIServices', [])
                 return $http.delete('/interfaces/' + encodeURIComponent(id));
             }
         };
+    }])
+
+    .factory('finishedTasksServices', ['$http', function($http){
+        return {
+            getFinishedTaskCollection: function () {
+                return $http.get('/executions');
+            },
+            getFinishedTask: function (id) {
+                return $http.get('/executions/' + encodeURIComponent(id));
+            },
+            deleteFinishedTask: function (id) {
+                return $http.delete('/executions/' + encodeURIComponent(id));
+            }
+        };
     }]);
+

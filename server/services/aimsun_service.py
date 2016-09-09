@@ -65,7 +65,7 @@ class PipelineThread(threading.Thread):
                 with open(self.pipeline_outputs, 'r') as out_file:
                     out = json.loads(out_file.read())
                 self.subscription_channel.meta['outputs'] = out or {}
-            self.subscription_channel.meta['finishedTime'] = int(time())
+            self.subscription_channel.meta['finishTime'] = int(time())
             self.subscription_channel.send_meta()
             self.subscription_channel.end()
             self.event.set()

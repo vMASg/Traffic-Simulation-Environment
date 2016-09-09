@@ -1,8 +1,8 @@
 angular.module('trafficEnv')
     .directive('panelBrowser', function() {
         return {
-            controller: ['$scope', 'scriptServices', 'modelServices', 'pipelineServices', 'socket',
-            function($scope, scriptServices, modelServices, pipelineServices, socket) {
+            controller: ['$scope', 'scriptServices', 'modelServices', 'pipelineServices', 'interfaceServices', 'socket',
+            function($scope, scriptServices, modelServices, pipelineServices, interfaceServices, socket) {
 
                 // // TODO add API Call
                 // $scope.scriptsDirectories = [
@@ -21,7 +21,10 @@ angular.module('trafficEnv')
                         ];
                         pipelineServices.getPipelineCollection().then(function (data) {
                             var pipelinesDirectories = data.data;
-                            $scope.treeFiles = scriptsDirectories.concat(modelsDirectories).concat(pipelinesDirectories);
+                            interfaceServices.getInterfaceCollection().then(function (data) {
+                                var interfacesDirectories = data.data;
+                                $scope.treeFiles = scriptsDirectories.concat(modelsDirectories).concat(pipelinesDirectories).concat(interfacesDirectories);
+                            });
                         });
                     });
                 });
@@ -153,6 +156,58 @@ angular.module('trafficEnv')
                     var where = id.split('\\');
                     where.pop();
                     deletePipeline($scope.treeFiles[2].children, where, id);
+                    $scope.deleteTab(id);
+                });
+
+                socket.on('new_interface', function (data) {
+                    // console.log(data);
+                    var addNewElement = function (currentNode, where, tab) {
+                        if (where.length > 0) {
+                            var name = where[0];
+                            for (var i = 0; i < currentNode.length; ++i) {
+                                if (currentNode[i].name == name) {
+                                    where.shift();
+                                    addNewElement(currentNode[i].children, where, tab);
+                                    break;
+                                }
+                            }
+                        } else {
+                            currentNode.push(tab);
+                            currentNode.sort(function (a,b) {
+                                return a.name.localeCompare(b.name);
+                            });
+                        }
+                    };
+                    var where = data.id.split('\\');
+                    where.pop();
+                    addNewElement($scope.treeFiles[3].children, where, data);
+                });
+
+                socket.on('deleted_interface', function (data) {
+                    var deleteInterface = function (currentNode, where, id) {
+                        if (where.length > 0) {
+                            var name = where[0];
+                            for (var i = 0; i < currentNode.length; ++i) {
+                                if (currentNode[i].name == name) {
+                                    where.shift();
+                                    deleteInterface(currentNode[i].children, where, id);
+                                    break;
+                                }
+                            }
+                        } else {
+                            for (var i = 0; i < currentNode.length; ++i) {
+                                if (currentNode[i].id == id) {
+                                    break;
+                                }
+                            }
+                            var tab = currentNode.splice(i, 1)[0];
+                            tab.id = undefined;
+                        }
+                    };
+                    var id = data.id;
+                    var where = id.split('\\');
+                    where.pop();
+                    deleteInterface($scope.treeFiles[3].children, where, id);
                     $scope.deleteTab(id);
                 });
 

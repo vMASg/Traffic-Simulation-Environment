@@ -69,4 +69,29 @@ angular.module('APIServices', [])
                 return pipeline_input?$http.post(url, angular.toJson(pipeline_input)):$http.get(url);
             }
         };
+    }])
+
+    .factory('interfaceServices', ['$http', function($http){
+        return {
+            getInterfaceCollection: function () {
+                return $http.get('/interfaces');
+            },
+            getInterface: function (id) {
+                return $http.get('/interfaces/' + encodeURIComponent(id));
+            },
+            saveInterface: function (name, parent, code) {
+                var data = {name: name, parent: parent, code: code};
+                return $http.post('/interfaces', angular.toJson(data));
+            },
+            updateInterface: function (id, code) {
+                return $http.put('/interfaces/' + encodeURIComponent(id), code, {
+                    headers: {
+                        'Content-Type': 'text/plain'
+                    }
+                });
+            },
+            deleteInterface: function (id) {
+                return $http.delete('/interfaces/' + encodeURIComponent(id));
+            }
+        };
     }]);

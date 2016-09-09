@@ -15,11 +15,14 @@ from server.resources.pipeline_collection import PipelineCollection
 from server.resources.pipeline import Pipeline
 from server.resources.model_collection import ModelCollection
 from server.resources.model import Model
+from server.resources.interface_collection import InterfaceCollection
+from server.resources.interface import Interface
 from server.resources.pipeline_executor import PipelineExecutor
 # Services
 from server.services.script_service import ScriptService
 from server.services.pipeline_service import PipelineService
 from server.services.model_service import ModelService
+from server.services.interface_service import InterfaceService
 from server.services.aimsun_service import AimsunService
 from server.services.git_service import GitService
 from server.subscription import Subscription
@@ -29,6 +32,7 @@ from server.constants import ACONSOLE_PATH, GIT_PATH, BASE_PATH, SECRET_KEY
 SCRIPTS_ROOT_FOLDER = os.path.join(BASE_PATH, 'Scripts')
 MODELS_ROOT_FOLDER = os.path.join(BASE_PATH, 'Models')
 PIPELINES_ROOT_FOLDER = os.path.join(BASE_PATH, 'Pipelines')
+INTERFACES_ROOT_FOLDER = os.path.join(BASE_PATH, 'Interfaces')
 SUBSCRIPTIONS_ROOT_FOLDER = os.path.join(BASE_PATH, 'Subscriptions')
 
 sql_alchemy_db = SQLAlchemy()
@@ -48,6 +52,8 @@ class AppStarter(Resource):
         AppStarter._create_folder_if_nonexistent(SCRIPTS_ROOT_FOLDER)
         AppStarter._create_folder_if_nonexistent(MODELS_ROOT_FOLDER)
         AppStarter._create_folder_if_nonexistent(PIPELINES_ROOT_FOLDER)
+        AppStarter._create_folder_if_nonexistent(INTERFACES_ROOT_FOLDER)
+        AppStarter._create_folder_if_nonexistent(SUBSCRIPTIONS_ROOT_FOLDER)
         # Initializing app
         self._static_files_root_folder_path = ''
         self._app = Flask(__name__, template_folder=app_path)
@@ -121,12 +127,15 @@ class AppStarter(Resource):
         script_service = ScriptService(root_folder=SCRIPTS_ROOT_FOLDER, git_service=git_service)
         pipeline_service = PipelineService(root_folder=PIPELINES_ROOT_FOLDER, git_service=git_service)
         model_service = ModelService(root_folder=MODELS_ROOT_FOLDER, git_service=git_service)
+        interface_service = InterfaceService(root_folder=INTERFACES_ROOT_FOLDER, git_service=git_service)
         aimsun_service = AimsunService(ACONSOLE_PATH, self._subscription)
         self._api.add_resource(ScriptCollection, '/scripts', resource_class_kwargs={'script_locator': script_service, 'subscription_service': self._subscription})
         self._api.add_resource(Script, '/scripts/<id>', resource_class_kwargs={'script_locator': script_service, 'subscription_service': self._subscription})
         self._api.add_resource(PipelineCollection, '/pipelines', resource_class_kwargs={'pipeline_locator': pipeline_service, 'subscription_service': self._subscription})
         self._api.add_resource(Pipeline, '/pipelines/<id>', resource_class_kwargs={'pipeline_locator': pipeline_service, 'subscription_service': self._subscription})
         self._api.add_resource(ModelCollection, '/models', resource_class_kwargs={'model_locator': model_service, 'aimsun_service': aimsun_service})
+        self._api.add_resource(InterfaceCollection, '/interfaces', resource_class_kwargs={'interface_locator': interface_service, 'subscription_service': self._subscription})
+        self._api.add_resource(Interface, '/interfaces/<id>', resource_class_kwargs={'interface_locator': interface_service, 'subscription_service': self._subscription})
         # Non RESTful routes
 
         # Pipeline

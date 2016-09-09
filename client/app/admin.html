@@ -33,6 +33,12 @@
             margin-top: 10px;
         }
 
+        button.delete {
+            font-size: larger;
+            background-color: transparent;
+            border: 0;
+        }
+
         legend,
         .form-control {
             color: #ddd;
@@ -74,6 +80,18 @@
         xhr.send(JSON.stringify(data));
     }
 
+    function deleteUser(userId) {
+        var xhr = new XMLHttpRequest();
+        var elem = document.getElementById('user-' + userId);
+        xhr.open('DELETE', '/admin/' + userId);
+        xhr.onload = function () {
+            if (xhr.status == 200) {
+                elem.remove();
+            }
+        };
+        xhr.send();
+    }
+
     </script>
 </head>
 <body>
@@ -85,14 +103,16 @@
                     <th>Username</th>
                     <th>Email</th>
                     <th>Active</th>
+                    <th>Delete</th>
                 </tr>
             </thead>
             <tbody>
                 {% for user in users %}
-                <tr>
+                <tr id="user-{{ user.id }}">
                     <td>{{ user.username }}</td>
                     <td>{{ user.email }}</td>
                     <td><input type="checkbox" name="{{ user.id }}" value="{{ user.id }}" {{ 'checked' if user.is_active else '' }} {{ 'disabled' if user.username == 'Admin' else '' }} /></td>
+                    <td>{% if user.username != 'Admin' %}<button class="delete" onclick="deleteUser({{ user.id }})"><div class="icon ion-trash-a"></div></button>{% endif %}</td>
                 </tr>
                 {% endfor %}
             </tbody>

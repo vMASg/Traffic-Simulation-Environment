@@ -102,7 +102,8 @@ class AppStarter(Resource):
         self._app.add_url_rule('/login', 'login', self._login, methods=['GET', 'POST'])
         self._app.add_url_rule('/logout', 'logout', self._logout, methods=['GET', 'POST'])
         self._app.add_url_rule('/register', 'register', self._register, methods=['GET', 'POST'])
-        self._app.add_url_rule('/admin', 'admin', self._admin, methods=['GET', 'POST'])
+        self._app.add_url_rule('/admin', 'admin', self._admin, defaults={'userid': 0}, methods=['GET', 'POST'])
+        self._app.add_url_rule('/admin/<int:userid>', 'admin', self._admin, methods=['DELETE'])
 
     def register_routes_to_resources(self, static_files_root_folder_path):
         self._add_login_logout_routes()
@@ -170,7 +171,7 @@ class AppStarter(Resource):
         return render_template('js/lib/firebase-socketio.js')
 
     @login_required
-    def _admin(self):
+    def _admin(self, userid=0):
         if current_user.username != 'Admin':
             return redirect(url_for('index'))
 
@@ -181,6 +182,14 @@ class AppStarter(Resource):
                     User.query.get(user_id).is_active = active
             sql_alchemy_db.session.commit()
             return 'OK'
+
+        elif request.method == 'DELETE':
+            if userid > 1:
+                sql_alchemy_db.session.delete(User.query.get(userid))
+                sql_alchemy_db.session.commit()
+                return 'OK'
+            else:
+                return '', 403
 
         return render_template("admin.html", users=User.query.all())
 

@@ -2,6 +2,7 @@ angular.module('trafficEnv')
     .directive('interfaceTab', ['$compile', '$timeout', function($compile, $timeout) {
         var self = this;
         var queueLen = angular.module('trafficEnv')._invokeQueue.length;
+        var loadedStuff = angular.module('trafficEnv')._invokeQueue.map(function (a) { return a[2][0]; });
 
         function addScript (path) {
             var scriptElement = document.createElement('script');
@@ -29,6 +30,20 @@ angular.module('trafficEnv')
             });
         }
 
+        function deregisterStuff (names) {
+            var newStuff = names.filter(function (e) { return loadedStuff.indexOf(e) == -1; });
+            var invokeQueue = angular.module('trafficEnv')._invokeQueue;
+            angular.module('trafficEnv')._invokeQueue = invokeQueue.filter(function (e) { return newStuff.indexOf(e[2][0]) == -1; });
+            // var len = invokeQueue.length;
+            // for (var i = 0; i < len; ++i) {
+            //     if (newStuff.indexOf(invokeQueue[i][2][0]) > 0) {
+            //         newStuff.splice()
+            //     }
+            // }
+            // angular.module('trafficEnv')._invokeQueue = angular.module('trafficEnv')._invokeQueue.slice(0, queueLen);
+            // console.assert(angular.module('trafficEnv')._invokeQueue.length == queueLen);
+        }
+
         return {
             scope: {
                 'data': '=tabData',
@@ -43,10 +58,11 @@ angular.module('trafficEnv')
                     if (!element.attr('ng-include')) {
                         addScript('interfaces/' + encodeURIComponent($scope.data.id.replace(/\.intf$/, '.js')));
                         element.attr('ng-include', '"' + 'interfaces/' + encodeURIComponent($scope.data.id.replace(/\.intf$/, '.html')) + '"');
-                        // console.log(angular.module('trafficEnv')._invokeQueue.map(a => a[2][0]));
-                        $timeout(function () { registerRecompile(element, $scope); }, 2000);
+                        $timeout(function () { registerRecompile(element, $scope); }, 100);
                         $scope.$on('$destroy', function () {
-                            document.body.removeChild(self.s);
+                            // console.log(angular.module('trafficEnv')._invokeQueue.map(a => a[2][0]));
+                            deregisterStuff(angular.module('trafficEnv')._invokeQueue.map(function (a) { return a[2][0]; }));
+                            self.s.remove();
                         });
                     }
 

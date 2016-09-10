@@ -101,9 +101,10 @@ class PipelineNode(Node):
         pipeline = Pipeline(self.node_info['path'])
         output = pipeline(**kwargs)
 
-        output_names = [e['name'] for e in self.node_info['outputs']]
-        for key, value in zip(output_names, output):
-            self.outputs[key] = value
+        # output_names = [e['name'] for e in self.node_info['outputs']]
+        if output is not None:
+            for key, value in output.iteritems():
+                self.outputs[key] = value
 
 class OpenModel(Node):
     """docstring for OpenModel"""

@@ -479,7 +479,7 @@ angular.module('trafficEnv')
                 var paper = Raphael(iElm[0].children[1].children[0]);
 
                 var nodeIdCounter = 0;
-                $scope.acceptedChannels = ['code', 'model'].join(',');
+                $scope.acceptedChannels = ['code', 'model', 'pipeline'].join(',');
                 $scope.dropHandler = function ($event, $data, $channel) {
                     if ($channel == 'code') {
                         scriptServices.getScript($data, ['name', 'inout', 'path', 'hash']).then(function (response) {
@@ -518,7 +518,26 @@ angular.module('trafficEnv')
                             createBox(nodeboxes[nodeboxes.length-1], nodeInfo, $event.clientX, $event.clientY);
                         }, 5);
                     } else if ($channel == 'pipeline') {
-                        // TODO
+                        pipelineServices.getPipeline($data).then(function (response) {
+                            var data = response.data;
+                            var pipeline = angular.fromJson(data.graph);
+                            var nodeInfo = {
+                                id: nodeIdCounter++,
+                                type: $channel,
+                                path: data.id,
+                                hash: data.hash,
+                                title: data.name,
+                                inputs: (pipeline.inputs || {outputs:[]}).outputs.map(function (a) { return {name: a.name}; }),
+                                outputs: (pipeline.outputs || {inputs: []}).inputs.map(function (a) { return {name: a.name}; }),
+                                predecessors: [],
+                                successors: []
+                            };
+                            $scope.shapes.push(nodeInfo);
+                            $timeout(function(){
+                                var nodeboxes = nodes.querySelectorAll('.node-box.stdnodes');
+                                createBox(nodeboxes[nodeboxes.length-1], nodeInfo, $event.clientX, $event.clientY);
+                            }, 5);
+                        });
                     }
                 };
 

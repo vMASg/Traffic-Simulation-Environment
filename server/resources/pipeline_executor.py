@@ -1,7 +1,8 @@
 import json
 from time import time
-from flask import request
+from flask import request, abort
 from flask_login import current_user
+from server.exceptions import RecursivePipelineCall
 
 class PipelineExecutor(object):
     """docstring for PipelineExecutor"""
@@ -18,10 +19,38 @@ class PipelineExecutor(object):
         # self.pipeline_channel = subscription_service.create_subscription_channel('executions')
         # self.pipeline_channel.start()
 
-    def run_pipeline(self, id):
+    def _prepare_pipeline(self, id, loaded_pipelines=None):
+        loaded_pipelines = loaded_pipelines or {}
+        if id in loaded_pipelines:
+            # TODO remove the exception when conditional nodes are included
+            raise RecursivePipelineCall()
+            return loaded_pipelines[id]
+
         pipeline_path = self.pipeline_service.get_path_for_execution(id)
         with open(pipeline_path, 'r') as f:
             pipeline = json.loads(f.read())
+
+        # Change path for all scripts
+        pipeline_nodes = pipeline['nodes']
+        for node in pipeline_nodes:
+            if node['type'] == 'code':
+                node['path'] = self.script_service.get_path_for_execution(node['path'], hash=node['hash'])
+            elif node['type'] == 'model':
+                node['path'] = self.model_service.get_path_for_execution(node['path'])
+            elif node['type'] == 'pipeline':
+                node['path'] = self._prepare_pipeline(node['path'], loaded_pipelines)
+
+        with open(pipeline_path, 'w') as f:
+            f.write(json.dumps(pipeline))
+
+        loaded_pipelines[id] = pipeline_path
+        return pipeline_path
+
+    def run_pipeline(self, id):
+        try:
+            pipeline_path = self._prepare_pipeline(id)
+        except RecursivePipelineCall:
+            abort(400)
 
         input_path, output_path = None, pipeline_path + '.output'
 
@@ -40,17 +69,6 @@ class PipelineExecutor(object):
                 'comment': comment,
                 'task': id
             }
-
-        # Change path for all scripts
-        pipeline_nodes = pipeline['nodes']
-        for node in pipeline_nodes:
-            if node['type'] == 'code':
-                node['path'] = self.script_service.get_path_for_execution(node['path'], hash=node['hash'])
-            elif node['type'] == 'model':
-                node['path'] = self.model_service.get_path_for_execution(node['path'])
-
-        with open(pipeline_path, 'w') as f:
-            f.write(json.dumps(pipeline))
 
         # Create a new channel to send output to users
         sc = self.subscription_service.create_subscription_channel('pipeline-{}-{}'.format(id, meta['requestTime']), alive='while_active', persist=True, persist_type='unique')

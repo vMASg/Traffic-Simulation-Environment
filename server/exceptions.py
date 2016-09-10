@@ -9,3 +9,9 @@ class LockException(Exception):
     def __init__(self, msg=''):
         super(LockException, self).__init__()
         self.msg = msg
+
+class RecursivePipelineCall(Exception):
+    """docstring for RecursivePipelineCall"""
+    def __init__(self, msg=''):
+        super(RecursivePipelineCall, self).__init__()
+        self.msg = msg

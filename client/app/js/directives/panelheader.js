@@ -49,9 +49,6 @@ angular.module('trafficEnv')
                 //     $scope.serverStatus = 'status-ko';
                 // }, 5000);
 
-                // Subscribe to new pipeline executions
-                socket.emit('subscribe', {'channel': 'executions'});
-
                 // TODO add catchup listener
                 socket.on('executions:event', function onExecutionsEvent (data) {
                     processEvent(data.data);
@@ -76,6 +73,9 @@ angular.module('trafficEnv')
                         // socket.on(data.data.channel + ':EOT', onChannelEOT);
                     }
                 });
+
+                // Subscribe to new pipeline executions
+                socket.emit('subscribe', {'channel': 'executions'});
 
             }],
         };

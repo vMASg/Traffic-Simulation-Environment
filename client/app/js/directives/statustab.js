@@ -29,8 +29,6 @@ angular.module('trafficEnv')
                     }
                 };
 
-                // socket.emit('subscribe', {'channel': 'executions'});
-
                 var unsubscribe = function (channelName) {
                     socket.removeListener(channelName + ':meta', channelInfo[channelName].metaFunc);
                     socket.emit('unsubscribe', {'channel': channelName});
@@ -53,9 +51,34 @@ angular.module('trafficEnv')
                     }
                 };
 
+                var onExecutionsCatchUp = function (transmissionsData) {
+                    var transmissions = transmissionsData.transmissions;
+                    var i, trans, finishedTasks = [];
+                    for (i = 0; i < transmissions.length; ++i) {
+                        trans = transmissions[i];
+                        if (trans.operation == 'finished') {
+                            finishedTasks.push(trans.channel);
+                        }
+                    }
+                    for (i = 0; i < transmissions.length; ++i) {
+                        trans = transmissions[i];
+                        if (finishedTasks.indexOf(trans.channel) == -1) {
+                            onExecutionsEvent({data: trans});
+                        }
+                    }
+                    // console.log(transmissions);
+                };
+
+                var onNewFinishedTask = function (taskData) {
+                    $scope.finishedTasks.push(taskData);
+                };
+
                 socket.on('executions:event', onExecutionsEvent);
+                socket.on('executions:catchUp', onExecutionsCatchUp);
                 $scope.$on('$destroy', function () {
                     socket.removeListener('executions:event', onExecutionsEvent);
+                    socket.removeListener('executions:catchUp', onExecutionsCatchUp);
+                    socket.removeListener('new_finished_task', onNewFinishedTask);
                     var channels = [];
                     for (var elem in channelInfo) {
                         channels.push(elem);
@@ -66,6 +89,8 @@ angular.module('trafficEnv')
                     }
                 });
 
+                socket.emit('subscribe', {'channel': 'executions'});
+
                 // Adding finished tasks queue
 
                 $scope.finishedTasks = [];
@@ -73,6 +98,8 @@ angular.module('trafficEnv')
                 finishedTasksServices.getFinishedTaskCollection().then(function (data) {
                     $scope.finishedTasks = data.data;
                 });
+
+                socket.on('new_finished_task', onNewFinishedTask);
 
             }],
             templateUrl: 'templates/status-tab.html',

@@ -99,7 +99,7 @@ class SubscriptionChannel(Channel):
         # TODO delete from Subscription.channels, save transmissions in file (?) DONE
 
     def catch_up(self):
-        emit(self.channel_name + ':catchUp', {'transmission': self.previous_broadcasts})
+        emit(self.channel_name + ':catchUp', {'transmissions': self.previous_broadcasts})
         self.send_meta(broadcast=False)
 
     def send_meta(self, broadcast=True):

@@ -1,5 +1,6 @@
 import os
 import shutil
+from flask_login import current_user
 from collections import namedtuple
 from server.exceptions import InvalidPathException
 
@@ -7,7 +8,6 @@ class PipelineService(object):
     """docstring for PipelineService"""
     def __init__(self, root_folder, git_service):
         super(PipelineService, self).__init__()
-        self.git_service = git_service
         self._root_folder = root_folder if not root_folder[-1] == '\\' else root_folder[:-1]
         self._root_folder_content = os.path.join(self._root_folder, 'content')
         self._root_folder_tmp = os.path.join(self._root_folder, 'tmp')
@@ -15,6 +15,11 @@ class PipelineService(object):
             os.mkdir(self._root_folder_content)
         if not os.path.isdir(self._root_folder_tmp):
             os.mkdir(self._root_folder_tmp)
+
+        self.git_service = git_service
+        if not os.path.isdir(os.path.join(self._root_folder_content, '.git')):
+            git_service.init_repo(self._root_folder_content)
+            git_service.commit_file('.', self._root_folder_content, 'auto.environ <environ@foo.com>', message='Initial commit')
 
     def get_pipelines(self):
         return_type = namedtuple('PipelineLocator', ['name', 'type', 'id', 'children'])
@@ -44,7 +49,8 @@ class PipelineService(object):
         if not relpath.startswith('..'):
             with open(abs_path, 'r') as file:
                 content = file.read()
-            return id, os.path.basename(id), content
+            hash = self.git_service.get_revision_hash(abs_path, self._root_folder_content)
+            return id, os.path.basename(id), content, hash
         else:
             raise InvalidPathException()
 
@@ -53,6 +59,9 @@ class PipelineService(object):
         if not relpath.startswith('..'):
             with open(abs_path, 'w') as file:
                 file.write(content)
+            author = '{} <{}>'.format(current_user.username, current_user.email)
+            message = 'Committing {}'.format(relpath)
+            self.git_service.commit_file(abs_path, self._root_folder_content, author, message=message)
         else:
             raise InvalidPathException()
 
@@ -72,15 +81,26 @@ class PipelineService(object):
         self.update_pipeline(id, content)
         return id, os.path.basename(id), content
 
-    def get_path_for_execution(self, id):
+    def get_revision_hash(self, id):
+        return self.git_service.get_revision_hash(self._get_rel_abs_path(id)[0], self._root_folder_content)
+
+    def get_path_for_execution(self, id, hash=None):
         original_path = self._get_rel_abs_path(id)[0]
         basename = os.path.splitext(os.path.basename(original_path))
+        if hash is not None:
+            content = self.git_service.get_content(original_path, self._root_folder_content, hash)
+            basename[0] = '{}_{}'.format(hash, basename)
         ind = 0
         destination_path = os.path.join(self._root_folder_tmp, '{}_{}{}'.format(basename[0], ind, basename[1]))
         # destination_path = os.path.join(self._root_folder_tmp, '{}{}'.format(basename[0], basename[1]))
         while os.path.isfile(destination_path):
             ind += 1
             destination_path = os.path.join(self._root_folder_tmp, '{}_{}{}'.format(basename[0], ind, basename[1]))
-        shutil.copy2(original_path, destination_path)
+
+        if hash is not None:
+            with open(destination_path, 'w') as p:
+                p.write(content)
+        else:
+            shutil.copy2(original_path, destination_path)
         # shutil.copy2(original_path, destination_path)
         return destination_path

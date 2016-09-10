@@ -18,8 +18,8 @@ class ExecutionCollection(Resource):
             path = os.path.join(self._root_folder, content)
             with open(path, 'r') as f:
                 data = json.loads(f.read())
-            retval.append({'id': content, 'name': name, 'data': data})
-        return retval
+            retval.append(({'id': content, 'name': name, 'data': data}, os.path.getmtime(path)))
+        return [val for val, sort in sorted(retval, key=lambda (a1, a2): a2)]
 
     # def _new_interface(self, data):
     #     self._subscription_service.socketio.emit('new_interface', data, namespace=self._subscription_service.namespace)

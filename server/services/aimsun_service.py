@@ -5,24 +5,35 @@ from Queue import Queue, Empty as QueueEmpty
 from subprocess import Popen, PIPE, STDOUT
 
 class PipelineThread(threading.Thread):
-    def __init__(self, pipeline, aconsole_path, subscription_channel, output, event):
+    def __init__(self, pipeline, aconsole_path, subscription_channel, only_python, output, event):
         super(PipelineThread, self).__init__(name='PipelineThread')
         self.pipeline, self.pipeline_inputs, self.pipeline_outputs = pipeline
         self.aconsole_path = aconsole_path
         self.subscription_channel = subscription_channel
+        self.only_python = only_python
         self.output = output
         self.event = event
 
     def run(self):
         inout = [self.pipeline_inputs or '-', self.pipeline_outputs or '-']
-        cmd = Popen(
-            # ['python', 'server\\external\\aimsun_executor.py', self.pipeline] + inout,
-            [self.aconsole_path, '-script', 'server\\external\\aimsun_executor.py', self.pipeline] + inout,
-            # stdin=PIPE,
-            stdout=PIPE,
-            stderr=STDOUT
-            # universal_newlines=True
-        )
+        if self.only_python:
+            cmd = Popen(
+                ['python', 'server\\external\\aimsun_executor.py', self.pipeline] + inout,
+                # [self.aconsole_path, '-script', 'server\\external\\aimsun_executor.py', self.pipeline] + inout,
+                # stdin=PIPE,
+                stdout=PIPE,
+                stderr=STDOUT,
+                universal_newlines=True
+            )
+        else:
+            cmd = Popen(
+                # ['python', 'server\\external\\aimsun_executor.py', self.pipeline] + inout,
+                [self.aconsole_path, '-script', 'server\\external\\aimsun_executor.py', self.pipeline] + inout,
+                # stdin=PIPE,
+                stdout=PIPE,
+                stderr=STDOUT,
+                universal_newlines=True
+            )
         blocker = threading.Event()
         if cmd.stdout.readline().strip() == 'READY':
             print 'READY'
@@ -75,15 +86,19 @@ class PipelineThread(threading.Thread):
 
 
 class ThreadSpawner(threading.Thread):
-    def __init__(self, execution_queue, aconsole_path, pipeline_channel):
+    def __init__(self, execution_queue, python_queue, aconsole_path, pipeline_channel):
         super(ThreadSpawner, self).__init__(name='ThreadSpawner')
         self.execution_queue = execution_queue
+        # self.simulation_queue = simulation_queue
+        self.python_queue = python_queue
         self.aconsole_path = aconsole_path
         self.pipeline_channel = pipeline_channel
         self.stoprequest = threading.Event()
         self.threads = []
         self._next_pipeline = None
         self._event = threading.Event()
+        self._simulation_thread = None
+        self._simulation_queue = []
 
     def run(self):
         while not self.stoprequest.is_set():
@@ -97,6 +112,8 @@ class ThreadSpawner(threading.Thread):
                         to_remove.append(thr)
 
                 for thr in to_remove:
+                    if thr is self._simulation_thread:
+                        self._simulation_thread = None
                     self.threads.remove(thr)
 
             self._spwn_pipelines()
@@ -110,6 +127,8 @@ class ThreadSpawner(threading.Thread):
                     to_remove.append(thr)
 
             for thr in to_remove:
+                if thr is self._simulation_thread:
+                    self._simulation_thread = None
                 self.threads.remove(thr)
 
         # TODO kill all threads (cancel executions)
@@ -121,13 +140,13 @@ class ThreadSpawner(threading.Thread):
         spwn_success = True
         while spwn_success:
             try:
-                self._next_pipeline = self.execution_queue.get(True, 0.5) if self._next_pipeline is None else self._next_pipeline
+                self._next_pipeline = self._get_next_pipeline() if self._next_pipeline is None else self._next_pipeline
             except QueueEmpty:
                 spwn_success = False
                 self._next_pipeline = None
             else:
                 output = Queue()
-                new_thread = PipelineThread(self._next_pipeline[0], self.aconsole_path, self._next_pipeline[1], output, self._event)
+                new_thread = PipelineThread(self._next_pipeline[0], self.aconsole_path, self._next_pipeline[1], self._next_pipeline[3], output, self._event)
                 new_thread.start()
                 # Check if spwn has been successful
                 try:
@@ -137,8 +156,23 @@ class ThreadSpawner(threading.Thread):
                 else:
                     if spwn_success:
                         self.pipeline_channel.broadcast({'channel': self._next_pipeline[1].channel_name, 'operation': 'dequeued'})
+                        if self._next_pipeline[2]:
+                            self._simulation_thread = new_thread
                         self._next_pipeline = None
                         self.threads.append(new_thread)
+
+    def _get_next_pipeline(self):
+        if self._simulation_thread is None and len(self._simulation_queue) > 0:
+            return self._simulation_queue.pop(0)
+        else:
+            try:
+                next_pipe = self.python_queue.get(True, 0.5)
+            except QueueEmpty:
+                next_pipe = self.execution_queue.get(True, 0.5)
+                if next_pipe[2] and self._simulation_thread is not None:
+                    self._simulation_queue.append(next_pipe)
+                    return self._get_next_pipeline()
+            return next_pipe
 
     def join(self, timeout=None):
         self.stoprequest.set()
@@ -154,14 +188,19 @@ class AimsunService(object):
         self.pipeline_channel = subscription_service.create_subscription_channel('executions')
         self.pipeline_channel.start()
         self._execution_queue = Queue()
-        self._execution_thread = ThreadSpawner(self._execution_queue, aconsole_path, self.pipeline_channel)
+        # self._simulation_queue = Queue()
+        self._python_queue = Queue()
+        self._execution_thread = ThreadSpawner(self._execution_queue, self._python_queue, aconsole_path, self.pipeline_channel)
         self._execution_thread.start()
 
     # def run_script(self, script_content, model_id):
     #     # return self._aimsun_proc1.run_script(script_content, model_id)
     #     raise DeprecationWarning()
 
-    def run_pipeline(self, pipeline_path, subscription_channel):
-        self._execution_queue.put((pipeline_path, subscription_channel))
+    def run_pipeline(self, pipeline_path, subscription_channel, is_executor=False, only_python=False):
+        if only_python:
+            self._python_queue.put((pipeline_path, subscription_channel, False, True))
+        else:
+            self._execution_queue.put((pipeline_path, subscription_channel, is_executor, False))
         self.pipeline_channel.broadcast({'channel': subscription_channel.channel_name, 'operation': 'enqueued'})
         # return self._aimsun_proc1.run_pipeline(pipeline_path)

@@ -430,7 +430,9 @@ angular.module('trafficEnv')
                                     return {
                                         destination: succ.destination.id
                                     };
-                                })
+                                }),
+                                isExecutor: e.isExecutor,
+                                aimsun: e.aimsun
                             };
                         }),
                         inputs: inp?{
@@ -457,7 +459,9 @@ angular.module('trafficEnv')
                                     origin: input.input?{ node: input.input.origin.getNode().id, connector: input.input.origin.name }:null
                                 };
                             })
-                        }:null
+                        }:null,
+                        isExecutor: executionNodeCounter>0,
+                        aimsun: aimsunNodeCounter>0
                     };
                 };
 
@@ -479,10 +483,12 @@ angular.module('trafficEnv')
                 var paper = Raphael(iElm[0].children[1].children[0]);
 
                 var nodeIdCounter = 0;
+                var executionNodeCounter = 0;
+                var aimsunNodeCounter = 0;
                 $scope.acceptedChannels = ['code', 'model', 'pipeline'].join(',');
                 $scope.dropHandler = function ($event, $data, $channel) {
                     if ($channel == 'code') {
-                        scriptServices.getScript($data, ['name', 'inout', 'path', 'hash']).then(function (response) {
+                        scriptServices.getScript($data, ['name', 'inout', 'path', 'hash', 'stype']).then(function (response) {
                             var nodeInfo = {
                                 id: nodeIdCounter++,  // TODO replace by proper random id
                                 type: $channel,
@@ -492,8 +498,11 @@ angular.module('trafficEnv')
                                 inputs: (response.data.inout[0] || []).map(function (a) { return {name: a}; }),
                                 outputs: (response.data.inout[1] || []).map(function (a) { return {name: a}; }),
                                 predecessors: [],
-                                successors: []
+                                successors: [],
+                                isExecutor: false,
+                                aimsun: response.data.stype != 'PythonScript'
                             };
+                            aimsunNodeCounter += response.data.stype != 'PythonScript'?1:0;
                             $scope.shapes.push(nodeInfo);
                             $timeout(function(){
                                 var nodeboxes = nodes.querySelectorAll('.node-box.stdnodes');
@@ -510,7 +519,9 @@ angular.module('trafficEnv')
                             inputs: [],
                             outputs: [{name: 'id_model'}],
                             predecessors: [],
-                            successors: []
+                            successors: [],
+                            isExecutor: false,
+                            aimsun: false
                         };
                         $scope.shapes.push(nodeInfo);
                         $timeout(function(){
@@ -530,8 +541,12 @@ angular.module('trafficEnv')
                                 inputs: (pipeline.inputs || {outputs:[]}).outputs.map(function (a) { return {name: a.name}; }),
                                 outputs: (pipeline.outputs || {inputs: []}).inputs.map(function (a) { return {name: a.name}; }),
                                 predecessors: [],
-                                successors: []
+                                successors: [],
+                                isExecutor: pipeline.isExecutor,
+                                aimsun: pipeline.aimsun
                             };
+                            executionNodeCounter += pipeline.isExecutor?1:0;
+                            aimsunNodeCounter += pipeline.aimsun?1:0;
                             $scope.shapes.push(nodeInfo);
                             $timeout(function(){
                                 var nodeboxes = nodes.querySelectorAll('.node-box.stdnodes');
@@ -685,6 +700,8 @@ angular.module('trafficEnv')
                     while (post.length > 0) {
                         deleteConnection('successor', post, 0);
                     }
+                    executionNodeCounter -= nodeInfo.isExecutor?1:0;
+                    aimsunNodeCounter -= nodeInfo.aimsun?1:0;
                     var ind = $scope.shapes.indexOf(nodeInfo);
                     delete $scope.shapes.splice(ind, 1)[0];
                 };
@@ -698,16 +715,19 @@ angular.module('trafficEnv')
                 };
 
                 $scope.addNode = function (nodeType) {
-                    var inputs = [], outputs = [];
+                    var inputs = [], outputs = [], isExecutor = false;
                     if (nodeType == 'Run Simulation') {
                         inputs  = [{name: 'model'}, {name: 'replication'}];
                         outputs = [];
+                        isExecutor = true;
                     } else if (nodeType == 'Open Model') {
                         inputs  = [{name: 'id_model'}];
                         outputs = [{name: 'model'}];
+                        isExecutor = false;
                     } else if (nodeType == 'Close Model') {
                         inputs  = [{name: 'model'}];
                         outputs = [];
+                        isExecutor = false;
                     }
                     var nodeInfo = {
                         id: nodeIdCounter++,  // TODO replace by proper random id
@@ -720,8 +740,12 @@ angular.module('trafficEnv')
                         predecessors: [],
                         successors: [],
                         x: containerLeft,
-                        y: containerTop
+                        y: containerTop,
+                        isExecutor: isExecutor,
+                        aimsun: true
                     };
+                    executionNodeCounter += isExecutor?1:0;
+                    aimsunNodeCounter += 1;
                     $scope.shapes.push(nodeInfo);
                     $timeout(function(){
                         var nodeboxes = nodes.querySelectorAll('.node-box.stdnodes');
@@ -867,8 +891,12 @@ angular.module('trafficEnv')
                                 predecessors: [], // node.predecessors.map(function (pre) { return {origin: pre.origin}; }),
                                 successors: [], // node.successors.map(function (suc) { return {destination: suc.destination}; }),
                                 x: node.x,
-                                y: node.y
+                                y: node.y,
+                                isExecutor: node.isExecutor,
+                                aimsun: node.aimsun
                             };
+                            executionNodeCounter += node.isExecutor?1:0;
+                            aimsunNodeCounter += node.aimsun?1:0;
                             nodeIdCounter = Math.max(nodeIdCounter, node.id + 1);
                             $scope.shapes.push(nodeInfo);
                         }
@@ -1005,6 +1033,8 @@ angular.module('trafficEnv')
                             $scope.pipelineInputs = null;
                             $scope.pipelineOutputs = null;
                             nodeIdCounter = 0;
+                            executionNodeCounter = 0;
+                            aimsunNodeCounter = 0;
                             pipelineServices.getPipeline($scope.data.id).then(loadPipeline);
                         }
                     });

@@ -19,6 +19,11 @@ class PipelineExecutor(object):
         # self.pipeline_channel = subscription_service.create_subscription_channel('executions')
         # self.pipeline_channel.start()
 
+    def _is_executor_only_python(self, pipeline_path):
+        with open(pipeline_path, 'r') as f:
+            pipeline = json.loads(f.read())
+        return pipeline['isExecutor'], not pipeline['aimsun']
+
     def _prepare_pipeline(self, id, loaded_pipelines=None):
         loaded_pipelines = loaded_pipelines or {}
         if id in loaded_pipelines:
@@ -73,7 +78,8 @@ class PipelineExecutor(object):
         # Create a new channel to send output to users
         sc = self.subscription_service.create_subscription_channel('pipeline-{}-{}'.format(id, meta['requestTime']), alive='while_active', persist=True, persist_type='unique')
         sc.meta = meta
-        self.aimsun_service.run_pipeline((pipeline_path, input_path, output_path), sc)
+        is_executor, only_python = self._is_executor_only_python(pipeline_path)
+        self.aimsun_service.run_pipeline((pipeline_path, input_path, output_path), sc, is_executor=is_executor, only_python=only_python)
         # self.pipeline_channel.broadcast({'channel': sc.channel_name})
         return 'OK'
 

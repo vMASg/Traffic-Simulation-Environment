@@ -1,6 +1,18 @@
 <div class="tab-container" data-tabs-dire="">
+    <script type="text/ng-template" id="newtab.html">
+        <div class="pipelinenode-options">
+            <ul>
+                <li ng-click="newTab('code')">New Script</li>
+                <li ng-click="newTab('pipeline')">New Pipeline</li>
+                <li ng-click="newInterface()">New Interface</li>
+            </ul>
+        </div>
+    </script>
     <div class='header-tabs-container'>
-        <div class="header-tabs" data-ng-dblclick="newTab()">
+        <div class="header-tabs" data-ng-dblclick="newTab('pipeline')">
+            <div class="tab" uib-popover-template="newtab.template" popover-placement="right" popover-append-to-body="true" popover-trigger="none" popover-is-open="newtab.isOpen" ng-click="newtab.toggleOpen()">
+                +
+            </div>
             <div data-ng-repeat="tab in tabset" class="tab" data-ng-class="{'active-tab': tab.isActive, 'special-tab': tab.type == 'status'}" data-ng-click="switchTab(tab, true)">
                 <span>{{tab.name}}</span>
                 <img class="close-img" src="img/cross.svg" data-ng-click="closeTab($index)"/>

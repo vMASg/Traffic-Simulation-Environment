@@ -71,15 +71,28 @@ angular.module('trafficEnv')
                     $scope.changeSelected(ntab);
                 };
 
-                $scope.newTab = function () {
+                $scope.newtab = {
+                    template: 'newtab.html',
+                    isOpen: false,
+                    toggleOpen: function () {
+                        this.isOpen = !this.isOpen;
+                    }
+                };
+
+                $scope.newTab = function (type) {
                     $scope.tabset.forEach(function (tab) {
                         tab.isActive = false;
                     });
                     $scope.tabset.push({
                         name: 'untitled',
-                        type: 'pipeline',
+                        type: type,
                         isActive: true
                     });
+                    $scope.newtab.isOpen = false;
+                };
+
+                $scope.newInterface = function () {
+                    // TODO
                 };
 
                 $scope.deleteTab = function (id) {

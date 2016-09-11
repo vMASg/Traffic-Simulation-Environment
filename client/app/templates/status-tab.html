@@ -17,7 +17,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr ng-repeat-start="(channelName, metaData) in runningTasks" class="info-view" ng-click="toggleVisibility(metaData)" ng-class="{'content-collapsed': !metaData.isVisible}">
+                <tr ng-repeat-start="(channelName, metaData) in runningTasks" class="info-view" ng-click="toggleVisibility(channelName)" ng-class="{'content-collapsed': !inpoutTrans[channelName].isVisible}">
                     <td>{{metaData.user || '-'}}</td>
                     <td uib-tooltip="{{fullDate(metaData.requestTime)}}" tooltip-append-to-body="true">{{relativeDate(metaData.requestTime)}}</td>
                     <td uib-tooltip="{{fullDate(metaData.startTime)}}" tooltip-append-to-body="true">{{relativeDate(metaData.startTime)}}</td>
@@ -27,31 +27,31 @@
                     <td class="comment">{{metaData.comment || '-'}}</td>
                     <td>delete</td>
                 </tr>
-                <tr ng-repeat-end="" class="output-view" ng-if="metaData.isVisible">
+                <tr ng-repeat-end="" class="output-view" ng-if="inpoutTrans[channelName].isVisible">
                     <td colspan="8" class="output-view">
                         <table>
                             <tbody>
                                 <tr>
                                     <th colspan="2">Inputs:</th>
                                 </tr>
-                                <tr ng-repeat="(inputName, value) in data.data.meta.inputs">
+                                <tr ng-repeat="(inputName, value) in inpoutTrans[channelName].meta.inputs">
                                     <td>{{inputName}}:</td>
                                     <td>{{value}}</td>
                                 </tr>
-                                <tr>
+<!--                                 <tr>
                                     <th colspan="2">Outputs:</th>
                                 </tr>
-                                <tr ng-repeat="(outputName, value) in data.data.meta.outputs">
+                                <tr ng-repeat="(outputName, value) in inpoutTrans[channelName].meta.outputs">
                                     <td>{{outputName}}:</td>
                                     <td>{{value}}</td>
-                                </tr>
+                                </tr> -->
                             </tbody>
                         </table>
                         <!-- <span>Inputs: {{data.data.meta.inputs}}</span> -->
                         <!-- <span>Outputs: {{data.data.meta.outputs}}</span> -->
                         <span>Output stream:</span>
                         <div>
-                            <span ng-repeat-start="res in data.data.transmissions track by $index">{{res}}</span>
+                            <span ng-repeat-start="res in inpoutTrans[channelName].transmissions track by $index">{{res}}</span>
                             <br ng-repeat-end="" />
                         </div>
                     </td>

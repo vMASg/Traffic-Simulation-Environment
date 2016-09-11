@@ -12,6 +12,7 @@ angular.module('trafficEnv')
 
                 $scope.enqueuedTasks = {};
                 $scope.runningTasks = {};
+                $scope.inpoutTrans = {};
                 var processEvent = function (data) {
                     if (data.operation == 'enqueued') {
                         $scope.enqueuedTasks[data.channel] = {};
@@ -20,18 +21,23 @@ angular.module('trafficEnv')
                         var e = $scope.enqueuedTasks[data.channel];
                         $scope.enqueuedTasks[data.channel] = undefined;
                         delete $scope.enqueuedTasks[data.channel];
+                        $scope.inpoutTrans[data.channel] = {isVisible: false};
                         $scope.runningTasks[data.channel] = e;
                         channelInfo[data.channel].queue = $scope.runningTasks;
                     } else if (data.operation == 'finished') {
                         delete $scope.runningTasks[data.channel];
                         unsubscribe(data.channel);
-                        // TODO query new resource
                     }
                 };
 
                 var unsubscribe = function (channelName) {
                     socket.removeListener(channelName + ':meta', channelInfo[channelName].metaFunc);
                     socket.emit('unsubscribe', {'channel': channelName});
+                    var inpoutTrans = $scope.inpoutTrans[channelName];
+                    socket.removeListener(channelName + ':meta', inpoutTrans.metaFuncMeta);
+                    socket.removeListener(channelName + ':catchUp', inpoutTrans.metaFuncCatchUp);
+                    socket.removeListener(channelName + ':event', inpoutTrans.metaFuncEvent);
+                    delete $scope.inpoutTrans[channelName];
                     delete channelInfo[channelName];
                 };
 
@@ -105,6 +111,36 @@ angular.module('trafficEnv')
                 finishedTasksServices.getFinishedTaskCollection().then(function (data) {
                     $scope.finishedTasks = data.data;
                 });
+
+                var onChannelCatchUp = function (channelName, transmissionsData) {
+                    var transmissions = transmissionsData.transmissions;
+                    $scope.inpoutTrans[channelName].transmissions = transmissions;
+                };
+
+                var onChannelEvent = function (channelName, data) {
+                    $scope.inpoutTrans[channelName].transmissions.concat(data.data.split('\n'));
+                };
+
+                var onMetaChannel = function (channelName, data) {
+                    $scope.inpoutTrans[channelName].meta = data;
+                };
+
+                $scope.toggleVisibility = function (channelName) {
+                    if (!$scope.inpoutTrans[channelName].subscribed) {
+                        var metaFuncCatchUp = onChannelCatchUp.bind(self, channelName);
+                        var metaFuncEvent = onChannelEvent.bind(self, channelName);
+                        var metaFuncMeta = onMetaChannel.bind(self, channelName);
+                        $scope.inpoutTrans[channelName].metaFuncCatchUp = metaFuncMeta;
+                        $scope.inpoutTrans[channelName].metaFuncCatchUp = metaFuncCatchUp;
+                        $scope.inpoutTrans[channelName].metaFuncEvent = metaFuncEvent;
+                        socket.on(channelName + ':meta', metaFuncMeta);
+                        socket.on(channelName + ':catchUp', metaFuncCatchUp);
+                        socket.on(channelName + ':event', metaFuncEvent);
+                        socket.emit('subscribe', {'channel': channelName});
+                        $scope.inpoutTrans[channelName].subscribed = true;
+                    }
+                    $scope.inpoutTrans[channelName].isVisible = !$scope.inpoutTrans[channelName].isVisible;
+                };
 
                 $scope.toggleVisibilityFinished = function (data) {
                     data.isVisible = !data.isVisible;

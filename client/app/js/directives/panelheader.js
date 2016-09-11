@@ -52,26 +52,6 @@ angular.module('trafficEnv')
                 // TODO add catchup listener
                 socket.on('executions:event', function onExecutionsEvent (data) {
                     processEvent(data.data);
-                    console.log(data);
-                    var onChannelEvent = function (data) {
-                        console.log(data);
-                    };
-                    var onChannelCatchUp = function (data) {
-                        console.log(data);
-                    };
-                    var onChannelEOT = function (finalData) {
-                        console.log(finalData);
-                        socket.emit('unsubscribe', {'channel': data.data.channel});
-                        socket.removeListener(data.data.channel + ':event', onChannelEvent);
-                        socket.removeListener(data.data.channel + ':catchUp', onChannelCatchUp);
-                        socket.removeListener(data.data.channel + ':EOT', onChannelEOT);
-                    };
-                    if (data.data.operation == 'enqueued') {
-                        // socket.emit('subscribe', {'channel': data.data.channel});
-                        // socket.on(data.data.channel + ':event', onChannelEvent);
-                        // socket.on(data.data.channel + ':catchUp', onChannelCatchUp);
-                        // socket.on(data.data.channel + ':EOT', onChannelEOT);
-                    }
                 });
 
                 var cachedUp = false;

@@ -1,5 +1,6 @@
 import os
 import shutil
+import re
 from flask_login import current_user
 from collections import namedtuple
 from server.exceptions import InvalidPathException
@@ -23,16 +24,18 @@ class PipelineService(object):
 
     def get_pipelines(self):
         return_type = namedtuple('PipelineLocator', ['name', 'type', 'id', 'children'])
+        exceptions = [r'\.\w+']
         def construct_response(folder):
             retval = []
             for content in os.listdir(folder):
-                full_path = os.path.join(folder, content)
-                relpath = os.path.relpath(full_path, self._root_folder_content)
-                if os.path.isdir(full_path):
-                    children = construct_response(full_path)
-                    retval.append(return_type(content, 'group', relpath, children))
-                else:
-                    retval.append(return_type(content, 'file', relpath, None))
+                if not any(re.match(pattern, content) is not None for pattern in exceptions):
+                    full_path = os.path.join(folder, content)
+                    relpath = os.path.relpath(full_path, self._root_folder_content)
+                    if os.path.isdir(full_path):
+                        children = construct_response(full_path)
+                        retval.append(return_type(content, 'group', relpath, children))
+                    else:
+                        retval.append(return_type(content, 'file', relpath, None))
             return retval
 
         children = construct_response(self._root_folder_content)

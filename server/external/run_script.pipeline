@@ -36,7 +36,9 @@
       ],
       "successors": [
         
-      ]
+      ],
+      "isExecutor": false,
+      "aimsun": true
     },
     {
       "id": 1,
@@ -71,7 +73,9 @@
         {
           "destination": 2
         }
-      ]
+      ],
+      "isExecutor": false,
+      "aimsun": true
     },
     {
       "id": 2,
@@ -100,7 +104,9 @@
       ],
       "successors": [
         
-      ]
+      ],
+      "isExecutor": false,
+      "aimsun": true
     }
   ],
   "inputs": {
@@ -127,5 +133,7 @@
       }
     ]
   },
-  "outputs": null
+  "outputs": null,
+  "isExecutor": false,
+  "aimsun": true
 }

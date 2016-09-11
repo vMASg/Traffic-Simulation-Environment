@@ -74,6 +74,18 @@ angular.module('trafficEnv')
                     }
                 });
 
+                var cachedUp = false;
+
+                socket.on('executions:catchUp', function (data) {
+                    if (!cachedUp) {
+                        cachedUp = true;
+                        var len = data.transmissions.length;
+                        for (var i = 0; i < len; ++i) {
+                            processEvent(data.transmissions[i]);
+                        }
+                    }
+                });
+
                 // Subscribe to new pipeline executions
                 socket.emit('subscribe', {'channel': 'executions'});
 

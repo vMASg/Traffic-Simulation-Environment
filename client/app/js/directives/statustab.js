@@ -94,6 +94,13 @@ angular.module('trafficEnv')
                 // Adding finished tasks queue
 
                 $scope.finishedTasks = [];
+                $scope.fullDate = function (timestamp) {
+                    return timestamp?moment(timestamp,'X').format('DD/MM/YY HH:mm:ss'):'-';
+                };
+
+                $scope.relativeDate = function (timestamp) {
+                    return timestamp?moment(timestamp,'X').fromNow():'-';
+                };
 
                 finishedTasksServices.getFinishedTaskCollection().then(function (data) {
                     $scope.finishedTasks = data.data;

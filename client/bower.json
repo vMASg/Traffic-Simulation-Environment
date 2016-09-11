@@ -31,6 +31,7 @@
     "angular-socket-io": "^0.7.0",
     "raphael": "^2.2.0",
     "angular-native-dragdrop": "^1.2.1",
-    "Ionicons": "ionicons#^2.0.1"
+    "Ionicons": "ionicons#^2.0.1",
+    "moment": "^2.14.1"
   }
 }

@@ -19,12 +19,12 @@
               <tbody>
                 <tr ng-repeat="(channelName, metaData) in runningTasks">
                     <td>{{metaData.user || '-'}}</td>
-                    <td>{{metaData.requestTime || '-'}}</td>
-                    <td>{{metaData.startTime || '-'}}</td>
-                    <td>{{metaData.finishTime || '-'}}</td>
+                    <td uib-tooltip="{{fullDate(metaData.requestTime)}}" tooltip-append-to-body="true">{{relativeDate(metaData.requestTime)}}</td>
+                    <td uib-tooltip="{{fullDate(metaData.startTime)}}" tooltip-append-to-body="true">{{relativeDate(metaData.startTime)}}</td>
+                    <td uib-tooltip="{{fullDate(metaData.finishTime)}}" tooltip-append-to-body="true">{{relativeDate(metaData.finishTime)}}</td>
                     <td>{{metaData.type || '-'}}</td>
                     <td>{{metaData.task || '-'}}</td>
-                    <td>{{metaData.comment || '-'}}</td>
+                    <td class="comment">{{metaData.comment || '-'}}</td>
                     <td>delete</td>
                 </tr>
               </tbody>
@@ -50,12 +50,12 @@
               <tbody>
                 <tr ng-repeat="(channelName, metaData) in enqueuedTasks">
                     <td>{{metaData.user || '-'}}</td>
-                    <td>{{metaData.requestTime || '-'}}</td>
-                    <td>{{metaData.startTime || '-'}}</td>
-                    <td>{{metaData.finishTime || '-'}}</td>
+                    <td uib-tooltip="{{fullDate(metaData.requestTime)}}" tooltip-append-to-body="true">{{relativeDate(metaData.requestTime)}}</td>
+                    <td uib-tooltip="{{fullDate(metaData.startTime)}}" tooltip-append-to-body="true">{{relativeDate(metaData.startTime)}}</td>
+                    <td uib-tooltip="{{fullDate(metaData.finishTime)}}" tooltip-append-to-body="true">{{relativeDate(metaData.finishTime)}}</td>
                     <td>{{metaData.type || '-'}}</td>
                     <td>{{metaData.task || '-'}}</td>
-                    <td>{{metaData.comment || '-'}}</td>
+                    <td class="comment">{{metaData.comment || '-'}}</td>
                     <td>delete</td>
                 </tr>
               </tbody>
@@ -81,12 +81,12 @@
               <tbody>
                 <tr ng-repeat="(channelName, data) in finishedTasks">
                     <td>{{data.data.meta.user || '-'}}</td>
-                    <td>{{data.data.meta.requestTime || '-'}}</td>
-                    <td>{{data.data.meta.startTime || '-'}}</td>
-                    <td>{{data.data.meta.finishTime || '-'}}</td>
+                    <td uib-tooltip="{{fullDate(data.data.meta.requestTime)}}" tooltip-append-to-body="true">{{relativeDate(data.data.meta.requestTime)}}</td>
+                    <td uib-tooltip="{{fullDate(data.data.meta.startTime)}}" tooltip-append-to-body="true">{{relativeDate(data.data.meta.startTime)}}</td>
+                    <td uib-tooltip="{{fullDate(data.data.meta.finishTime)}}" tooltip-append-to-body="true">{{relativeDate(data.data.meta.finishTime)}}</td>
                     <td>{{data.data.meta.type || '-'}}</td>
                     <td>{{data.data.meta.task || '-'}}</td>
-                    <td>{{data.data.meta.comment || '-'}}</td>
+                    <td class="comment">{{data.data.meta.comment || '-'}}</td>
                     <td>delete</td>
                 </tr>
               </tbody>

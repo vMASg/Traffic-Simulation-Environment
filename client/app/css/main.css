@@ -214,6 +214,13 @@ treecontrol ul {
     margin: auto;
 }
 
+td.comment {
+    max-width: 480px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
 .view-panel {
     position: relative;
     /*width: 100%;*/

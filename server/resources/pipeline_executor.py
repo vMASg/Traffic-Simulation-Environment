@@ -64,7 +64,7 @@ class PipelineExecutor(object):
 
             meta = {
                 'user': current_user.username,
-                'requestTime': int(time()),
+                'requestTime': time(),
                 'type': 'pipeline',
                 'comment': comment,
                 'task': id
@@ -89,7 +89,7 @@ class PipelineExecutor(object):
 
         meta = {
             'user': current_user.username,
-            'requestTime': int(time()),
+            'requestTime': time(),
             'type': 'immediate script',
             'comment': '',
             'task': model_id

@@ -33,11 +33,12 @@ class ModelService(object):
         original_path = self._get_rel_abs_path(id)[0]
         basename = os.path.splitext(os.path.basename(original_path))
         ind = 0
-        destination_path = os.path.join(self._root_folder_tmp, '{}_{}{}'.format(basename[0], ind, basename[1]))
+        destination_path = os.path.join(self._root_folder_tmp, '{}_{}'.format(basename[0], ind))
         # destination_path = os.path.join(self._root_folder_tmp, '{}{}'.format(basename[0], basename[1]))
-        while os.path.isfile(destination_path):
+        while os.path.exists(destination_path):
             ind += 1
-            destination_path = os.path.join(self._root_folder_tmp, '{}_{}{}'.format(basename[0], ind, basename[1]))
+            destination_path = os.path.join(self._root_folder_tmp, '{}_{}'.format(basename[0], ind))
+        os.mkdir(destination_path)
         shutil.copy2(original_path, destination_path)
         # shutil.copy2(original_path, destination_path)
         return destination_path

@@ -12,17 +12,22 @@ angular.module('trafficEnv')
                 //     ]}
                 // ];
                 $scope.treeFiles = [];
+                $scope.expandedNodes = [];
 
                 scriptServices.getScriptCollection().then(function (data) {
                     var scriptsDirectories = data.data;
+                    $scope.expandedNodes.push(scriptsDirectories[0]);
                     modelServices.getModelCollection().then(function (data) {
                         var modelsDirectories = [
                             {name: 'Models', id: '.', type: 'dir', children: data.data}
                         ];
+                        $scope.expandedNodes.push(modelsDirectories[0]);
                         pipelineServices.getPipelineCollection().then(function (data) {
                             var pipelinesDirectories = data.data;
+                            $scope.expandedNodes.push(pipelinesDirectories[0]);
                             interfaceServices.getInterfaceCollection().then(function (data) {
                                 var interfacesDirectories = data.data;
+                                $scope.expandedNodes.push(interfacesDirectories[0]);
                                 $scope.treeFiles = scriptsDirectories.concat(modelsDirectories).concat(pipelinesDirectories).concat(interfacesDirectories);
                             });
                         });

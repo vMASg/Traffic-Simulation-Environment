@@ -106,6 +106,10 @@ angular.module('trafficEnv')
                     $scope.finishedTasks = data.data;
                 });
 
+                $scope.toggleVisibilityFinished = function (data) {
+                    data.isVisible = !data.isVisible;
+                };
+
                 socket.on('new_finished_task', onNewFinishedTask);
 
             }],

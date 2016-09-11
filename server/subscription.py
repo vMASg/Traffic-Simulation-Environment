@@ -90,7 +90,8 @@ class SubscriptionChannel(Channel):
             self.previous_broadcasts.append()
         self.socketio.emit(self.channel_name + ':EOT', {'data': retval or ''}, room=self.channel_name, namespace=self.namespace)
         if self.persist:
-            content = {'meta': self.meta, 'transmissions': self.previous_broadcasts}
+            broadcasts = reduce(lambda (acc, e): acc + map(lambda txt: txt.trim(), e.split('\n')), self.previous_broadcasts, [])
+            content = {'meta': self.meta, 'transmissions': broadcasts}
             with open(self.persist_file, 'w') as trans_file:
                 # trans_file.write('\n'.join(self.previous_broadcasts))
                 trans_file.write(json.dumps(content))

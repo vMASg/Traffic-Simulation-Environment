@@ -41,4 +41,4 @@ class ModelService(object):
         os.mkdir(destination_path)
         shutil.copy2(original_path, destination_path)
         # shutil.copy2(original_path, destination_path)
-        return destination_path
+        return os.path.join(destination_path, os.path.basename(original_path))

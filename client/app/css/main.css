@@ -116,6 +116,16 @@ html, body {
     border: 0;
 }
 
+.modal-body > .ion-folder {
+    font-size: 1.5em;
+    margin-left: 35px;
+    cursor: pointer;
+}
+
+.modal-body > .ion-folder:active {
+    opacity: 0.6;
+}
+
 treecontrol ul {
     overflow: inherit;
 }

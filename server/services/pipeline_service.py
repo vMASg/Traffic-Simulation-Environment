@@ -73,14 +73,18 @@ class PipelineService(object):
         if not relpath.startswith('..'):
             try:
                 os.remove(abs_path)
+                os.removedirs(os.path.split(abs_path)[0])
             except WindowsError:
                 pass
         else:
             raise InvalidPathException()
 
     def create_pipeline(self, name, parent, content):
-        id = os.path.normpath(os.path.join(self._root_folder_content, parent, name))
-        id = os.path.relpath(id, self._root_folder_content)
+        path = os.path.normpath(os.path.join(self._root_folder_content, parent, name))
+        id = os.path.relpath(path, self._root_folder_content)
+        parent_folder = os.path.split(path)[0]
+        if not os.path.isdir(parent_folder):
+            os.makedirs(parent_folder)
         self.update_pipeline(id, content)
         return id, os.path.basename(id), content
 

@@ -72,6 +72,17 @@ angular.module('trafficEnv')
                                     break;
                                 }
                             }
+                            if (i == currentNode.length) {
+                                // TODO create folders
+                                var accum = tab.id.slice(0, tab.id.indexOf('\\', tab.id.indexOf(name)));
+                                var newFolder = {name: name, id: accum, type: 'dir', children: []};
+                                where.shift();
+                                addNewElement(newFolder.children, where, tab);
+                                currentNode.push(newFolder);
+                                currentNode.sort(function (a,b) {
+                                    return a.name.localeCompare(b.name);
+                                });
+                            }
                         } else {
                             currentNode.push(tab);
                             currentNode.sort(function (a,b) {
@@ -92,6 +103,9 @@ angular.module('trafficEnv')
                                 if (currentNode[i].name == name) {
                                     where.shift();
                                     deleteScript(currentNode[i].children, where, id);
+                                    if (currentNode[i].children.length == 0) {
+                                        delete currentNode.splice(i, 1)[0];
+                                    }
                                     break;
                                 }
                             }
@@ -124,6 +138,17 @@ angular.module('trafficEnv')
                                     break;
                                 }
                             }
+                            if (i == currentNode.length) {
+                                // TODO create folders
+                                var accum = tab.id.slice(0, tab.id.indexOf('\\', tab.id.indexOf(name)));
+                                var newFolder = {name: name, id: accum, type: 'dir', children: []};
+                                where.shift();
+                                addNewElement(newFolder.children, where, tab);
+                                currentNode.push(newFolder);
+                                currentNode.sort(function (a,b) {
+                                    return a.name.localeCompare(b.name);
+                                });
+                            }
                         } else {
                             currentNode.push(tab);
                             currentNode.sort(function (a,b) {
@@ -144,6 +169,9 @@ angular.module('trafficEnv')
                                 if (currentNode[i].name == name) {
                                     where.shift();
                                     deletePipeline(currentNode[i].children, where, id);
+                                    if (currentNode[i].children.length == 0) {
+                                        delete currentNode.splice(i, 1)[0];
+                                    }
                                     break;
                                 }
                             }
@@ -176,6 +204,17 @@ angular.module('trafficEnv')
                                     break;
                                 }
                             }
+                            if (i == currentNode.length) {
+                                // TODO create folders
+                                var accum = tab.id.slice(0, tab.id.indexOf('\\', tab.id.indexOf(name)));
+                                var newFolder = {name: name, id: accum, type: 'dir', children: []};
+                                where.shift();
+                                addNewElement(newFolder.children, where, tab);
+                                currentNode.push(newFolder);
+                                currentNode.sort(function (a,b) {
+                                    return a.name.localeCompare(b.name);
+                                });
+                            }
                         } else {
                             currentNode.push(tab);
                             currentNode.sort(function (a,b) {
@@ -196,6 +235,9 @@ angular.module('trafficEnv')
                                 if (currentNode[i].name == name) {
                                     where.shift();
                                     deleteInterface(currentNode[i].children, where, id);
+                                    if (currentNode[i].children.length == 0) {
+                                        delete currentNode.splice(i, 1)[0];
+                                    }
                                     break;
                                 }
                             }

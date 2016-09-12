@@ -116,14 +116,26 @@ html, body {
     border: 0;
 }
 
-.modal-body > .ion-folder {
-    font-size: 1.5em;
+.modal-body > .new-folder-container {
+    display: flex;
     margin-left: 35px;
+    margin-right: 29px;
+    margin-bottom: 10px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.modal-body > .new-folder-container > .ion-folder {
+    font-size: 1.5em;
     cursor: pointer;
 }
 
-.modal-body > .ion-folder:active {
+.modal-body > .new-folder-container > .ion-folder:active {
     opacity: 0.6;
+}
+
+.modal-body > .new-folder-container > .input {
+    width: 95%;
 }
 
 treecontrol ul {

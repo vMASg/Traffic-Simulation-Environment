@@ -588,6 +588,15 @@ angular.module('trafficEnv')
                         scope: $scope
                     });
 
+                    $scope.newFolder = function (selectedNode, foldername) {
+                        selectedNode.children.push({
+                            id: selectedNode.id=='.'?foldername:selectedNode.id + '\\' + foldername,
+                            name: foldername,
+                            type: 'dir',
+                            children: []
+                        });
+                    };
+
                     modalInstance.result.then(function (info) {
                         var location = info[0], name = info[1];
                         pipelineServices.savePipeline(name, location, transformOutputGraph($scope.shapes, $scope.pipelineInputs, $scope.pipelineOutputs)).then(function (data) {

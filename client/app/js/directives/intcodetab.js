@@ -16,7 +16,7 @@ angular.module('trafficEnv')
                     }
                 };
 
-                var mode = selectMode($scope.data.id.slice($scope.data.id.lastIndexOf('.') + 1));
+                var mode = 'html';
 
                 $scope.aceOption = {
                     mode: mode,
@@ -35,6 +35,8 @@ angular.module('trafficEnv')
 
                 $scope.code = '';
                 if ($scope.data.id) {
+                    mode = selectMode($scope.data.id.slice($scope.data.id.lastIndexOf('.') + 1));
+                    $scope.aceOption.mode = mode;
                     var roomName = $scope.data.id;
                     var socketIOAdapter = new SocketIOFirebase(socket, roomName);
                     socketIOAdapter.initRoom();
@@ -126,6 +128,7 @@ angular.module('trafficEnv')
 
                     modalInstance.result.then(function () {
                         interfaceServices.deleteInterface($scope.data.id);
+                        $scope.data.id = undefined;
                     });
                 };
             }],

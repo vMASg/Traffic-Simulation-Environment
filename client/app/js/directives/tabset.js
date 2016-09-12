@@ -91,10 +91,6 @@ angular.module('trafficEnv')
                     $scope.newtab.isOpen = false;
                 };
 
-                $scope.newInterface = function () {
-                    // TODO
-                };
-
                 $scope.deleteTab = function (id) {
                     var tab = $scope.tabset.find(function (tab) {
                         return tab.id == id;

@@ -1,5 +1,6 @@
 import os
 import re
+import shutil
 # from flask_login import current_user
 from collections import namedtuple
 from server.exceptions import InvalidPathException
@@ -69,8 +70,9 @@ class InterfaceService(object):
         abs_path, relpath = self._get_rel_abs_path(id)
         if not relpath.startswith('..'):
             try:
-                os.remove(abs_path)
-                os.removedirs(os.path.split(abs_path)[0])
+                abs_path = os.path.split(abs_path)[0]
+                shutil.rmtree(abs_path)
+                # os.removedirs(os.path.split(abs_path)[0])
             except WindowsError:
                 pass
         else:
@@ -79,11 +81,17 @@ class InterfaceService(object):
     def create_interface(self, name, parent, content):
         path = os.path.normpath(os.path.join(self._root_folder_content, parent, name))
         id = os.path.relpath(path, self._root_folder_content)
-        parent_folder = os.path.split(path)[0]
+        basename = os.path.basename(id)
+        basepath = os.path.join(id, basename)
+        # parent_folder = os.path.split(path)[0]
+        parent_folder = path
         if not os.path.isdir(parent_folder):
             os.makedirs(parent_folder)
-        self.update_interface(id, content)
-        return id, os.path.basename(id), content
+        self.update_interface(basepath + '.html', content)
+        self.update_interface(basepath + '.js', '')
+        self.update_interface(basepath + '.css', '')
+        self.update_interface(basepath + '.intf', '')
+        return basepath + '.html', basename + '.html', content
 
     # # FIELDS QUERY
     # def get_name(self, id):

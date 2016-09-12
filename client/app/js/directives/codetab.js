@@ -45,6 +45,30 @@ angular.module('trafficEnv')
                     $scope.$on('$destroy', function () {
                         socket.emit('unsubscribe', {channel: roomName});
                     });
+                } else {
+                    $scope.code = [
+                        'from aimsun_scriptreg import return_name, PythonScript, AconsoleScript',
+                        '',
+                        '# PythonScript class is used for scripts that do not',
+                        '# require to call Aimsun Python scripting API.',
+                        '# ',
+                        '# In case it needs Aimsun, the base class should be',
+                        '# replaced by AconsoleScript.',
+                        '',
+                        'class Script(PythonScript):',
+                        '',
+                        '    @return_name(\'out1\', \'out2\')',
+                        '    def main(self, inp1, inp2):',
+                        '        """docstring for method main"""',
+                        '',
+                        '        print "This will be displayed in the output stream"',
+                        '        return inp1, inp2',
+                        '',
+                        '',
+                        'if __name__ == \'__main__\':',
+                        '    print Script().main(1, 2)',
+                        ''
+                    ].join('\n');
                 }
 
                 $scope.saveScript = function () {

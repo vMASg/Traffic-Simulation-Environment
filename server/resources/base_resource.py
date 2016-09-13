@@ -5,7 +5,7 @@ from functools import wraps
 def authenticated_only(f):
     @wraps(f)
     def wrapped(*args, **kwargs):
-        if not current_user.is_authenticated:
+        if not current_user.is_authenticated or not current_user.is_active:
             abort(401)
         else:
             return f(*args, **kwargs)

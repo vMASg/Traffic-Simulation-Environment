@@ -13,7 +13,7 @@
                     <th>Type</th>
                     <th>Task</th>
                     <th>Comment</th>
-                    <th>Delete</th>
+                    <th>Abort</th>
                 </tr>
               </thead>
               <tbody>
@@ -25,7 +25,7 @@
                     <td>{{metaData.type || '-'}}</td>
                     <td>{{metaData.task || '-'}}</td>
                     <td class="comment">{{metaData.comment || '-'}}</td>
-                    <td>delete</td>
+                    <td ng-click="abortTask($event,channelName)">Abort</td>
                 </tr>
                 <tr ng-repeat-end="" class="output-view" ng-if="inpoutTrans[channelName].isVisible">
                     <td colspan="8" class="output-view">
@@ -73,7 +73,7 @@
                     <th>Type</th>
                     <th>Task</th>
                     <th>Comment</th>
-                    <th>Delete</th>
+                    <!-- <th>Delete</th> -->
                 </tr>
               </thead>
               <tbody>
@@ -85,7 +85,7 @@
                     <td>{{metaData.type || '-'}}</td>
                     <td>{{metaData.task || '-'}}</td>
                     <td class="comment">{{metaData.comment || '-'}}</td>
-                    <td>delete</td>
+                    <!-- <td>delete</td> -->
                 </tr>
               </tbody>
             </table>
@@ -108,7 +108,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr ng-repeat-start="(channelName, data) in finishedTasks" class="info-view" ng-click="toggleVisibilityFinished(data)" ng-class="{'content-collapsed': !data.isVisible}">
+                <tr ng-repeat-start="(channelName, data) in finishedTasks" class="info-view" ng-click="toggleVisibilityFinished(data)" ng-class="{'content-collapsed': !data.isVisible, 'aborted': data.data.meta.aborted}">
                     <td>{{data.data.meta.user || '-'}}</td>
                     <td uib-tooltip="{{fullDate(data.data.meta.requestTime)}}" tooltip-append-to-body="true">{{relativeDate(data.data.meta.requestTime)}}</td>
                     <td uib-tooltip="{{fullDate(data.data.meta.startTime)}}" tooltip-append-to-body="true">{{relativeDate(data.data.meta.startTime)}}</td>
@@ -116,7 +116,7 @@
                     <td>{{data.data.meta.type || '-'}}</td>
                     <td>{{data.data.meta.task || '-'}}</td>
                     <td class="comment">{{data.data.meta.comment || '-'}}</td>
-                    <td>delete</td>
+                    <td ng-click="deleteResult($event, data.id)">delete</td>
                 </tr>
                 <tr ng-repeat-end="" class="output-view" ng-if="data.isVisible">
                     <td colspan="8" class="output-view">

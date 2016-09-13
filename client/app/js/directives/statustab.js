@@ -79,6 +79,16 @@ angular.module('trafficEnv')
                     $scope.finishedTasks.push(taskData);
                 };
 
+                var onDeletedFinishedTask = function (taskData) {
+                    var len = $scope.finishedTasks.length;
+                    for (var i = 0; i < len; ++i) {
+                        if ($scope.finishedTasks[i].id == taskData.id) {
+                            delete $scope.finishedTasks.splice(i, 1)[0];
+                            break;
+                        }
+                    }
+                };
+
                 socket.on('executions:event', onExecutionsEvent);
                 socket.on('executions:catchUp', onExecutionsCatchUp);
                 $scope.$on('$destroy', function () {
@@ -146,7 +156,18 @@ angular.module('trafficEnv')
                     data.isVisible = !data.isVisible;
                 };
 
+                $scope.abortTask = function ($event, channelName) {
+                    $event.stopPropagation();
+                    socket.emit(channelName + ':abort');
+                };
+
+                $scope.deleteResult = function ($event, id) {
+                    $event.stopPropagation();
+                    finishedTasksServices.deleteFinishedTask(id);
+                };
+
                 socket.on('new_finished_task', onNewFinishedTask);
+                socket.on('deleted_finished_task', onDeletedFinishedTask);
 
             }],
             templateUrl: 'templates/status-tab.html',

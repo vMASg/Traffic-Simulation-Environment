@@ -14,6 +14,12 @@ class PipelineThread(threading.Thread):
         self.only_python = only_python
         self.output = output
         self.event = event
+        self._event_abort = threading.Event()
+
+        self.subscription_channel.on('abort', self.abort)
+
+    def abort(self):
+        self._event_abort.set()
 
     def run(self):
         inout = [self.pipeline_inputs or '-', self.pipeline_outputs or '-']
@@ -49,9 +55,9 @@ class PipelineThread(threading.Thread):
                 self.subscription_channel.meta['inputs'] = input_json
             self.subscription_channel.send_meta()
             # End inputs
-            while ret_code is None:
+            while ret_code is None and not self._event_abort.is_set():
                 output = '[WKUP]'
-                while output.endswith('[WKUP]'):
+                while output.endswith('[WKUP]') and not self._event_abort.is_set():
                     output = output[:-6]
                     output += cmd.stdout.readline().strip()
                     blocker.wait(0.2)
@@ -64,10 +70,16 @@ class PipelineThread(threading.Thread):
                     self.subscription_channel.broadcast(output)
                 ret_code = cmd.poll()
 
+            aborted = False
+            if self._event_abort.is_set():
+                cmd.kill()
+                self.subscription_channel.meta['aborted'] = True
+                aborted = True
+
             # self.output.put(ret_code)
             # Print everything left in buffer
             output = cmd.stdout.read().strip()
-            print "finished {}: {}".format(ret_code, output)
+            print "{} {}: {}".format('finished' if not aborted else 'aborted', ret_code, output)
             cmd.stdout.close()
             # cmd.stderr.close()
             if len(output) > 0:
@@ -77,8 +89,7 @@ class PipelineThread(threading.Thread):
                 with open(self.pipeline_outputs, 'r') as out_file:
                     out = json.loads(out_file.read())
                 self.subscription_channel.meta['outputs'] = out or {}
-            if ret_code == 0:
-                self.subscription_channel.meta['finishTime'] = time()
+            self.subscription_channel.meta['finishTime'] = time()
             self.subscription_channel.send_meta()
             self.subscription_channel.end()
             self.event.set()

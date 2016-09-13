@@ -125,7 +125,7 @@ class AppStarter(Resource):
         self._api.add_resource(InterfaceCollection, '/interfaces', resource_class_kwargs={'interface_locator': interface_service, 'subscription_service': self._subscription})
         self._api.add_resource(Interface, '/interfaces/<id>', resource_class_kwargs={'interface_locator': interface_service, 'subscription_service': self._subscription})
         self._api.add_resource(ExecutionCollection, '/executions', resource_class_kwargs={'root_folder': SUBSCRIPTIONS_ROOT_FOLDER, 'subscription_service': self._subscription})
-        self._api.add_resource(Execution, '/execution/<id>', resource_class_kwargs={'root_folder': SUBSCRIPTIONS_ROOT_FOLDER, 'subscription_service': self._subscription})
+        self._api.add_resource(Execution, '/executions/<id>', resource_class_kwargs={'root_folder': SUBSCRIPTIONS_ROOT_FOLDER, 'subscription_service': self._subscription})
         # Non RESTful routes
 
         # Pipeline

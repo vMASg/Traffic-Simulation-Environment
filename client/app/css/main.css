@@ -244,6 +244,10 @@ treecontrol ul {
     white-space: nowrap;
 }
 
+.info-view.aborted {
+    color: #eb4747;
+}
+
 td.comment {
     max-width: 480px;
     text-overflow: ellipsis;

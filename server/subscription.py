@@ -77,6 +77,9 @@ class SubscriptionChannel(Channel):
     #     self._meta = value
         # self.send_meta()
 
+    def on(self, event_name, func):
+        self.socketio.on('{}:{}'.format(self.channel_name, event_name), namespace=self.namespace)(func)
+
     def start(self):
         self.has_started = True
 

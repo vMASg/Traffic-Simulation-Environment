@@ -1,5 +1,6 @@
 import threading
 import json
+import os
 from time import time
 from Queue import Queue, Empty as QueueEmpty
 from subprocess import Popen, PIPE, STDOUT
@@ -72,11 +73,12 @@ class PipelineThread(threading.Thread):
             if len(output) > 0:
                 self.subscription_channel.broadcast(output)
             out = None
-            if self.pipeline_outputs is not None:
+            if self.pipeline_outputs is not None and os.path.exists(self.pipeline_outputs):
                 with open(self.pipeline_outputs, 'r') as out_file:
                     out = json.loads(out_file.read())
                 self.subscription_channel.meta['outputs'] = out or {}
-            self.subscription_channel.meta['finishTime'] = time()
+            if ret_code == 0:
+                self.subscription_channel.meta['finishTime'] = time()
             self.subscription_channel.send_meta()
             self.subscription_channel.end()
             self.event.set()

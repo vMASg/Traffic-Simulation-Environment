@@ -108,6 +108,7 @@ class ThreadSpawner(threading.Thread):
                 for thr in self.threads:
                     if not thr.is_alive():
                         self.pipeline_channel.broadcast({'channel': thr.subscription_channel.channel_name, 'operation': 'finished'})
+                        self._clean_finished(self.pipeline_channel)
                         thr.join()
                         to_remove.append(thr)
 
@@ -123,6 +124,8 @@ class ThreadSpawner(threading.Thread):
             to_remove = []
             for thr in self.threads:
                 if not thr.is_alive():
+                    self.pipeline_channel.broadcast({'channel': thr.subscription_channel.channel_name, 'operation': 'finished'})
+                    self._clean_finished(self.pipeline_channel)
                     thr.join()
                     to_remove.append(thr)
 
@@ -135,6 +138,10 @@ class ThreadSpawner(threading.Thread):
         for thr in self.threads:
             if thr.is_alive():
                 thr.join()
+
+    def _clean_finished(self, pip):
+        finished_tasks = [a['channel'] for a in pip.previous_broadcasts if 'operation' in a and a['operation'] == 'finished']
+        pip.previous_broadcasts = [a for a in pip.previous_broadcasts if 'operation' not in a or a['channel'] not in finished_tasks]
 
     def _spwn_pipelines(self):
         spwn_success = True

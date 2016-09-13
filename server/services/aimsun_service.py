@@ -1,9 +1,10 @@
 import threading
 import json
 import os
+import psutil
 from time import time
 from Queue import Queue, Empty as QueueEmpty
-from subprocess import Popen, PIPE, STDOUT
+from subprocess import Popen, PIPE, STDOUT, CREATE_NEW_PROCESS_GROUP
 
 class PipelineThread(threading.Thread):
     def __init__(self, pipeline, aconsole_path, subscription_channel, only_python, output, event):
@@ -72,6 +73,7 @@ class PipelineThread(threading.Thread):
 
             aborted = False
             if self._event_abort.is_set():
+                self.kill_proc_tree(cmd.pid, including_parent=False)
                 cmd.kill()
                 self.subscription_channel.meta['aborted'] = True
                 aborted = True
@@ -79,6 +81,8 @@ class PipelineThread(threading.Thread):
             # self.output.put(ret_code)
             # Print everything left in buffer
             output = cmd.stdout.read().strip()
+            if output.endswith('[WKUP]'):
+                output = output[:-6]
             print "{} {}: {}".format('finished' if not aborted else 'aborted', ret_code, output)
             cmd.stdout.close()
             # cmd.stderr.close()
@@ -96,6 +100,16 @@ class PipelineThread(threading.Thread):
         else:
             print 'ERROR'
             self.output.put(False)
+
+    def kill_proc_tree(self, pid, including_parent=True):
+        parent = psutil.Process(pid)
+        children = parent.children(recursive=True)
+        for child in children:
+            child.kill()
+        psutil.wait_procs(children, timeout=5)
+        if including_parent:
+            parent.kill()
+            parent.wait(5)
 
 
 class ThreadSpawner(threading.Thread):

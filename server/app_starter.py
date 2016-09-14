@@ -61,8 +61,9 @@ class AppStarter(Resource):
         self._static_files_root_folder_path = ''
         self._app = Flask(__name__, template_folder=app_path)
         self._app.config['SECRET_KEY'] = SECRET_KEY
-        self._api = Api(self._app)
         self._app.config['ERROR_404_HELP'] = False
+        self._app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+        self._api = Api(self._app)
         eventlet.monkey_patch(os=False)
         # SocketIO init
         self._socketio = SocketIO(self._app, async_mode='eventlet')
@@ -118,7 +119,7 @@ class AppStarter(Resource):
         interface_service = InterfaceService(root_folder=INTERFACES_ROOT_FOLDER, git_service=git_service)
         aimsun_service = AimsunService(ACONSOLE_PATH, self._subscription)
         self._api.add_resource(ScriptCollection, '/scripts', resource_class_kwargs={'script_locator': script_service, 'subscription_service': self._subscription})
-        self._api.add_resource(Script, '/scripts/<id>', resource_class_kwargs={'script_locator': script_service, 'subscription_service': self._subscription})
+        self._api.add_resource(Script, '/scripts/<id>', '/scripts/<id>/<hash>', resource_class_kwargs={'script_locator': script_service, 'subscription_service': self._subscription})
         self._api.add_resource(PipelineCollection, '/pipelines', resource_class_kwargs={'pipeline_locator': pipeline_service, 'subscription_service': self._subscription})
         self._api.add_resource(Pipeline, '/pipelines/<id>', resource_class_kwargs={'pipeline_locator': pipeline_service, 'subscription_service': self._subscription})
         self._api.add_resource(ModelCollection, '/models', resource_class_kwargs={'model_locator': model_service, 'aimsun_service': aimsun_service})

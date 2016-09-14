@@ -1,3 +1,4 @@
+import os
 from flask_restful import reqparse, abort
 from flask import request, send_file
 from server.resources.base_resource import BaseResource as Resource
@@ -10,9 +11,9 @@ class Script(Resource):
         self._script_locator = script_locator
         self._subscription_service = subscription_service
 
-    def get(self, id):
+    def get(self, id, hash=None):
 
-        script_content_info = self._script_locator.get_script_info(id)
+        script_content_info = self._script_locator.get_script_info(id, hash)
         if script_content_info is None:
             abort(404, message="Script not found")
 
@@ -20,7 +21,7 @@ class Script(Resource):
             if data_type == 'name':
                 return self._script_locator.get_name(id)
             elif data_type == 'code':
-                return self._script_locator.get_script_content(id)
+                return self._script_locator.get_script_content(id, hash)
             elif data_type == 'path':
                 return self._script_locator.get_path(id)
             elif data_type == 'hash':
@@ -45,7 +46,13 @@ class Script(Resource):
         parser.add_argument('onlycode', type=lambda e: True, location='args', case_sensitive=False, store_missing=False)
         args = parser.parse_args()
         if 'onlycode' in args or len(args) == 0:
-            return send_file(self._script_locator.get_script_location(id))
+            if hash is None:
+                return send_file(self._script_locator.get_script_location(id))
+            else:
+                path = self._script_locator.get_path_for_execution(id, hash)
+                retval = send_file(path)
+                # os.remove(path)
+                return retval
 
         retval = {k: get_data(k) for k in args.keys()}
         retval['id'] = id

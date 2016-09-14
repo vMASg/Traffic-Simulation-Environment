@@ -50,11 +50,18 @@ class ScriptService(object):
         relpath = os.path.relpath(os.path.normpath(abs_path), self._root_folder_content)
         return abs_path, relpath
 
-    def get_script_content(self, id):
+    def get_script_content(self, id, hash=None):
         abs_path, relpath = self._get_rel_abs_path(id)
         if not relpath.startswith('..'):
+            if hash is not None:
+                abs_path = self.get_path_for_execution(id, hash)
+
             with open(abs_path, 'r') as file:
                 content = file.read()
+
+            if hash is not None:
+                os.remove(abs_path)
+
             return content
         else:
             raise InvalidPathException()
@@ -126,6 +133,17 @@ class ScriptService(object):
     #     si = ScriptInfo(self._get_rel_abs_path(id)[0])
     #     return si.get_script_type(), si.requires_model()
 
-    def get_script_info(self, id):
+    def get_script_info(self, id, hash=None):
         path = self._get_rel_abs_path(id)[0]
-        return ScriptInfo(path) if os.path.isfile(path) else None
+        if hash is not None:
+            path = self.get_path_for_execution(id, hash)
+
+        if not os.path.isfile(path):
+            return None
+
+        info = ScriptInfo(path)
+
+        if hash is not None:
+            os.remove(path)
+
+        return info

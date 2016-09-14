@@ -117,7 +117,7 @@ class GitService(object):
                 retcode = cmd.poll()
 
     @mutex
-    def get_revision_hash(self, file_path, repo_dir):
+    def get_revision_hashes(self, file_path, repo_dir):
         cmd = Popen(
             [
                 self.git_location,
@@ -126,8 +126,8 @@ class GitService(object):
                 '--work-tree={}'.format(repo_dir),
                 'log',
                 '--format=%H',
-                '-n',
-                '1',
+                # '-n',
+                # '1',
                 '--follow',
                 file_path
             ],
@@ -138,7 +138,7 @@ class GitService(object):
             sleep(0.05)
             retcode = cmd.poll()
 
-        return cmd.stdout.read().strip()
+        return [hash.strip() for hash in cmd.stdout.readlines() if len(hash.strip()) > 0]
 
     @mutex
     def get_content(self, file_path, repo_dir, hash):

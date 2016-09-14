@@ -105,8 +105,8 @@ class ScriptService(object):
     def get_path(self, id):
         return id
 
-    def get_revision_hash(self, id):
-        return self.git_service.get_revision_hash(self._get_rel_abs_path(id)[0], self._root_folder_content)
+    def get_revision_hashes(self, id):
+        return self.git_service.get_revision_hashes(self._get_rel_abs_path(id)[0], self._root_folder_content)
 
     def get_path_for_execution(self, id, hash=None):
         path = self._get_rel_abs_path(id)[0]

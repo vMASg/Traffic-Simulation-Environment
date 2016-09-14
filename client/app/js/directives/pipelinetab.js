@@ -493,7 +493,7 @@ angular.module('trafficEnv')
                                 id: nodeIdCounter++,  // TODO replace by proper random id
                                 type: $channel,
                                 path: response.data.path,
-                                hash: response.data.hash,
+                                hash: response.data.hash[0],
                                 title: response.data.name,
                                 inputs: (response.data.inout[0] || []).map(function (a) { return {name: a}; }),
                                 outputs: (response.data.inout[1] || []).map(function (a) { return {name: a}; }),
@@ -536,7 +536,7 @@ angular.module('trafficEnv')
                                 id: nodeIdCounter++,
                                 type: $channel,
                                 path: data.id,
-                                hash: data.hash,
+                                hash: data.hash[0],
                                 title: data.name,
                                 inputs: (pipeline.inputs || {outputs:[]}).outputs.map(function (a) { return {name: a.name}; }),
                                 outputs: (pipeline.outputs || {inputs: []}).inputs.map(function (a) { return {name: a.name}; }),

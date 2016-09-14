@@ -52,8 +52,8 @@ class PipelineService(object):
         if not relpath.startswith('..'):
             with open(abs_path, 'r') as file:
                 content = file.read()
-            hash = self.git_service.get_revision_hash(abs_path, self._root_folder_content)
-            return id, os.path.basename(id), content, hash
+            hashes = self.git_service.get_revision_hashes(abs_path, self._root_folder_content)
+            return id, os.path.basename(id), content, hashes
         else:
             raise InvalidPathException()
 
@@ -88,8 +88,8 @@ class PipelineService(object):
         self.update_pipeline(id, content)
         return id, os.path.basename(id), content
 
-    def get_revision_hash(self, id):
-        return self.git_service.get_revision_hash(self._get_rel_abs_path(id)[0], self._root_folder_content)
+    def get_revision_hashes(self, id):
+        return self.git_service.get_revision_hashes(self._get_rel_abs_path(id)[0], self._root_folder_content)
 
     def get_path_for_execution(self, id, hash=None):
         original_path = self._get_rel_abs_path(id)[0]

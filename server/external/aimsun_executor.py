@@ -13,6 +13,7 @@ try:
     from PyANGConsole import ANGConsole
     from PyANGKernel import GKSystem, GKExperiment, GKReplication, GKSimulationTask
 except ImportError:
+    sys.path.append(os.path.join(os.getcwd(), 'server', 'external', 'fakelibs'))
     failed_import = True
 else:
     failed_import = False

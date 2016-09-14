@@ -14,6 +14,7 @@ def get_script_type(filepath):
 def main(argv):
     if len(argv) < 2:
         return 1
+    sys.path.append(os.path.join(os.getcwd(), 'server', 'external', 'fakelibs'))
     filepath = argv[1]
     mod_name, file_ext = os.path.splitext(os.path.split(filepath)[-1])
     try:

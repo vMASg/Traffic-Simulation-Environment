@@ -46,7 +46,7 @@ class SubscriptionChannel(Channel):
         self.namespace = namespace
         self.alive = alive
         self.persist = persist
-        self.persist_file = os.path.join(persist_dir, channel_name)
+        self.persist_file = os.path.join(persist_dir, channel_name.replace('\\', '_'))
         self.persist_type = persist_type
         self.has_started, self.has_ended = False, False
         self.meta = None

@@ -152,6 +152,10 @@
     background-color: #454545;
 }
 
+.view-panel > .space-between {
+    color: #ddd;
+}
+
 .view-panel .dropdown-menu {
     background-color: #666;
 }
@@ -162,6 +166,12 @@
 
 .view-panel .dropdown-menu>li>a:hover {
     color: #333;
+}
+
+.view-panel > select.input.value {
+    background-color: #666;
+    border: 1px solid #333;
+    color: #ddd;
 }
 
 .immediate-results {

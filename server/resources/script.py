@@ -64,6 +64,8 @@ class Script(Resource):
             self._script_locator.update_script(id, request.get_data())
         except InvalidPathException as e:
             return e.msg, 403
+        else:
+            self._changed_script(id)
 
     def delete(self, id):
         try:
@@ -75,3 +77,6 @@ class Script(Resource):
 
     def _deleted_script(self, id):
         self._subscription_service.socketio.emit('deleted_script', {'id': id}, namespace=self._subscription_service.namespace)
+
+    def _changed_script(self, id):
+        self._subscription_service.socketio.emit('changed_script', {'id': id}, namespace=self._subscription_service.namespace)

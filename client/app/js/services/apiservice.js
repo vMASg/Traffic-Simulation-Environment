@@ -4,14 +4,20 @@ angular.module('APIServices', [])
             getScriptCollection: function () {
                 return $http.get('/scripts');
             },
-            getScript: function (id, info) {
-                info = info || [];
+            getScript: function (id, hash, info) {
+                if (typeof hash == 'object') {
+                    info = hash || [];
+                    hash = null;
+                } else {
+                    info = info || [];
+                }
+                hash = hash&&hash.length?'/'+hash:'';
                 if (info.length == 0 || info.indexOf('onlycode') >= 0) {
-                    return $http.get('/scripts/' + encodeURIComponent(id), {
+                    return $http.get('/scripts/' + encodeURIComponent(id) + hash, {
                         transformResponse: []
                     });
                 } else {
-                    return $http.get('/scripts/' + encodeURIComponent(id) + '?' + info.join('&'));
+                    return $http.get('/scripts/' + encodeURIComponent(id) + hash + '?' + info.join('&'));
                 }
             },
             saveScript: function (name, parent, code) {

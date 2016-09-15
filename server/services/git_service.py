@@ -125,7 +125,7 @@ class GitService(object):
                 '--git-dir={}'.format(os.path.join(repo_dir, '.git')),
                 '--work-tree={}'.format(repo_dir),
                 'log',
-                '--format=%H',
+                '--format=%H~%an <%ae>~%at',
                 # '-n',
                 # '1',
                 '--',
@@ -138,7 +138,7 @@ class GitService(object):
             sleep(0.05)
             retcode = cmd.poll()
 
-        return [hash.strip() for hash in cmd.stdout.readlines() if len(hash.strip()) > 0]
+        return [hash.strip().split('~')[0] for hash in cmd.stdout.readlines() if len(hash.strip()) > 0]
 
     @mutex
     def get_content(self, file_path, repo_dir, hash):

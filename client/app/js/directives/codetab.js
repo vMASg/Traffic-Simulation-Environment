@@ -25,13 +25,36 @@ angular.module('trafficEnv')
                 if ($scope.data.id) {
                     var roomName = $scope.data.id;
                     var socketIOAdapter = new SocketIOFirebase(socket, roomName);
+                    var onChangedScript = function (data) {
+                        var id = data.id;
+                        if ($scope.data.id == id) {
+                            scriptServices.getScript($scope.data.id, ['hash']).then(function (response) {
+                                $scope.hashes = response.data.hash;
+                                $scope.currentHash = response.data.hash[0];
+                            });
+                        }
+                    };
                     socketIOAdapter.initRoom();
+
                     scriptServices.getScript($scope.data.id).then(function (code) {
                         // $scope.code = code.data.replace(/\r/gm, '');
                         var localInstance = Firepad.fromACE(socketIOAdapter, $scope._ace, {
                             defaultText: code.data.replace(/\r/gm, '')
                         });
                     });
+                    $scope.oldCodeAceOption = angular.copy($scope.aceOption);
+
+                    $scope.oldCodeAceOption.onLoad = function (_ace) {
+                        // HACK to have the ace instance in the scope...
+                        $scope.modeChanged = function (_ace) {
+                            _ace.getSession().setMode("ace/mode/python");
+                        };
+                        _ace.setOption('scrollPastEnd', 0.9);
+                        _ace.$blockScrolling = Infinity;
+                        _ace.setHighlightActiveLine(false);
+                        _ace.setReadOnly(true);
+                    };
+
                     $scope.aceOption.onLoad = function (_ace) {
                         // HACK to have the ace instance in the scope...
                         $scope.modeChanged = function (_ace) {
@@ -42,9 +65,18 @@ angular.module('trafficEnv')
                         _ace.setHighlightActiveLine(false);
                         $scope._ace = _ace;
                     };
+
                     $scope.$on('$destroy', function () {
                         socket.emit('unsubscribe', {channel: roomName});
+                        socket.removeListener('changed_script', onChangedScript);
                     });
+
+                    scriptServices.getScript($scope.data.id, ['hash']).then(function (response) {
+                        $scope.hashes = response.data.hash;
+                        $scope.currentHash = response.data.hash[0];
+                    });
+                    socket.on('changed_script', onChangedScript);
+
                 } else {
                     $scope.code = [
                         'from aimsun_scriptreg import return_name, PythonScript, AconsoleScript',
@@ -70,6 +102,15 @@ angular.module('trafficEnv')
                         ''
                     ].join('\n');
                 }
+
+                $scope.changeHash = function (currentHash) {
+                    $scope.currentHash = currentHash;
+                    if (currentHash != $scope.hashes[0]) {
+                        scriptServices.getScript($scope.data.id, currentHash).then(function (code) {
+                            $scope.oldCode = code.data.replace(/\r/gm, '');
+                        });
+                    }
+                };
 
                 $scope.saveScript = function () {
                     scriptServices.updateScript($scope.data.id, $scope.code.replace(/\r\r/gm, '\r'));

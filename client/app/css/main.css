@@ -304,6 +304,16 @@ td.output-view > table > tbody > tr > th {
     user-select: none;
 }
 
+.view-panel > .space-between {
+    margin-left: 50px;
+    margin-right: 15px;
+}
+
+.view-panel > select {
+    width: auto;
+    /*margin-left: 50px;*/
+}
+
 .firepad {
     position: relative;
     width: 100%;

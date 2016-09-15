@@ -1,4 +1,5 @@
 import os
+from StringIO import StringIO
 from flask_restful import reqparse, abort
 from flask import request, send_file
 from server.resources.base_resource import BaseResource as Resource
@@ -49,10 +50,10 @@ class Script(Resource):
             if hash is None:
                 return send_file(self._script_locator.get_script_location(id))
             else:
-                path = self._script_locator.get_path_for_execution(id, hash)
-                retval = send_file(path)
-                # os.remove(path)
-                return retval
+                str_io = StringIO()
+                str_io.write(self._script_locator.get_script_content(id, hash))
+                str_io.seek(0)
+                return send_file(str_io, as_attachment=False, mimetype="text/plain")
 
         retval = {k: get_data(k) for k in args.keys()}
         retval['id'] = id

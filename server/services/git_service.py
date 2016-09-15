@@ -128,7 +128,7 @@ class GitService(object):
                 '--format=%H',
                 # '-n',
                 # '1',
-                '--follow',
+                '--',
                 file_path
             ],
             stdout=PIPE, stderr=STDOUT)

@@ -5,6 +5,7 @@ import psutil
 from time import time
 from Queue import Queue, Empty as QueueEmpty
 from subprocess import Popen, PIPE, STDOUT, CREATE_NEW_PROCESS_GROUP
+from server.constants import PYTHON_DIR
 
 class PipelineThread(threading.Thread):
     def __init__(self, pipeline, aconsole_path, subscription_channel, only_python, output, event):
@@ -34,13 +35,16 @@ class PipelineThread(threading.Thread):
                 universal_newlines=True
             )
         else:
+            environ = os.environ.copy()
+            environ['PYTHONDIR'] = PYTHON_DIR
             cmd = Popen(
                 # ['python', 'server\\external\\aimsun_executor.py', self.pipeline] + inout,
                 [self.aconsole_path, '-script', 'server\\external\\aimsun_executor.py', self.pipeline] + inout,
                 # stdin=PIPE,
                 stdout=PIPE,
                 stderr=STDOUT,
-                universal_newlines=True
+                universal_newlines=True,
+                env=environ
             )
         blocker = threading.Event()
         if cmd.stdout.readline().strip() == 'READY':

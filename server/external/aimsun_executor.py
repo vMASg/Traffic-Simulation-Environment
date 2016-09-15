@@ -12,6 +12,8 @@ import aimsun_scriptreg
 try:
     from PyANGConsole import ANGConsole
     from PyANGKernel import GKSystem, GKExperiment, GKReplication, GKSimulationTask
+    PYTHON_DIR = os.getenv('PYTHONDIR')
+    sys.path.append(os.path.join(PYTHON_DIR, 'Lib', 'site-packages'))
 except ImportError:
     sys.path.append(os.path.join(os.getcwd(), 'server', 'external', 'fakelibs'))
     failed_import = True

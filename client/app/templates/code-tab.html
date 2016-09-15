@@ -3,8 +3,8 @@
     <div class="btn btn-default" data-ng-disabled="!data.id" data-ng-click="saveScript()">Save</div>
     <div class="btn btn-default" data-ng-click="saveScriptAs()">Save As</div>
     <div class="btn btn-default" data-ng-disabled="!data.id" data-ng-click="deleteScript()">Delete</div>
-    <span class="space-between">Hash:</span>
-    <select ng-if="hashes" class="form-control input value" ng-options="hash for hash in hashes" ng-model="currentHash" ng-change="changeHash(currentHash)">
+    <span ng-if="hashes" class="space-between">Version:</span>
+    <select ng-if="hashes" class="form-control input value" ng-options="hash for hash in hashes" ng-model="$parent.currentHash" ng-change="changeHash()">
     </div>
     </select>
     <div class="btn read-only" ng-show="currentHash && currentHash != hashes[0]" disabled="disabled">Read Only</div>

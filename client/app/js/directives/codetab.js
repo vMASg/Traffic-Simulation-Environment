@@ -103,10 +103,10 @@ angular.module('trafficEnv')
                     ].join('\n');
                 }
 
-                $scope.changeHash = function (currentHash) {
-                    $scope.currentHash = currentHash;
-                    if (currentHash != $scope.hashes[0]) {
-                        scriptServices.getScript($scope.data.id, currentHash).then(function (code) {
+                $scope.changeHash = function () {
+                    // $scope.currentHash = currentHash;
+                    if ($scope.currentHash != $scope.hashes[0]) {
+                        scriptServices.getScript($scope.data.id, $scope.currentHash).then(function (code) {
                             $scope.oldCode = code.data.replace(/\r/gm, '');
                         });
                     }

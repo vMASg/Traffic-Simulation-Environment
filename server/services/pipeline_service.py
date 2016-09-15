@@ -47,11 +47,19 @@ class PipelineService(object):
         relpath = os.path.relpath(os.path.normpath(abs_path), self._root_folder_content)
         return abs_path, relpath
 
-    def get_pipeline(self, id):
+    def get_pipeline(self, id, hash=None):
         abs_path, relpath = self._get_rel_abs_path(id)
+        abs_path_hash = None
         if not relpath.startswith('..'):
-            with open(abs_path, 'r') as file:
+            if hash is not None:
+                abs_path_hash = self.get_path_for_execution(id, hash)
+
+            with open(abs_path_hash or abs_path, 'r') as file:
                 content = file.read()
+
+            if hash is not None:
+                os.remove(abs_path_hash)
+
             hashes = self.git_service.get_revision_hashes(abs_path, self._root_folder_content)
             return id, os.path.basename(id), content, hashes
         else:
@@ -96,7 +104,7 @@ class PipelineService(object):
         basename = os.path.splitext(os.path.basename(original_path))
         if hash is not None:
             content = self.git_service.get_content(original_path, self._root_folder_content, hash)
-            basename[0] = '{}_{}'.format(hash, basename)
+            basename = ('{}_{}'.format(hash, basename), basename[1])
         ind = 0
         destination_path = os.path.join(self._root_folder_tmp, '{}_{}{}'.format(basename[0], ind, basename[1]))
         # destination_path = os.path.join(self._root_folder_tmp, '{}{}'.format(basename[0], basename[1]))

@@ -10,8 +10,8 @@ class Pipeline(Resource):
         self._pipeline_locator = pipeline_locator
         self._subscription_service = subscription_service
 
-    def get(self, id):
-        id, name, content, hashes = self._pipeline_locator.get_pipeline(id)
+    def get(self, id, hash=None):
+        id, name, content, hashes = self._pipeline_locator.get_pipeline(id, hash)
         return {'id': id, 'name': name, 'graph': content, 'hash': hashes}
 
     def put(self, id):

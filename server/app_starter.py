@@ -121,7 +121,7 @@ class AppStarter(Resource):
         self._api.add_resource(ScriptCollection, '/scripts', resource_class_kwargs={'script_locator': script_service, 'subscription_service': self._subscription})
         self._api.add_resource(Script, '/scripts/<id>', '/scripts/<id>/<hash>', resource_class_kwargs={'script_locator': script_service, 'subscription_service': self._subscription})
         self._api.add_resource(PipelineCollection, '/pipelines', resource_class_kwargs={'pipeline_locator': pipeline_service, 'subscription_service': self._subscription})
-        self._api.add_resource(Pipeline, '/pipelines/<id>', resource_class_kwargs={'pipeline_locator': pipeline_service, 'subscription_service': self._subscription})
+        self._api.add_resource(Pipeline, '/pipelines/<id>', '/pipelines/<id>/<hash>', resource_class_kwargs={'pipeline_locator': pipeline_service, 'subscription_service': self._subscription})
         self._api.add_resource(ModelCollection, '/models', resource_class_kwargs={'model_locator': model_service, 'aimsun_service': aimsun_service})
         self._api.add_resource(InterfaceCollection, '/interfaces', resource_class_kwargs={'interface_locator': interface_service, 'subscription_service': self._subscription})
         self._api.add_resource(Interface, '/interfaces/<id>', resource_class_kwargs={'interface_locator': interface_service, 'subscription_service': self._subscription})

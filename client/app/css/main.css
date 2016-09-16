@@ -361,6 +361,7 @@ td.output-view > table > tbody > tr > th {
     width: 100%;
     height: calc(100% - 34px);
     padding: 10px;
+    overflow: auto;
 }
 
 .pipeline-container > .nodes,

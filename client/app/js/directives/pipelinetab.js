@@ -737,6 +737,10 @@ angular.module('trafficEnv')
                         inputs  = [{name: 'model'}];
                         outputs = [];
                         isExecutor = false;
+                    } else if (nodeType == 'Save Model') {
+                        inputs  = [{name: 'model'}];
+                        outputs = [];
+                        isExecutor = false;
                     }
                     var nodeInfo = {
                         id: nodeIdCounter++,  // TODO replace by proper random id

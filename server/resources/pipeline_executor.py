@@ -28,7 +28,7 @@ class PipelineExecutor(object):
         loaded_pipelines = loaded_pipelines or {}
         if id in loaded_pipelines:
             # TODO remove the exception when conditional nodes are included
-            raise RecursivePipelineCall()
+            # raise RecursivePipelineCall()
             return loaded_pipelines[id]
 
         pipeline_path = self.pipeline_service.get_path_for_execution(id)
@@ -41,6 +41,7 @@ class PipelineExecutor(object):
             if node['type'] == 'code':
                 node['path'] = self.script_service.get_path_for_execution(node['path'], hash=node['hash'])
             elif node['type'] == 'model':
+                node['originalModelPath'] = self.model_service.get_path(node['path'])
                 node['path'] = self.model_service.get_path_for_execution(node['path'])
             elif node['type'] == 'pipeline':
                 node['path'] = self._prepare_pipeline(node['path'], loaded_pipelines)
@@ -87,9 +88,10 @@ class PipelineExecutor(object):
         # return self._aimsun_proc1.run_script(script_content, model_id)
         # raise DeprecationWarning()
         model_path = self.model_service.get_path_for_execution(model_id)
+        original_model = self.model_service.get_path(model_id)
         input_path = model_path + '.input'
 
-        content = {'model_id': model_path, 'script_content': script_content}
+        content = {'model_id': (model_path, original_model), 'script_content': script_content}
         with open(input_path, 'w') as f:
             f.write(json.dumps(content))
 

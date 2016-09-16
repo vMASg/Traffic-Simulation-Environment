@@ -6,6 +6,7 @@ import imp
 import threading
 import subprocess
 import traceback
+import shutil
 
 import aimsun_scriptreg
 
@@ -89,7 +90,8 @@ class Model(Node):
         return self.outputs[connector]
 
     def __call__(self, **kwargs):
-        self.outputs['id_model'] = self.node_info['path']
+        # self.outputs['id_model'] = self.node_info['path']
+        self.outputs['id_model'] = (self.node_info['path'], self.node_info['originalModelPath'])
 
 class PipelineNode(Node):
     """docstring for PipelineNode"""
@@ -120,13 +122,14 @@ class OpenModel(Node):
 
     def __call__(self, id_model):
         console = ANGConsole()
-        if not console.open(id_model):
+        if not console.open(id_model[0]):
             # TODO treat error if model cannot be opened
             pass
 
         model = console.getModel()
         # TODO find better way of passing console object
         model.console = console
+        model.original_model_path = id_model[1]
         self.outputs['model'] = model
 
 class CloseModel(Node):
@@ -140,6 +143,19 @@ class CloseModel(Node):
 
     def __call__(self, model):
         model.console.close()
+
+class SaveModel(Node):
+    """docstring for SaveModel"""
+    def __init__(self, node_info):
+        super(SaveModel, self).__init__(node_info)
+        self.outputs = {e['name']: None for e in self.node_info['outputs']}
+
+    def get_output(self, connector):
+        return self.outputs[connector]
+
+    def __call__(self, model):
+        model.console.save(model.getDocumentFileName())
+        shutil.copy2(str(model.getDocumentFileName()), model.original_model_path)
 
 class RunSimulation(Node):
     """docstring for RunSimulation"""
@@ -261,6 +277,8 @@ class Pipeline(object):
             return OpenModel(node)
         elif node['path'] == '<CLOSE_MODEL>':
             return CloseModel(node)
+        elif node['path'] == '<SAVE_MODEL>':
+            return SaveModel(node)
         else:
             raise Exception("Unrecognized special node {}".format(node['path']))
 

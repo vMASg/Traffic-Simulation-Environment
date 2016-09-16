@@ -42,3 +42,6 @@ class ModelService(object):
         shutil.copy2(original_path, destination_path)
         # shutil.copy2(original_path, destination_path)
         return os.path.join(destination_path, os.path.basename(original_path))
+
+    def get_path(self, id):
+        return self._get_rel_abs_path(id)[0]

@@ -19,7 +19,10 @@
             <li role="menuitem"><a href="#">Separated link</a></li> -->
         </ul>
     </div>
-    <div class="btn read-only" ng-show="permission=='read_only'" disabled="disabled">Read Only</div>
+    <span ng-if="hashes" class="space-between">Version:</span>
+    <select ng-if="hashes" class="form-control input value" ng-options="hash for hash in hashes" ng-model="$parent.currentHash" ng-change="changeHash()">
+    </select>
+    <div class="btn read-only" ng-show="permission=='read_only' || currentHash && currentHash != hashes[0]" disabled="disabled">Read Only</div>
     <div class="btn read-write" ng-show="permission=='read_write'" disabled="disabled">Read Write</div>
 <!--     <script type="text/ng-template" id="nodeOptions.html">
         <div class="pipelinenode-options">
@@ -154,5 +157,5 @@
             </div>
         </div>
     </div>
-    <div ng-if="permission == 'read_only'" class="overlay"></div>
+    <div ng-if="permission == 'read_only' || $scope.currentHash && $scope.currentHash != $scope.hashes[0]" class="overlay"></div>
 </div>

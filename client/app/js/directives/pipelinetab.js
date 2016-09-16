@@ -883,9 +883,17 @@ angular.module('trafficEnv')
                 };
 
                 if ($scope.data.id) {
+                    function refreshHashes(data) {
+                        var latestVersion = !$scope.currentHash || $scope.currentHash == $scope.hashes[0];
+                        $scope.hashes = data.data.hash;
+                        if (latestVersion) {
+                            $scope.currentHash = $scope.hashes[0];
+                        }
+                    }
                     function loadPipeline (data) {
                         recomputeContainer();
                         var pipeline = angular.fromJson(data.data.graph);
+                        refreshHashes(data);
                         var graph = pipeline.nodes;
                         for (var i = 0; i < graph.length; i++) {
                             var node = graph[i];
@@ -1014,7 +1022,8 @@ angular.module('trafficEnv')
                         }, 5);
                     }
                     pipelineServices.getPipeline($scope.data.id).then(loadPipeline);
-                    socket.on('changed_pipeline', function (data) {
+
+                    var onChangedPipeline = function (data, hash) {
                         if ($scope.data.id === data.id && $scope.permission == 'read_only') {
                             var i, j, input, len = $scope.shapes.length;
                             for (i = 0; i < len; ++i) {
@@ -1044,9 +1053,13 @@ angular.module('trafficEnv')
                             nodeIdCounter = 0;
                             executionNodeCounter = 0;
                             aimsunNodeCounter = 0;
-                            pipelineServices.getPipeline($scope.data.id).then(loadPipeline);
+                            pipelineServices.getPipeline($scope.data.id, hash).then(loadPipeline);
+                        } else if ($scope.permission != 'read_only') {
+                            pipelineServices.getPipeline($scope.data.id).then(refreshHashes);
                         }
-                    });
+                    };
+
+                    socket.on('changed_pipeline', onChangedPipeline);
                     // Try acquire write permission
                     var roomName = $scope.data.id;
                     var role = new SocketIOFirebase(socket, roomName);
@@ -1098,6 +1111,20 @@ angular.module('trafficEnv')
                             }
                         });
                     };
+
+                    $scope.changeHash = function () {
+                        if ($scope.currentHash != $scope.hashes[0]) {
+                            initialized = false;
+                            $scope.permission = 'read_only';
+                            usersRef.child(userName).set('read_only');
+                            onChangedPipeline($scope.data, $scope.currentHash);
+                        } else {
+                            onChangedPipeline($scope.data);
+                            initialized = true;
+                            initRequest();
+                        }
+                    }
+
                     usersRef.on('child_added', userChange);
                     usersRef.on('child_changed', userChange);
                     usersRef.on('child_removed', userRemoved);
@@ -1114,6 +1141,7 @@ angular.module('trafficEnv')
                         usersRef.off('child_removed', userRemoved);
                         usersRef.child(userName).remove();
                         socket.emit('unsubscribe', {channel: roomName});
+                        socket.removeListener('changed_pipeline', onChangedPipeline);
                     });
                 }
                 $timeout(recomputeContainer, 200);

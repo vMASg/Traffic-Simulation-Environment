@@ -29,8 +29,11 @@ angular.module('trafficEnv')
                         var id = data.id;
                         if ($scope.data.id == id) {
                             scriptServices.getScript($scope.data.id, ['hash']).then(function (response) {
+                                var latestVersion = !$scope.currentHash || $scope.currentHash == $scope.hashes[0];
                                 $scope.hashes = response.data.hash;
-                                $scope.currentHash = response.data.hash[0];
+                                if (latestVersion) {
+                                    $scope.currentHash = response.data.hash[0];
+                                }
                             });
                         }
                     };

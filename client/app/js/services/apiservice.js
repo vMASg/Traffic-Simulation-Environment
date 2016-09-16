@@ -57,8 +57,9 @@ angular.module('APIServices', [])
             getPipelineCollection: function () {
                 return $http.get('/pipelines');
             },
-            getPipeline: function (id) {
-                return $http.get('/pipelines/' + encodeURIComponent(id));
+            getPipeline: function (id, hash) {
+                hash = hash&&hash.length?'/'+hash:'';
+                return $http.get('/pipelines/' + encodeURIComponent(id) + hash);
             },
             savePipeline: function (name, parent, graph) {
                 var data = {name: name, parent: parent, data: angular.toJson(graph)};

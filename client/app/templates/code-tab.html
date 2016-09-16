@@ -5,7 +5,6 @@
     <div class="btn btn-default" data-ng-disabled="!data.id" data-ng-click="deleteScript()">Delete</div>
     <span ng-if="hashes" class="space-between">Version:</span>
     <select ng-if="hashes" class="form-control input value" ng-options="hash for hash in hashes" ng-model="$parent.currentHash" ng-change="changeHash()">
-    </div>
     </select>
     <div class="btn read-only" ng-show="currentHash && currentHash != hashes[0]" disabled="disabled">Read Only</div>
 </div>

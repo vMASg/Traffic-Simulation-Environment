@@ -1024,7 +1024,7 @@ angular.module('trafficEnv')
                     pipelineServices.getPipeline($scope.data.id).then(loadPipeline);
 
                     var onChangedPipeline = function (data, hash) {
-                        if ($scope.data.id === data.id && $scope.permission == 'read_only') {
+                        if ($scope.data.id === data.id && $scope.permission == 'read_only' && (hash || $scope.currentHash == $scope.hashes[0])) {
                             var i, j, input, len = $scope.shapes.length;
                             for (i = 0; i < len; ++i) {
                                 var node = $scope.shapes[i];
@@ -1054,7 +1054,7 @@ angular.module('trafficEnv')
                             executionNodeCounter = 0;
                             aimsunNodeCounter = 0;
                             pipelineServices.getPipeline($scope.data.id, hash).then(loadPipeline);
-                        } else if ($scope.permission != 'read_only') {
+                        } else if ($scope.permission != 'read_only' || !hash && $scope.currentHash != $scope.hashes[0]) {
                             pipelineServices.getPipeline($scope.data.id).then(refreshHashes);
                         }
                     };

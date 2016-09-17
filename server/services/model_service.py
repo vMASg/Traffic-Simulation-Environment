@@ -1,12 +1,12 @@
 import os
 import shutil
 from collections import namedtuple
+from server.exceptions import LockException
 
 class ModelService(object):
     """docstring for ModelService"""
     def __init__(self, root_folder, git_service):
         super(ModelService, self).__init__()
-        self.git_service = git_service
         self._root_folder = root_folder if not root_folder[-1] == '\\' else root_folder[:-1]
         self._root_folder_content = os.path.join(self._root_folder, 'content')
         self._root_folder_tmp = os.path.join(self._root_folder, 'tmp')
@@ -15,13 +15,19 @@ class ModelService(object):
         if not os.path.isdir(self._root_folder_tmp):
             os.mkdir(self._root_folder_tmp)
 
+        self.git_service = git_service
+        if not os.path.isdir(os.path.join(self._root_folder_content, '.git')):
+            git_service.init_repo(self._root_folder_content)
+            git_service.commit_file('.', self._root_folder_content, 'auto.environ <environ@foo.com>', message='Initial commit')
+
     def get_models(self):
         return_type = namedtuple('ModelLocator', ['id', 'name'])
         retval = []
         for element in os.listdir(self._root_folder_content):
-            full_path = os.path.join(self._root_folder_content, element)
-            if os.path.isfile(full_path) and element[-4:] == '.ang':
-                retval.append(return_type(element, element))
+            if not element.endswith('.reg'):
+                full_path = os.path.join(self._root_folder_content, element)
+                if os.path.isfile(full_path) and element[-4:] == '.ang':
+                    retval.append(return_type(element, element))
         return retval
 
     def _get_rel_abs_path(self, id):
@@ -47,10 +53,30 @@ class ModelService(object):
         def clean_up_func(**kwargs):
             path = kwargs['pipeline_path']
             subs_id = kwargs['execution_name']
+            current_user_info = kwargs['current_user_info']
             if os.path.isfile(path + '.save'):
                 # TODO git commit all models in file
+                models_to_add = []
                 with open(path + '.save', 'r') as saved_models:
-                    pass
+                    for line in saved_models:
+                        if len(line.strip()) > 0:
+                            models_to_add.append(line.strip())
+
+                for model in models_to_add:
+                    with open(model + '.reg', 'a') as registry:
+                        registry.write('{}\n'.format(subs_id))
+
+                committed = False
+                while not committed:
+                    try:
+                        author = '{} <{}>'.format(current_user_info['username'], current_user_info['email'])
+                        models_and_reg = models_to_add + [m + '.reg' for m in models_to_add if os.path.isfile(m + '.reg')]
+                        self.git_service.commit_files(models_and_reg, self._root_folder_content, author, message="Committing model(s) modified in {}".format(subs_id))
+                    except LockException:
+                        pass
+                    else:
+                        committed = True
+
                 os.remove(path + '.save')
             shutil.rmtree(os.path.split(copy_path)[0])
 

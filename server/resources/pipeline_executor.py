@@ -86,9 +86,11 @@ class PipelineExecutor(object):
         sc = self.subscription_service.create_subscription_channel('pipeline-{}-{}'.format(id, meta['requestTime']), alive='while_active', persist=True, persist_type='unique')
         sc.meta = meta
 
+        current_user_info = {'username': current_user.username, 'email': current_user.email}
+
         def clean_up():
             for func in clean_up_functions:
-                func(pipeline_path=pipeline_path, execution_name=sc.persist_file)
+                func(pipeline_path=pipeline_path, execution_name=sc.persist_file, current_user_info=current_user_info)
 
         is_executor, only_python = self._is_executor_only_python(pipeline_path)
         self.aimsun_service.run_pipeline((pipeline_path, input_path, output_path, clean_up), sc, is_executor=is_executor, only_python=only_python)
@@ -121,7 +123,7 @@ class PipelineExecutor(object):
         subs_chan.meta = meta
 
         def clean_up():
-            clean_up_func(pipeline_path='', execution_name='')
+            clean_up_func(pipeline_path='', execution_name='', current_user_info={})
 
         self.aimsun_service.run_pipeline((self._RUN_SCRIPT_PIPELINE_PATH, input_path, None, clean_up), subs_chan)
         return channel_name

@@ -117,6 +117,43 @@ class GitService(object):
                 retcode = cmd.poll()
 
     @mutex
+    def commit_files(self, file_paths, repo_dir, author, message=''):
+        with open(os.devnull, 'w') as devnull:
+            for file_path in file_paths:
+                cmd = Popen(
+                    [
+                        self.git_location,
+                        '--git-dir={}'.format(os.path.join(repo_dir, '.git')),
+                        '--work-tree={}'.format(repo_dir),
+                        'add',
+                        file_path
+                    ],
+                    stdout=devnull, stderr=STDOUT)
+
+                retcode = cmd.poll()
+                while retcode is None:
+                    sleep(0.05)
+                    retcode = cmd.poll()
+
+            cmd = Popen(
+                [
+                    self.git_location,
+                    '--git-dir={}'.format(os.path.join(repo_dir, '.git')),
+                    '--work-tree={}'.format(repo_dir),
+                    'commit',
+                    '-m',
+                    message,
+                    '--allow-empty-message',
+                    '--author={}'.format(author)
+                ],
+                stdout=devnull, stderr=STDOUT)
+
+            retcode = cmd.poll()
+            while retcode is None:
+                sleep(0.05)
+                retcode = cmd.poll()
+
+    @mutex
     def get_revision_hashes(self, file_path, repo_dir):
         cmd = Popen(
             [

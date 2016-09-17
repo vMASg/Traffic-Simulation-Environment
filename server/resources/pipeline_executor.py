@@ -1,3 +1,4 @@
+import os
 import json
 from time import time
 from flask import request, abort
@@ -25,8 +26,8 @@ class PipelineExecutor(object):
         return pipeline['isExecutor'], not pipeline['aimsun']
 
     def _prepare_pipeline(self, id, loaded_pipelines=None, clean_up=None):
-        loaded_pipelines = loaded_pipelines or {}
-        clean_up = clean_up or []
+        loaded_pipelines = loaded_pipelines if loaded_pipelines is not None else {}
+        clean_up = clean_up if clean_up is not None else []
         if id in loaded_pipelines:
             # TODO remove the exception when conditional nodes are included
             # raise RecursivePipelineCall()
@@ -48,7 +49,7 @@ class PipelineExecutor(object):
                 node['path'] = self.model_service.get_path_for_execution(node['path'])
                 clean_up.append(self.model_service.get_clean_up_function(node['path']))
             elif node['type'] == 'pipeline':
-                node['path'] = self._prepare_pipeline(node['path'], loaded_pipelines)
+                node['path'] = self._prepare_pipeline(node['path'], loaded_pipelines, clean_up)
 
         with open(pipeline_path, 'w') as f:
             f.write(json.dumps(pipeline))
@@ -57,13 +58,21 @@ class PipelineExecutor(object):
         return pipeline_path
 
     def run_pipeline(self, id):
+        clean_up_functions = []
         try:
-            clean_up_functions = []
             pipeline_path = self._prepare_pipeline(id, clean_up=clean_up_functions)
         except RecursivePipelineCall:
             abort(400)
 
         input_path, output_path = None, pipeline_path + '.output'
+
+        def delete_input_output(**kwargs):
+            if input_path is not None and os.path.isfile(input_path):
+                os.remove(input_path)
+            if output_path is not None and os.path.isfile(output_path):
+                os.remove(output_path)
+
+        clean_up_functions.append(delete_input_output)
 
         if request.method == 'POST':
             data = json.loads(request.get_data())
@@ -109,6 +118,10 @@ class PipelineExecutor(object):
         with open(input_path, 'w') as f:
             f.write(json.dumps(content))
 
+        def delete_input(**kwargs):
+            if input_path is not None and os.path.isfile(input_path):
+                os.remove(input_path)
+
         meta = {
             'user': current_user.username,
             'requestTime': time(),
@@ -124,6 +137,7 @@ class PipelineExecutor(object):
 
         def clean_up():
             clean_up_func(pipeline_path='', execution_name='', current_user_info={})
+            delete_input()
 
         self.aimsun_service.run_pipeline((self._RUN_SCRIPT_PIPELINE_PATH, input_path, None, clean_up), subs_chan)
         return channel_name

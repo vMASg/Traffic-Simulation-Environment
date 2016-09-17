@@ -128,6 +128,8 @@ class ScriptService(object):
     def get_clean_up_function(self, copy_path):
         def clean_up_func(**kwargs):
             os.remove(copy_path)
+            if os.path.isfile(copy_path + 'c'):
+                os.remove(copy_path + 'c')
 
         return clean_up_func
 

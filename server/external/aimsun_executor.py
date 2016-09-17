@@ -156,6 +156,9 @@ class SaveModel(Node):
     def __call__(self, model):
         model.console.save(model.getDocumentFileName())
         shutil.copy2(str(model.getDocumentFileName()), model.original_model_path)
+        # TODO improve saving "signal"
+        with open(sys.argv[1] + '.save', 'a') as saved_models:
+            saved_models.write('{}\n'.format(model.original_model_path))
 
 class RunSimulation(Node):
     """docstring for RunSimulation"""

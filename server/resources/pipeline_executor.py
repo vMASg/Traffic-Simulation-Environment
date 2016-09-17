@@ -24,14 +24,16 @@ class PipelineExecutor(object):
             pipeline = json.loads(f.read())
         return pipeline['isExecutor'], not pipeline['aimsun']
 
-    def _prepare_pipeline(self, id, loaded_pipelines=None):
+    def _prepare_pipeline(self, id, loaded_pipelines=None, clean_up=None):
         loaded_pipelines = loaded_pipelines or {}
+        clean_up = clean_up or []
         if id in loaded_pipelines:
             # TODO remove the exception when conditional nodes are included
             # raise RecursivePipelineCall()
             return loaded_pipelines[id]
 
         pipeline_path = self.pipeline_service.get_path_for_execution(id)
+        clean_up.append(self.pipeline_service.get_clean_up_function(pipeline_path))
         with open(pipeline_path, 'r') as f:
             pipeline = json.loads(f.read())
 
@@ -40,9 +42,11 @@ class PipelineExecutor(object):
         for node in pipeline_nodes:
             if node['type'] == 'code':
                 node['path'] = self.script_service.get_path_for_execution(node['path'], hash=node['hash'])
+                clean_up.append(self.script_service.get_clean_up_function(node['path']))
             elif node['type'] == 'model':
                 node['originalModelPath'] = self.model_service.get_path(node['path'])
                 node['path'] = self.model_service.get_path_for_execution(node['path'])
+                clean_up.append(self.model_service.get_clean_up_function(node['path']))
             elif node['type'] == 'pipeline':
                 node['path'] = self._prepare_pipeline(node['path'], loaded_pipelines)
 
@@ -54,7 +58,8 @@ class PipelineExecutor(object):
 
     def run_pipeline(self, id):
         try:
-            pipeline_path = self._prepare_pipeline(id)
+            clean_up_functions = []
+            pipeline_path = self._prepare_pipeline(id, clean_up=clean_up_functions)
         except RecursivePipelineCall:
             abort(400)
 
@@ -73,14 +78,20 @@ class PipelineExecutor(object):
                 'requestTime': time(),
                 'type': 'pipeline',
                 'comment': comment,
-                'task': id
+                'task': id,
+                'hash': self.pipeline_service.get_pipeline(id)[3][0]
             }
 
         # Create a new channel to send output to users
         sc = self.subscription_service.create_subscription_channel('pipeline-{}-{}'.format(id, meta['requestTime']), alive='while_active', persist=True, persist_type='unique')
         sc.meta = meta
+
+        def clean_up():
+            for func in clean_up_functions:
+                func(pipeline_path=pipeline_path, execution_name=sc.persist_file)
+
         is_executor, only_python = self._is_executor_only_python(pipeline_path)
-        self.aimsun_service.run_pipeline((pipeline_path, input_path, output_path), sc, is_executor=is_executor, only_python=only_python)
+        self.aimsun_service.run_pipeline((pipeline_path, input_path, output_path, clean_up), sc, is_executor=is_executor, only_python=only_python)
         # self.pipeline_channel.broadcast({'channel': sc.channel_name})
         return 'OK'
 
@@ -88,6 +99,7 @@ class PipelineExecutor(object):
         # return self._aimsun_proc1.run_script(script_content, model_id)
         # raise DeprecationWarning()
         model_path = self.model_service.get_path_for_execution(model_id)
+        clean_up_func = self.model_service.get_clean_up_function(model_path)
         original_model = self.model_service.get_path(model_id)
         input_path = model_path + '.input'
 
@@ -100,11 +112,16 @@ class PipelineExecutor(object):
             'requestTime': time(),
             'type': 'immediate script',
             'comment': '',
-            'task': model_id
+            'task': model_id,
+            'hash': None
         }
 
         channel_name = '{}-script-{}-{}'.format(current_user.username, model_id, meta['requestTime'])
         subs_chan = self.subscription_service.create_subscription_channel(channel_name, alive="while_active", persist=False)
         subs_chan.meta = meta
-        self.aimsun_service.run_pipeline((self._RUN_SCRIPT_PIPELINE_PATH, input_path, None), subs_chan)
+
+        def clean_up():
+            clean_up_func(pipeline_path='', execution_name='')
+
+        self.aimsun_service.run_pipeline((self._RUN_SCRIPT_PIPELINE_PATH, input_path, None, clean_up), subs_chan)
         return channel_name

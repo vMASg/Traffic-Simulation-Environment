@@ -119,3 +119,9 @@ class PipelineService(object):
             shutil.copy2(original_path, destination_path)
         # shutil.copy2(original_path, destination_path)
         return destination_path
+
+    def get_clean_up_function(self, copy_path):
+        def clean_up_func(**kwargs):
+            os.remove(copy_path)
+
+        return clean_up_func

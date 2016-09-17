@@ -43,5 +43,18 @@ class ModelService(object):
         # shutil.copy2(original_path, destination_path)
         return os.path.join(destination_path, os.path.basename(original_path))
 
+    def get_clean_up_function(self, copy_path):
+        def clean_up_func(**kwargs):
+            path = kwargs['pipeline_path']
+            subs_id = kwargs['execution_name']
+            if os.path.isfile(path + '.save'):
+                # TODO git commit all models in file
+                with open(path + '.save', 'r') as saved_models:
+                    pass
+                os.remove(path + '.save')
+            shutil.rmtree(os.path.split(copy_path)[0])
+
+        return clean_up_func
+
     def get_path(self, id):
         return self._get_rel_abs_path(id)[0]

@@ -10,7 +10,7 @@ from server.constants import PYTHON_DIR
 class PipelineThread(threading.Thread):
     def __init__(self, pipeline, aconsole_path, subscription_channel, only_python, output, event):
         super(PipelineThread, self).__init__(name='PipelineThread')
-        self.pipeline, self.pipeline_inputs, self.pipeline_outputs = pipeline
+        self.pipeline, self.pipeline_inputs, self.pipeline_outputs, self.clean_up_func = pipeline
         self.aconsole_path = aconsole_path
         self.subscription_channel = subscription_channel
         self.only_python = only_python
@@ -100,6 +100,7 @@ class PipelineThread(threading.Thread):
             self.subscription_channel.meta['finishTime'] = time()
             self.subscription_channel.send_meta()
             self.subscription_channel.end()
+            self.clean_up_func()
             self.event.set()
         else:
             print 'ERROR'

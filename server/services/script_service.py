@@ -125,6 +125,12 @@ class ScriptService(object):
 
         return path
 
+    def get_clean_up_function(self, copy_path):
+        def clean_up_func(**kwargs):
+            os.remove(copy_path)
+
+        return clean_up_func
+
     # def get_input_output(self, id):
     #     si = ScriptInfo(self._get_rel_abs_path(id)[0])
     #     return si.get_inputs_outputs()

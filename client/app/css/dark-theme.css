@@ -75,6 +75,14 @@
     background-color: #222222;
 }
 
+.model-history {
+    /*background-color: #313036;*/
+    /*background-color: #333;*/
+    /*background: linear-gradient(#262626 0%, #454545 100%);*/
+    background: linear-gradient(#23222a 0%, #f44545 100%);
+}
+
+.model-history,
 .form-control.input,
 .modal-content {
     color: #ddd;
@@ -146,6 +154,12 @@
     background: linear-gradient(to bottom,  #172229 0%,#2c4352 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#172229', endColorstr='#2c4352',GradientType=0 ); /* IE6-9 */
     color: #ddd;
+}
+
+.model-panel > .btn-group > .btn-default.active {
+    color: #ddd;
+    background-color: #4d4d4d;
+    border-color: #333;
 }
 
 .view-panel {

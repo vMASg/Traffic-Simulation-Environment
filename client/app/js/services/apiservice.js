@@ -12,7 +12,7 @@ angular.module('APIServices', [])
                     info = info || [];
                 }
                 hash = hash&&hash.length?'/'+hash:'';
-                if (info.length == 0 || info.indexOf('onlycode') >= 0) {
+                if (info.length === 0 || info.indexOf('onlycode') >= 0) {
                     return $http.get('/scripts/' + encodeURIComponent(id) + hash, {
                         transformResponse: []
                     });
@@ -41,6 +41,9 @@ angular.module('APIServices', [])
         return {
             getModelCollection: function () {
                 return $http.get('/models');
+            },
+            getModel: function (modelId) {
+                return $http.get('/models/' + encodeURIComponent(modelId));
             },
             runImmediateScript: function (modelId, code) {
                 return $http.post('/models/' + encodeURIComponent(modelId) + '/runscript', code, {

@@ -214,6 +214,7 @@ treecontrol ul {
     height: 100%;
 }
 
+.model-history,
 .special-pane {
     position: relative;
     width: 100%;
@@ -222,6 +223,7 @@ treecontrol ul {
     overflow: auto;
 }
 
+.model-history .title,
 .special-pane .title {
     font-size: x-large;
 }
@@ -230,6 +232,7 @@ treecontrol ul {
     margin-bottom: 50px;
 }
 
+.model-history .content,
 .special-pane > .section > .content {
     padding: 15px;
     width: 100%;

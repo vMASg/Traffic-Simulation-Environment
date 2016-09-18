@@ -1,14 +1,49 @@
 <div class="view-panel model-panel">
-    <button class="btn btn-default" data-ng-click="runImmediate()">Run Immediate Script</button>
-</div>
-<div class="immediate-editor" ui-ace="aceOption" data-ng-model="code"></div>
-<div class="vertical-separator" style="visibility: hidden;"></div>
-<div class="immediate-results">
-    <div class="menu">
-        <span>Output:</span>
+    <button class="btn btn-default" data-ng-click="runImmediate()" ng-disabled="panel != 'Query'">Run Immediate Script</button>
+    <div class="btn-group">
+        <label class="btn btn-default" ng-model="panel" uib-btn-radio="'Query'">Query</label>
+        <label class="btn btn-default" ng-model="panel" uib-btn-radio="'History'">History</label>
     </div>
-    <div class="results">
-        <span ng-repeat-start="res in scriptResult track by $index">{{res}}</span>
-        <br ng-repeat-end="" />
+</div>
+<div ng-show="panel == 'Query'" class="firepad">
+    <div class="immediate-editor" ui-ace="aceOption" data-ng-model="code"></div>
+    <div class="vertical-separator" style="visibility: hidden;"></div>
+    <div class="immediate-results">
+        <div class="menu">
+            <span>Output:</span>
+        </div>
+        <div class="results">
+            <span ng-repeat-start="res in scriptResult track by $index">{{res}}</span>
+            <br ng-repeat-end="" />
+        </div>
+    </div>
+</div>
+<div ng-show="panel == 'History'" class="firepad model-history">
+    <div class="title">Model History</div>
+    <div class="content">
+        <table class="table">
+          <thead>
+            <tr>
+                <th>User</th>
+                <th>Request Time</th>
+                <th>Start Time</th>
+                <th>Finish Time</th>
+                <th>Type</th>
+                <th>Task</th>
+                <th>Comment</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="(executionId, metaData) in historyElements" class="info-view">
+                <td>{{metaData.user || '-'}}</td>
+                <td uib-tooltip="{{fullDate(metaData.requestTime)}}" tooltip-append-to-body="true">{{relativeDate(metaData.requestTime)}}</td>
+                <td uib-tooltip="{{fullDate(metaData.startTime)}}" tooltip-append-to-body="true">{{relativeDate(metaData.startTime)}}</td>
+                <td uib-tooltip="{{fullDate(metaData.finishTime)}}" tooltip-append-to-body="true">{{relativeDate(metaData.finishTime)}}</td>
+                <td>{{metaData.type || '-'}}</td>
+                <td>{{metaData.task || '-'}}</td>
+                <td>{{metaData.comment || '-'}}</td>
+            </tr>
+          </tbody>
+        </table>
     </div>
 </div>

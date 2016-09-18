@@ -5,7 +5,10 @@ angular.module('trafficEnv')
                 'data': '=tabData',
                 'switchNew': '&'
             },
-            controller: ['$scope', 'modelServices', 'socket', function($scope, modelServices, socket) {
+            controller: ['$scope', 'modelServices', 'finishedTasksServices', 'socket', function($scope, modelServices, finishedTasksServices, socket) {
+
+                $scope.panel = 'Query';
+
                 $scope.aceOption = {
                     mode: 'python',
                     theme: 'monokai',
@@ -46,6 +49,24 @@ angular.module('trafficEnv')
                         socket.on(channel_name + ':EOT', eotCallback);
                     });
                 };
+
+                $scope.historyElements = {};
+
+                $scope.fullDate = function (timestamp) {
+                    return timestamp?moment(timestamp,'X').format('DD/MM/YY HH:mm:ss'):'-';
+                };
+
+                var appendToHistory = function (data) {
+                    $scope.historyElements[data.data.id] = data.data.meta;
+                };
+
+                modelServices.getModel($scope.data.id).then(function (data) {
+                    var changes = data.data.changes;
+                    var len = changes.length;
+                    for (var i = 0; i < len; ++i) {
+                        finishedTasksServices.getFinishedTask(changes[i]).then(appendToHistory);
+                    }
+                });
             }],
             templateUrl: 'templates/model-tab.html'
         };

@@ -14,8 +14,10 @@ class Execution(Resource):
     def get(self, id):
         abs, rel = self._get_rel_abs_path(id)
         if rel.startswith('..'):
-            return '', 403
-        return send_file(abs)
+            abort(403)
+        elif not os.path.isfile(abs):
+            abort(404)
+        return send_file(abs, as_attachment=False, mimetype="application/json")
 
     def _get_rel_abs_path(self, id):
         abs_path = os.path.join(self._root_folder, id)
@@ -25,7 +27,7 @@ class Execution(Resource):
     def delete(self, id):
         abs, rel = self._get_rel_abs_path(id)
         if rel.startswith('..'):
-            return '', 403
+            abort(403)
         if os.path.exists(abs):
             os.remove(abs)
         self._deleted_execution(id)

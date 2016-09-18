@@ -99,7 +99,7 @@ class PipelineExecutor(object):
 
         def clean_up():
             for func in clean_up_functions:
-                func(pipeline_path=pipeline_path, execution_name=sc.persist_file, current_user_info=current_user_info)
+                func(pipeline_path=pipeline_path, execution_name=sc.persist_file_id(), current_user_info=current_user_info)
 
         is_executor, only_python = self._is_executor_only_python(pipeline_path)
         self.aimsun_service.run_pipeline((pipeline_path, input_path, output_path, clean_up), sc, is_executor=is_executor, only_python=only_python)
@@ -141,3 +141,11 @@ class PipelineExecutor(object):
 
         self.aimsun_service.run_pipeline((self._RUN_SCRIPT_PIPELINE_PATH, input_path, None, clean_up), subs_chan)
         return channel_name
+
+    def model_run_script(self, id, script_id):
+        script = ""
+        if script_id is None:
+            script = request.get_data()
+        else:
+            script = self.script_service.get_script_content(script_id)
+        return json.dumps({'channel_name': self.run_script(script, id)})

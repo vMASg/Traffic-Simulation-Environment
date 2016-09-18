@@ -1,7 +1,7 @@
 import os
 import shutil
 from collections import namedtuple
-from server.exceptions import LockException
+from server.exceptions import LockException, InvalidPathException
 
 class ModelService(object):
     """docstring for ModelService"""
@@ -18,17 +18,35 @@ class ModelService(object):
         self.git_service = git_service
         if not os.path.isdir(os.path.join(self._root_folder_content, '.git')):
             git_service.init_repo(self._root_folder_content)
+            with open(os.path.join(self._root_folder_content, '.gitattributes'), 'w') as git_attributes:
+                git_attributes.write('*.reg\ttext\n')
+                git_attributes.write('*.ang\tbinary\n')
             git_service.commit_file('.', self._root_folder_content, 'auto.environ <environ@foo.com>', message='Initial commit')
 
     def get_models(self):
         return_type = namedtuple('ModelLocator', ['id', 'name'])
         retval = []
         for element in os.listdir(self._root_folder_content):
-            if not element.endswith('.reg'):
+            if not element.endswith('.reg') and element != '.gitattributes':
                 full_path = os.path.join(self._root_folder_content, element)
                 if os.path.isfile(full_path) and element[-4:] == '.ang':
                     retval.append(return_type(element, element))
         return retval
+
+    def get_model(self, id):
+        abs_path, rel_path = self._get_rel_abs_path(id)
+        if not rel_path.startswith('..'):
+            if os.path.isfile(abs_path):
+                registry = []
+                if os.path.isfile(abs_path + '.reg'):
+                    with open(abs_path + '.reg', 'r') as reg:
+                        registry = [line.strip() for line in reg if len(line.strip()) > 0]
+
+                return {'id': id, 'name': id, 'changes': registry}
+            else:
+                return None
+        else:
+            raise InvalidPathException()
 
     def _get_rel_abs_path(self, id):
         abs_path = os.path.join(self._root_folder_content, id)

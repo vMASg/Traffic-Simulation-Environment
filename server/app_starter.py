@@ -122,7 +122,8 @@ class AppStarter(Resource):
         self._api.add_resource(Script, '/scripts/<id>', '/scripts/<id>/<hash>', resource_class_kwargs={'script_locator': script_service, 'subscription_service': self._subscription})
         self._api.add_resource(PipelineCollection, '/pipelines', resource_class_kwargs={'pipeline_locator': pipeline_service, 'subscription_service': self._subscription})
         self._api.add_resource(Pipeline, '/pipelines/<id>', '/pipelines/<id>/<hash>', resource_class_kwargs={'pipeline_locator': pipeline_service, 'subscription_service': self._subscription})
-        self._api.add_resource(ModelCollection, '/models', resource_class_kwargs={'model_locator': model_service, 'aimsun_service': aimsun_service})
+        self._api.add_resource(ModelCollection, '/models', resource_class_kwargs={'model_locator': model_service, 'subscription_service': self._subscription})
+        self._api.add_resource(Model, '/models/<id>', resource_class_kwargs={'model_locator': model_service, 'subscription_service': self._subscription})
         self._api.add_resource(InterfaceCollection, '/interfaces', resource_class_kwargs={'interface_locator': interface_service, 'subscription_service': self._subscription})
         self._api.add_resource(Interface, '/interfaces/<id>', resource_class_kwargs={'interface_locator': interface_service, 'subscription_service': self._subscription})
         self._api.add_resource(ExecutionCollection, '/executions', resource_class_kwargs={'root_folder': SUBSCRIPTIONS_ROOT_FOLDER, 'subscription_service': self._subscription})
@@ -132,11 +133,8 @@ class AppStarter(Resource):
         # Pipeline
         pipeline_executor = PipelineExecutor(aimsun_service, pipeline_service, script_service, model_service, self._subscription)
         self._app.add_url_rule('/pipelines/<id>/run', 'run_pipeline', pipeline_executor.run_pipeline, methods=['POST'])
-
-        # Model
-        model = Model(pipeline_executor, model_service, script_service)
-        self._app.add_url_rule('/models/<id>/runscript', 'run_script', model.run_script, defaults={'script_id': None}, methods=['GET', 'POST'])
-        self._app.add_url_rule('/models/<id>/runscript/<script_id>', 'run_script', model.run_script, methods=['GET', 'POST'])
+        self._app.add_url_rule('/models/<id>/runscript', 'run_script', pipeline_executor.model_run_script, defaults={'script_id': None}, methods=['GET', 'POST'])
+        self._app.add_url_rule('/models/<id>/runscript/<script_id>', 'run_script', pipeline_executor.model_run_script, methods=['GET', 'POST'])
 
     def _register(self):
         if current_user.is_authenticated:

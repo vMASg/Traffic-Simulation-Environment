@@ -239,6 +239,26 @@ treecontrol ul {
     margin: auto;
 }
 
+.model-upload {
+    text-align: center;
+    font-size: 50px;
+    line-height: 1;
+    padding: 50px;
+}
+
+.model-upload > label {
+    cursor: pointer;
+}
+
+.model-upload > input[type="file"] {
+    width: 0.1px;
+    height: 0.1px;
+    opacity: 0;
+    overflow: hidden;
+    position: absolute;
+    z-index: -1;
+}
+
 .info-view {
     cursor: pointer;
 }

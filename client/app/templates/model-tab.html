@@ -1,6 +1,6 @@
 <div class="view-panel model-panel">
-    <button class="btn btn-default" data-ng-click="runImmediate()" ng-disabled="panel != 'Query'">Run Immediate Script</button>
-    <div class="btn-group">
+    <button class="btn btn-default" data-ng-click="runImmediate()" ng-disabled="panel != 'Query'" ng-show="data.id">Run Immediate Script</button>
+    <div class="btn-group" ng-show="data.id">
         <label class="btn btn-default" ng-model="panel" uib-btn-radio="'Query'">Query</label>
         <label class="btn btn-default" ng-model="panel" uib-btn-radio="'History'">History</label>
     </div>
@@ -47,6 +47,10 @@
         </table>
     </div>
 </div>
-<div ng-show="panel == 'Upload'">
-    <input type="file" data-custom-on-change="uploadFile" />
+<div ng-show="panel == 'Upload'" class="firepad model-upload">
+    <input type="file" id="file" data-custom-on-change="uploadFile" />
+    <label for="file">
+    <div class="ion-upload"></div>
+    <div><span>Upload</span></div>
+    </label>
 </div>

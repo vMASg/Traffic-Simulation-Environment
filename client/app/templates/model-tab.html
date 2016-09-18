@@ -25,9 +25,9 @@
           <thead>
             <tr>
                 <th>User</th>
-                <th>Request Time</th>
-                <th>Start Time</th>
-                <th>Finish Time</th>
+                <!-- <th>Request Time</th> -->
+                <!-- <th>Start Time</th> -->
+                <th>Date</th>
                 <th>Type</th>
                 <th>Task</th>
                 <th>Comment</th>
@@ -36,8 +36,8 @@
           <tbody>
             <tr ng-repeat="(executionId, metaData) in historyElements" class="info-view">
                 <td>{{metaData.user || '-'}}</td>
-                <td uib-tooltip="{{fullDate(metaData.requestTime)}}" tooltip-append-to-body="true">{{relativeDate(metaData.requestTime)}}</td>
-                <td uib-tooltip="{{fullDate(metaData.startTime)}}" tooltip-append-to-body="true">{{relativeDate(metaData.startTime)}}</td>
+                <!-- <td uib-tooltip="{{fullDate(metaData.requestTime)}}" tooltip-append-to-body="true">{{relativeDate(metaData.requestTime)}}</td> -->
+                <!-- <td uib-tooltip="{{fullDate(metaData.startTime)}}" tooltip-append-to-body="true">{{relativeDate(metaData.startTime)}}</td> -->
                 <td uib-tooltip="{{fullDate(metaData.finishTime)}}" tooltip-append-to-body="true">{{relativeDate(metaData.finishTime)}}</td>
                 <td>{{metaData.type || '-'}}</td>
                 <td>{{metaData.task || '-'}}</td>
@@ -46,4 +46,7 @@
           </tbody>
         </table>
     </div>
+</div>
+<div ng-show="panel == 'Upload'">
+    <input type="file" data-custom-on-change="uploadFile" />
 </div>

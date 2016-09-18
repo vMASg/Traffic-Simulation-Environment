@@ -77,9 +77,10 @@
 
 .model-history {
     /*background-color: #313036;*/
-    /*background-color: #333;*/
+    background-color: #333;
     /*background: linear-gradient(#262626 0%, #454545 100%);*/
-    background: linear-gradient(#23222a 0%, #f44545 100%);
+    /*background: linear-gradient(#23222a 0%, #f44545 100%);*/
+    /*background: linear-gradient(to bottom, hsla(247,11%,10%,1) 0%, hsla(247,11%,25%,1) 70%, #f44545 100%);*/
 }
 
 .model-history,

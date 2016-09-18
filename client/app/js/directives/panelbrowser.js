@@ -126,6 +126,13 @@ angular.module('trafficEnv')
                     $scope.deleteTab(id);
                 });
 
+                socket.on('new_model', function (data) {
+                    $scope.treeFiles[1].children.push(data);
+                    $scope.treeFiles[1].children.sort(function (a,b) {
+                        return a.name.localeCompare(b.name);
+                    });
+                });
+
                 socket.on('new_pipeline', function (data) {
                     // console.log(data);
                     var addNewElement = function (currentNode, where, tab) {

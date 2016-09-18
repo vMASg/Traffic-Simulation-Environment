@@ -1,6 +1,7 @@
 import os
 import shutil
 from collections import namedtuple
+from flask_login import current_user
 from server.exceptions import LockException, InvalidPathException
 
 class ModelService(object):
@@ -52,6 +53,14 @@ class ModelService(object):
         abs_path = os.path.join(self._root_folder_content, id)
         relpath = os.path.relpath(os.path.normpath(abs_path), self._root_folder_content)
         return abs_path, relpath
+
+    def create_model(self, file, filename):
+        file.save(os.path.join(self._root_folder_content, filename))
+        abs_path, relpath = self._get_rel_abs_path(filename)
+        author = '{} <{}>'.format(current_user.username, current_user.email)
+        message = 'Adding {}'.format(relpath)
+        self.git_service.commit_file(abs_path, self._root_folder_content, author, message=message)
+        return filename, filename
 
     def get_path_for_execution(self, id):
         original_path = self._get_rel_abs_path(id)[0]

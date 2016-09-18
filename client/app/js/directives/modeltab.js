@@ -7,6 +7,23 @@ angular.module('trafficEnv')
             },
             controller: ['$scope', 'modelServices', 'finishedTasksServices', 'socket', function($scope, modelServices, finishedTasksServices, socket) {
 
+                if (!$scope.data.id) {
+                    $scope.panel = 'Upload';
+                    $scope.uploadFile = function (event) {
+                        var file = event.target.files[0];
+                        if (file.name.slice(-4) == '.ang') {
+                            modelServices.uploadModel(file).then(function (data) {
+                                $scope.switchNew({ntab: {
+                                    id: data.id,
+                                    name: data.name,
+                                    type: data.type
+                                }});
+                            });
+                        }
+                    };
+                    return;
+                }
+
                 $scope.panel = 'Query';
 
                 $scope.aceOption = {

@@ -45,6 +45,25 @@ angular.module('APIServices', [])
             getModel: function (modelId) {
                 return $http.get('/models/' + encodeURIComponent(modelId));
             },
+            uploadModel: function (file) {
+                var formData = new FormData();
+                var def = {
+                    func: function (data) {},
+                    then: function (f) {
+                        def.func = f;
+                    }
+                };
+                formData.append('model', file, file.name);
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', '/models', true);
+                xhr.onload = function (response) {
+                    if (xhr.status == 200) {
+                        def.func(angular.fromJson(xhr.response));
+                    }
+                };
+                xhr.send(formData);
+                return def;
+            },
             runImmediateScript: function (modelId, code) {
                 return $http.post('/models/' + encodeURIComponent(modelId) + '/runscript', code, {
                     headers: {

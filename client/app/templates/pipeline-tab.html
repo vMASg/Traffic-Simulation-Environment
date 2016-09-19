@@ -114,6 +114,7 @@
         </div>
         <div class="node-box stdnodes" ng-repeat="nodeInfo in shapes" ng-mousedown="startMoving($event, null, nodeInfo);" ng-mouseup="maybeStopProp($event)" style="visibility: hidden;" uib-popover-template="infoNodePopover.template" popover-title="{{nodeInfo.title}} Info" popover-trigger="none" popover-placement="top" popover-is-open="nodeInfo.infoShown">
             <div class="title">
+                <div ng-show="nodeInfo.outdated" class="ion-alert-circled"></div>
                 <span>{{nodeInfo.title}}</span>
                 <div class="icon ion-trash-a" ng-dblclick="deleteNode($event, nodeInfo)"></div>
                 <div class="icon ion-information-circled" ng-if="nodeInfo.type != 'special'" ng-click="toggleInfoShown($event, nodeInfo)"></div>

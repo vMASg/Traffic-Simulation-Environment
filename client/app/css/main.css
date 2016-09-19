@@ -427,12 +427,18 @@ td.output-view > table > tbody > tr > th {
 }
 
 .pipeline-container .ion-information-circled,
+.pipeline-container .ion-alert-circled,
 .pipeline-container .icon.ion-trash-a  {
     float: right;
     font-size: larger;
     line-height: 1;
     cursor: pointer;
     margin-left: 3px;
+}
+
+.pipeline-container .ion-alert-circled {
+    float: left;
+    color: #ca0;
 }
 
 .pipeline-container .io-row > .io-cell {

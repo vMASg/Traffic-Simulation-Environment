@@ -500,6 +500,60 @@ angular.module('trafficEnv')
                     containerTop = boundingClientRect.top;
                 };
 
+                var versionCtrl = {
+                    scripts: {},
+                    pipelines: {}
+                };
+
+                var onChangedScript = function (data) {
+                    if (versionCtrl.scripts[data.id]) {
+                        var arr = versionCtrl.scripts[data.id];
+                        for (var i = 0; i < arr.length; ++i) {
+                            arr[i].outdated = true;
+                        }
+                        // versionCtrl.scripts[data.id].outdated = true;
+                    }
+                };
+
+                var onChangedPipeline = function (data) {
+                    if (versionCtrl.pipelines[data.id]) {
+                        var arr = versionCtrl.pipelines[data.id];
+                        for (var i = 0; i < arr.length; ++i) {
+                            arr[i].outdated = true;
+                        }
+                        // versionCtrl.pipelines[data.id].outdated = true;
+                    }
+                };
+
+                var checkOutdated = function () {
+                    var setOutdated = function (target, data) {
+                        for (var i = 0; i < target.length; ++i) {
+                            var elem = target[i];
+                            if (data.data.hash[0] != elem.hash) {
+                                elem.outdated = true;
+                            }
+                        }
+                        // if (data.data.hash[0] != target.hash) {
+                        //     target.outdated = true;
+                        // }
+                    };
+                    for (var script in versionCtrl.scripts) {
+                        scriptServices.getScript(script, ['hash']).then(setOutdated.bind(this, versionCtrl.scripts[script]));
+                    }
+
+                    for (var pipeline in versionCtrl.pipelines) {
+                        pipelineServices.getPipeline(pipeline).then(setOutdated.bind(this, versionCtrl.pipelines[pipeline]));
+                    }
+                };
+
+                socket.on('changed_script', onChangedScript);
+                socket.on('changed_pipeline', onChangedPipeline);
+
+                $scope.$on('$destroy', function(){
+                    socket.removeListener('changed_script', onChangedScript);
+                    socket.removeListener('changed_pipeline', onChangedPipeline);
+                });
+
                 var boundingClientRect = nodes.getBoundingClientRect();
                 var containerWidth = boundingClientRect.width;
                 var containerHeight = boundingClientRect.height;
@@ -529,6 +583,10 @@ angular.module('trafficEnv')
                             };
                             aimsunNodeCounter += response.data.stype != 'PythonScript'?1:0;
                             $scope.shapes.push(nodeInfo);
+                            if (!versionCtrl.scripts[nodeInfo.path]) {
+                                versionCtrl.scripts[nodeInfo.path] = [];
+                            }
+                            versionCtrl.scripts[nodeInfo.path].push(nodeInfo);
                             $timeout(function(){
                                 var nodeboxes = nodes.querySelectorAll('.node-box.stdnodes');
                                 createBox(nodeboxes[nodeboxes.length-1], nodeInfo, $event.clientX, $event.clientY);
@@ -573,6 +631,10 @@ angular.module('trafficEnv')
                             executionNodeCounter += pipeline.isExecutor?1:0;
                             aimsunNodeCounter += pipeline.aimsun?1:0;
                             $scope.shapes.push(nodeInfo);
+                            if (!versionCtrl.pipelines[nodeInfo.path]) {
+                                versionCtrl.pipelines[nodeInfo.path] = [];
+                            }
+                            versionCtrl.pipelines[nodeInfo.path].push(nodeInfo);
                             $timeout(function(){
                                 var nodeboxes = nodes.querySelectorAll('.node-box.stdnodes');
                                 createBox(nodeboxes[nodeboxes.length-1], nodeInfo, $event.clientX, $event.clientY);
@@ -949,6 +1011,11 @@ angular.module('trafficEnv')
                             aimsunNodeCounter += node.aimsun?1:0;
                             nodeIdCounter = Math.max(nodeIdCounter, node.id + 1);
                             $scope.shapes.push(nodeInfo);
+                            var typeArr = (node.type=='code'?versionCtrl.scripts:versionCtrl.pipelines);
+                            if (!typeArr[nodeInfo.path]) {
+                                typeArr[nodeInfo.path] = [];
+                            }
+                            typeArr[nodeInfo.path].push(nodeInfo);
                         }
                         if (pipeline.inputs) {
                             $scope.pipelineInputs = {
@@ -1053,6 +1120,7 @@ angular.module('trafficEnv')
                                 }
                             }
                         }, 5);
+                        $timeout(checkOutdated, 1000);
                     }
                     pipelineServices.getPipeline($scope.data.id).then(loadPipeline);
 

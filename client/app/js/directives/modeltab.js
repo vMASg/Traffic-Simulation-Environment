@@ -73,6 +73,10 @@ angular.module('trafficEnv')
                     return timestamp?moment(timestamp,'X').format('DD/MM/YY HH:mm:ss'):'-';
                 };
 
+                $scope.relativeDate = function (timestamp) {
+                    return timestamp?moment(timestamp,'X').fromNow():'-';
+                };
+
                 var appendToHistory = function (data) {
                     $scope.historyElements[data.data.id] = data.data.meta;
                 };

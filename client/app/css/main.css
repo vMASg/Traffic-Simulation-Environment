@@ -7,6 +7,10 @@
     clear: both;
 }
 
+.tooltip-inner {
+    max-width: none;
+}
+
 html, body {
     margin: 0;
     padding: 0;
@@ -340,7 +344,8 @@ td.output-view > table > tbody > tr > th {
 .firepad {
     position: relative;
     width: 100%;
-    height: 100%;
+    /*height: 100%;*/
+    height: calc(100% - 50px);
 }
 
 .pipeline-container,
@@ -352,6 +357,10 @@ td.output-view > table > tbody > tr > th {
     /*height: 900px;*/
 }
 
+.firepad > .code-editor {
+    height: 100%;
+}
+
 .pipeline-container {
     font-size: 12px;
 }
@@ -359,7 +368,7 @@ td.output-view > table > tbody > tr > th {
 .immediate-editor {
     position: relative;
     width: 100%;
-    height: calc(100% - 350px);
+    height: calc(100% - 300px);
     font-size: 14px;
     /*height: 900px;*/
 }

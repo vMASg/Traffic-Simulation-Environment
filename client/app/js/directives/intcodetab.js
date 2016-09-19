@@ -59,6 +59,12 @@ angular.module('trafficEnv')
                     $scope.$on('$destroy', function () {
                         socket.emit('unsubscribe', {channel: roomName});
                     });
+                } else {
+                    $scope.code = [
+                        "<div data-ng-controller='MyCtrl'>",
+                        "    ",
+                        "</div>"
+                    ].join('\n');
                 }
 
                 $scope.saveInterface = function () {

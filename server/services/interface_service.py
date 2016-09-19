@@ -9,6 +9,13 @@ from server.exceptions import InvalidPathException
 
 class InterfaceService(object):
     """docstring for InterfaceService"""
+
+    JS_DEFAULT_CONTENT = """angular.module('trafficEnv')
+.controller('MyCtrl', function($scope){
+    // TODO
+});
+"""
+
     def __init__(self, root_folder, git_service):
         super(InterfaceService, self).__init__()
         self._root_folder = root_folder if root_folder[-1] != '\\' else root_folder[:-1]
@@ -88,7 +95,7 @@ class InterfaceService(object):
         if not os.path.isdir(parent_folder):
             os.makedirs(parent_folder)
         self.update_interface(basepath + '.html', content)
-        self.update_interface(basepath + '.js', '')
+        self.update_interface(basepath + '.js', self.JS_DEFAULT_CONTENT)
         self.update_interface(basepath + '.css', '')
         self.update_interface(basepath + '.intf', '')
         return basepath + '.html', basename + '.html', content

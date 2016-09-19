@@ -235,8 +235,33 @@ angular.module('trafficEnv')
                     }
                 };
 
+                var existsPath = function (starting, ending, visited) {
+                    if (starting.id == ending.id) {
+                        return true;
+                    } else if (!visited) {
+                        visited = [];
+                    }
+                    visited.push(starting.id);
+                    var i, j, len = starting.outputs.length;
+                    var pathFound = false;
+                    for (i = 0; i < len && !pathFound; ++i) {
+                        var output = starting.outputs[i];
+                        var connectionsLen = output.connections?output.connections.length:0;
+                        for (j = 0; j < connectionsLen && !pathFound; ++j) {
+                            var connectedNode = output.connections[j].destination.getNode();
+                            pathFound = visited.indexOf(connectedNode.id) < 0 && existsPath(connectedNode, ending, visited);
+                        }
+                    }
+                    len = starting.successors.length;
+                    for (i = 0; i < len && !pathFound; ++i) {
+                        var successor = starting.successors[i];
+                        pathFound = visited.indexOf(successor.destination.id) < 0 && existsPath(successor.destination, ending, visited);
+                    }
+                    return pathFound;
+                };
+
                 $scope.finishStartingConnection = function (ev, nodeConnector) {
-                    if (startingPath && startingPath.connectorOut && nodeConnector.getNode() !== startingPath.connectorOut.getNode()) {
+                    if (startingPath && startingPath.connectorOut && !existsPath(nodeConnector.getNode(), startingPath.connectorOut.getNode())) {
                         var element = ev.target;
                         var boundingClientRect = element.getBoundingClientRect();
                         var top = boundingClientRect.top, left = boundingClientRect.left;
@@ -262,7 +287,7 @@ angular.module('trafficEnv')
                 };
 
                 $scope.finishEndingConnection = function (ev, nodeConnector) {
-                    if (endingPath && endingPath.connectorIn && nodeConnector.getNode() !== endingPath.connectorIn.getNode()) {
+                    if (endingPath && endingPath.connectorIn && !existsPath(endingPath.connectorIn.getNode(), nodeConnector.getNode())) {
                         var element = ev.target;
                         var boundingClientRect = element.getBoundingClientRect();
                         var top = boundingClientRect.top, left = boundingClientRect.left;
@@ -307,7 +332,7 @@ angular.module('trafficEnv')
                 };
 
                 $scope.finishPredecessor = function (ev, nodeInfo) {
-                    if (endingPath && endingPath.nodeIn && nodeInfo !== endingPath.nodeIn) {
+                    if (endingPath && endingPath.nodeIn && !existsPath(endingPath.nodeIn, nodeInfo)) {
                         var element = ev.target;
                         var boundingClientRect = element.getBoundingClientRect();
                         var top = boundingClientRect.top, left = boundingClientRect.left;
@@ -353,7 +378,7 @@ angular.module('trafficEnv')
                 };
 
                 $scope.finishSuccessor = function (ev, nodeInfo) {
-                    if (startingPath && startingPath.nodeOut && nodeInfo !== startingPath.nodeOut) {
+                    if (startingPath && startingPath.nodeOut && !existsPath(nodeInfo, startingPath.nodeOut)) {
                         var element = ev.target;
                         var boundingClientRect = element.getBoundingClientRect();
                         var top = boundingClientRect.top, left = boundingClientRect.left;
@@ -767,15 +792,17 @@ angular.module('trafficEnv')
                 };
 
                 $scope.addInputs = function () {
-                    $scope.pipelineInputs = {
-                        x: containerLeft,
-                        y: containerTop,
-                        outputs: []
-                    };
-                    $timeout(function (){
-                        var node = nodes.querySelector('.input-box');
-                        createBoxIn(node, $scope.pipelineInputs);
-                    }, 5);
+                    if (!$scope.pipelineInputs) {
+                        $scope.pipelineInputs = {
+                            x: containerLeft,
+                            y: containerTop,
+                            outputs: []
+                        };
+                        $timeout(function (){
+                            var node = nodes.querySelector('.input-box');
+                            createBoxIn(node, $scope.pipelineInputs);
+                        }, 5);
+                    }
                 };
 
                 $scope.newPipelineInput = function () {
@@ -818,15 +845,17 @@ angular.module('trafficEnv')
                 };
 
                 $scope.addOutputs = function () {
-                    $scope.pipelineOutputs = {
-                        x: containerLeft,
-                        y: containerTop,
-                        inputs: []
-                    };
-                    $timeout(function(){
-                        var node = nodes.querySelector('.output-box');
-                        createBoxOut(node, $scope.pipelineOutputs);
-                    }, 5);
+                    if (!$scope.pipelineOutputs) {
+                        $scope.pipelineOutputs = {
+                            x: containerLeft,
+                            y: containerTop,
+                            inputs: []
+                        };
+                        $timeout(function(){
+                            var node = nodes.querySelector('.output-box');
+                            createBoxOut(node, $scope.pipelineOutputs);
+                        }, 5);
+                    }
                 };
 
                 $scope.infoNodePopover = {

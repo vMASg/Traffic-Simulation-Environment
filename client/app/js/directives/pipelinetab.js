@@ -1011,11 +1011,13 @@ angular.module('trafficEnv')
                             aimsunNodeCounter += node.aimsun?1:0;
                             nodeIdCounter = Math.max(nodeIdCounter, node.id + 1);
                             $scope.shapes.push(nodeInfo);
-                            var typeArr = (node.type=='code'?versionCtrl.scripts:versionCtrl.pipelines);
-                            if (!typeArr[nodeInfo.path]) {
-                                typeArr[nodeInfo.path] = [];
+                            if (node.type == 'code' || node.type == 'pipeline') {                            
+                                var typeArr = (node.type=='code'?versionCtrl.scripts:versionCtrl.pipelines);
+                                if (!typeArr[nodeInfo.path]) {
+                                    typeArr[nodeInfo.path] = [];
+                                }
+                                typeArr[nodeInfo.path].push(nodeInfo);
                             }
-                            typeArr[nodeInfo.path].push(nodeInfo);
                         }
                         if (pipeline.inputs) {
                             $scope.pipelineInputs = {
@@ -1171,7 +1173,7 @@ angular.module('trafficEnv')
 
                     var userChange = function (snapshot) {
                         users[snapshot.key()] = snapshot.val();
-                        if (initialized && get_users_with_write().length == 0) {
+                        if (initialized && $scope.get_users_with_write().length == 0) {
                             var randomTimeout = Math.random()*1000;
                             $timeout(initRequest, randomTimeout);
                         }
@@ -1179,13 +1181,13 @@ angular.module('trafficEnv')
 
                     var userRemoved = function (snapshot) {
                         users[snapshot.key()] = null;
-                        if (initialized && get_users_with_write().length == 0) {
+                        if (initialized && $scope.get_users_with_write().length == 0) {
                             var randomTimeout = Math.random()*1000;
                             $timeout(initRequest, randomTimeout);
                         }
                     };
 
-                    var get_users_with_write = function () {
+                    $scope.get_users_with_write = function () {
                         var retval = [];
                         for (var user in users) {
                             if (users[user] == 'read_write') {
@@ -1196,14 +1198,14 @@ angular.module('trafficEnv')
                     };
 
                     var initRequest = function () {
-                        var permission = get_users_with_write().length==0?'read_write':'read_only';
+                        var permission = $scope.get_users_with_write().length==0?'read_write':'read_only';
                         // var child = {};
                         // child[userName] = permission;
 
                         usersRef.child(userName).transaction(function() {
                             return permission;
                         }, function () {
-                            if (permission == 'read_write' && get_users_with_write().length > 1) {
+                            if (permission == 'read_write' && $scope.get_users_with_write().length > 1) {
                                 permission = 'read_only';
                                 var randomTimeout = Math.random()*1000;
                                 usersRef.child(userName).transaction(function() { return permission; }, function() { $timeout(initRequest, randomTimeout); } );

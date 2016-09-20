@@ -889,7 +889,7 @@ angular.module('trafficEnv')
                     for (var i = 0; i < out.length; ++i) {
                         var connections = out[i].connections || [];
                         while (connections.length > 0) {
-                            deleteConnection('output', outputs[i], 0);
+                            deleteConnection('output', out[i], 0);
                         }
                     }
                     $scope.pipelineInputs = null;

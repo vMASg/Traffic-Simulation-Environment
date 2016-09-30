@@ -171,11 +171,14 @@ class GitService(object):
             stdout=PIPE, stderr=STDOUT)
 
         retcode = cmd.poll()
+        retval = ''
         while retcode is None:
-            sleep(0.05)
+            sleep(0.01)
+            retval += cmd.stdout.readline()
             retcode = cmd.poll()
 
-        return [hash.strip().split('~')[0] for hash in cmd.stdout.readlines() if len(hash.strip()) > 0]
+        retval += cmd.stdout.read()
+        return [hash.strip().split('~')[0] for hash in retval.splitlines() if len(hash.strip()) > 0]
 
     @mutex
     def get_content(self, file_path, repo_dir, hash):
@@ -191,8 +194,11 @@ class GitService(object):
             stdout=PIPE, stderr=STDOUT)
 
         retcode = cmd.poll()
+        retval = ''
         while retcode is None:
-            sleep(0.05)
+            sleep(0.01)
+            retval += cmd.stdout.read(500)
             retcode = cmd.poll()
 
-        return cmd.stdout.read().strip()
+        retval += cmd.stdout.read()
+        return retval.strip()

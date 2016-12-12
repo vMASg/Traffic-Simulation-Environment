@@ -3,26 +3,16 @@ import shutil
 from collections import namedtuple
 from flask_login import current_user
 from server.exceptions import LockException, InvalidPathException
+from server.services.base_service import BaseService
 
-class ModelService(object):
+class ModelService(BaseService):
     """docstring for ModelService"""
     def __init__(self, root_folder, git_service):
-        super(ModelService, self).__init__()
-        self._root_folder = root_folder if not root_folder[-1] == '\\' else root_folder[:-1]
-        self._root_folder_content = os.path.join(self._root_folder, 'content')
-        self._root_folder_tmp = os.path.join(self._root_folder, 'tmp')
-        if not os.path.isdir(self._root_folder_content):
-            os.mkdir(self._root_folder_content)
-        if not os.path.isdir(self._root_folder_tmp):
-            os.mkdir(self._root_folder_tmp)
-
-        self.git_service = git_service
-        if not os.path.isdir(os.path.join(self._root_folder_content, '.git')):
-            git_service.init_repo(self._root_folder_content)
-            with open(os.path.join(self._root_folder_content, '.gitattributes'), 'w') as git_attributes:
-                git_attributes.write('*.reg\ttext\n')
-                git_attributes.write('*.ang\tbinary\n')
-            git_service.commit_file('.', self._root_folder_content, 'auto.environ <environ@foo.com>', message='Initial commit')
+        gitattrs = [
+            '*.reg\ttext\n',
+            '*.ang\tbinary\n'
+        ]
+        super(ModelService, self).__init__(root_folder, git_service=git_service, gitattributes_file=''.join(gitattrs), rtype="model")
 
     def get_models(self):
         return_type = namedtuple('ModelLocator', ['id', 'name'])
@@ -48,11 +38,6 @@ class ModelService(object):
                 return None
         else:
             raise InvalidPathException()
-
-    def _get_rel_abs_path(self, id):
-        abs_path = os.path.join(self._root_folder_content, id)
-        relpath = os.path.relpath(os.path.normpath(abs_path), self._root_folder_content)
-        return abs_path, relpath
 
     def create_model(self, file, filename):
         file.save(os.path.join(self._root_folder_content, filename))

@@ -15,13 +15,15 @@ class PipelineCollection(Resource):
         def construct_response(pip):
             retval = []
             for pipeline in pip:
-                info = {'name': pipeline.name}
+                info = {
+                    'id': pipeline.id,
+                    'name': pipeline.name,
+                    'path': pipeline.path
+                }
                 if pipeline.type == 'group':
-                    info['id'] = pipeline.id
                     info['type'] = 'dir'
                     info['children'] = construct_response(pipeline.children)
                 else:
-                    info['id'] = pipeline.id
                     info['type'] = 'pipeline'
 
                 retval.append(info)

@@ -15,13 +15,15 @@ class ScriptCollection(Resource):
         def construct_response(scr):
             retval = []
             for script in scr:
-                info = {'name': script.name}
+                info = {
+                    'id': script.id,
+                    'name': script.name,
+                    'path': script.path
+                }
                 if script.type == 'group':
-                    info['id'] = script.id
                     info['type'] = 'dir'
                     info['children'] = construct_response(script.children)
                 else:
-                    info['id'] = script.id
                     info['type'] = 'code'
 
                 retval.append(info)

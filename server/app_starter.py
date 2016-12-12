@@ -41,7 +41,8 @@ SUBSCRIPTIONS_ROOT_FOLDER = os.path.join(BASE_PATH, 'Subscriptions')
 sql_alchemy_db = SQLAlchemy()
 login_manager = LoginManager()
 
-from server.resources.user import User
+from server.models.user import User
+from server.models.resource import ResourceModel
 
 @login_manager.user_loader
 def load_user(user_id):

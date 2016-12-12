@@ -4,26 +4,15 @@ import re
 from flask_login import current_user
 from collections import namedtuple
 from server.exceptions import InvalidPathException
+from server.services.base_service import BaseService
 
-class PipelineService(object):
+class PipelineService(BaseService):
     """docstring for PipelineService"""
     def __init__(self, root_folder, git_service):
-        super(PipelineService, self).__init__()
-        self._root_folder = root_folder if not root_folder[-1] == '\\' else root_folder[:-1]
-        self._root_folder_content = os.path.join(self._root_folder, 'content')
-        self._root_folder_tmp = os.path.join(self._root_folder, 'tmp')
-        if not os.path.isdir(self._root_folder_content):
-            os.mkdir(self._root_folder_content)
-        if not os.path.isdir(self._root_folder_tmp):
-            os.mkdir(self._root_folder_tmp)
-
-        self.git_service = git_service
-        if not os.path.isdir(os.path.join(self._root_folder_content, '.git')):
-            git_service.init_repo(self._root_folder_content)
-            git_service.commit_file('.', self._root_folder_content, 'auto.environ <environ@foo.com>', message='Initial commit')
+        super(PipelineService, self).__init__(root_folder, git_service=git_service, rtype="pipeline")
 
     def get_pipelines(self):
-        return_type = namedtuple('PipelineLocator', ['name', 'type', 'id', 'children'])
+        return_type = namedtuple('PipelineLocator', ['name', 'type', 'id', 'path', 'children'])
         exceptions = [r'\.\w+']
         def construct_response(folder):
             retval = []
@@ -33,19 +22,14 @@ class PipelineService(object):
                     relpath = os.path.relpath(full_path, self._root_folder_content)
                     if os.path.isdir(full_path):
                         children = construct_response(full_path)
-                        retval.append(return_type(content, 'group', relpath, children))
+                        retval.append(return_type(content, 'group', self.get_id_from_path(relpath), relpath, children))
                     else:
-                        retval.append(return_type(content, 'file', relpath, None))
+                        retval.append(return_type(content, 'file', self.get_id_from_path(relpath), relpath, None))
             return retval
 
         children = construct_response(self._root_folder_content)
         folder_name = 'Pipelines'
-        return [return_type(folder_name, 'group', '.', children)]
-
-    def _get_rel_abs_path(self, id):
-        abs_path = os.path.join(self._root_folder_content, id)
-        relpath = os.path.relpath(os.path.normpath(abs_path), self._root_folder_content)
-        return abs_path, relpath
+        return [return_type(folder_name, 'group', self.get_id_from_path('.'), '.', children)]
 
     def get_pipeline(self, id, hash=None):
         abs_path, relpath = self._get_rel_abs_path(id)
@@ -61,7 +45,7 @@ class PipelineService(object):
                 os.remove(abs_path_hash)
 
             hashes = self.git_service.get_revision_hashes(abs_path, self._root_folder_content)
-            return id, os.path.basename(id), content, hashes
+            return id, os.path.basename(abs_path), content, hashes
         else:
             raise InvalidPathException()
 
@@ -82,6 +66,7 @@ class PipelineService(object):
             try:
                 os.remove(abs_path)
                 os.removedirs(os.path.split(abs_path)[0])
+                self._delete_resource(id)
             except WindowsError:
                 pass
         else:
@@ -89,12 +74,13 @@ class PipelineService(object):
 
     def create_pipeline(self, name, parent, content):
         path = os.path.normpath(os.path.join(self._root_folder_content, parent, name))
-        id = os.path.relpath(path, self._root_folder_content)
+        rel_path = os.path.relpath(path, self._root_folder_content)
+        id = self._new_resource(rel_path)
         parent_folder = os.path.split(path)[0]
         if not os.path.isdir(parent_folder):
             os.makedirs(parent_folder)
         self.update_pipeline(id, content)
-        return id, os.path.basename(id), content
+        return id, os.path.basename(rel_path), content
 
     def get_revision_hashes(self, id):
         return self.git_service.get_revision_hashes(self._get_rel_abs_path(id)[0], self._root_folder_content)

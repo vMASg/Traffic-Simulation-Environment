@@ -5,28 +5,15 @@ from collections import namedtuple
 from server.exceptions import InvalidPathException
 from server.utils.script_info import ScriptInfo
 from server.exceptions import LockException
+from server.services.base_service import BaseService
 
-class ScriptService(object):
+class ScriptService(BaseService):
     """docstring for ScriptService"""
     def __init__(self, root_folder, git_service):
-        super(ScriptService, self).__init__()
-        self._root_folder = root_folder if root_folder[-1] != '\\' else root_folder[:-1]
-        self._root_folder_content = os.path.join(self._root_folder, 'content')
-        self._root_folder_tmp = os.path.join(self._root_folder, 'tmp')
-        if not os.path.isdir(self._root_folder_content):
-            os.mkdir(self._root_folder_content)
-        if not os.path.isdir(self._root_folder_tmp):
-            os.mkdir(self._root_folder_tmp)
-
-        self.git_service = git_service
-        if not os.path.isdir(os.path.join(self._root_folder_content, '.git')):
-            git_service.init_repo(self._root_folder_content)
-            with open(os.path.join(self._root_folder_content, '.gitignore'), 'w') as git_ignore:
-                git_ignore.write('*.pyc\n')
-            git_service.commit_file('.', self._root_folder_content, 'auto.environ <environ@foo.com>', message='Initial commit')
+        super(ScriptService, self).__init__(root_folder, git_service=git_service, gitignore_file='*.pyc\n', rtype="script")
 
     def get_scripts(self):
-        return_type = namedtuple('ScriptLocator', ['name', 'type', 'id', 'children'])
+        return_type = namedtuple('ScriptLocator', ['name', 'type', 'id', 'path', 'children'])
         exceptions = [r'\.\w+', r'.*\.pyc']
         def construct_response(folder):
             retval = []
@@ -36,19 +23,14 @@ class ScriptService(object):
                     relpath = os.path.relpath(full_path, self._root_folder_content)
                     if os.path.isdir(full_path):
                         children = construct_response(full_path)
-                        retval.append(return_type(content, 'group', relpath, children))
+                        retval.append(return_type(content, 'group', self.get_id_from_path(relpath), relpath, children))
                     else:
-                        retval.append(return_type(content, 'file', relpath, None))
+                        retval.append(return_type(content, 'file', self.get_id_from_path(relpath), relpath, None))
             return retval
 
         children = construct_response(self._root_folder_content)
         folder_name = 'Scripts'
-        return [return_type(folder_name, 'group', '.', children)]
-
-    def _get_rel_abs_path(self, id):
-        abs_path = os.path.join(self._root_folder_content, id)
-        relpath = os.path.relpath(os.path.normpath(abs_path), self._root_folder_content)
-        return abs_path, relpath
+        return [return_type(folder_name, 'group', self.get_id_from_path('.'), '.', children)]
 
     def get_script_content(self, id, hash=None):
         abs_path, relpath = self._get_rel_abs_path(id)
@@ -67,8 +49,7 @@ class ScriptService(object):
             raise InvalidPathException()
 
     def get_script_location(self, id):
-        abs_path, relpath = self._get_rel_abs_path(id)
-        return abs_path
+        return self._get_rel_abs_path(id)[0]
 
     def update_script(self, id, content):
         abs_path, relpath = self._get_rel_abs_path(id)
@@ -89,6 +70,7 @@ class ScriptService(object):
                 if os.path.isfile(abs_path + 'c'):
                     os.remove(abs_path + 'c')
                 os.removedirs(os.path.split(abs_path)[0])
+                self._delete_resource(id)
             except WindowsError:
                 pass
             except OSError:
@@ -98,19 +80,20 @@ class ScriptService(object):
 
     def create_script(self, name, parent, content):
         path = os.path.normpath(os.path.join(self._root_folder_content, parent, name))
-        id = os.path.relpath(path, self._root_folder_content)
+        rel_path = os.path.relpath(path, self._root_folder_content)
+        id = self._new_resource(rel_path)
         parent_folder = os.path.split(path)[0]
         if not os.path.isdir(parent_folder):
             os.makedirs(parent_folder)
         self.update_script(id, content)
-        return id, os.path.basename(id), content
+        return id, os.path.basename(rel_path), content
 
     # FIELDS QUERY
     def get_name(self, id):
-        return os.path.basename(id)
+        return os.path.basename(self._get_rel_abs_path(id)[0])
 
     def get_path(self, id):
-        return id
+        return self._get_rel_abs_path(id)[1]
 
     def get_revision_hashes(self, id):
         return self.git_service.get_revision_hashes(self._get_rel_abs_path(id)[0], self._root_folder_content)
@@ -119,9 +102,12 @@ class ScriptService(object):
         path = self._get_rel_abs_path(id)[0]
         if hash is not None:
             content = self.git_service.get_content(path, self._root_folder_content, hash)
-            path = os.path.join(self._root_folder_tmp, '{}_{}'.format(hash, os.path.basename(id)))
-            with open(path, 'w') as p:
-                p.write(content)
+        else:
+            with open(path, 'r') as f:
+                content = f.read()
+        path = os.path.join(self._root_folder_tmp, '{}_{}'.format(hash or '', os.path.basename(path)))
+        with open(path, 'w') as p:
+            p.write(content)
 
         return path
 

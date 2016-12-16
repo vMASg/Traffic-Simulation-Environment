@@ -21,6 +21,9 @@ from server.resources.interface import Interface
 from server.resources.execution_collection import ExecutionCollection
 from server.resources.execution import Execution
 from server.resources.pipeline_executor import PipelineExecutor
+
+sql_alchemy_db = SQLAlchemy()
+
 # Services
 from server.services.script_service import ScriptService
 from server.services.pipeline_service import PipelineService
@@ -38,7 +41,6 @@ PIPELINES_ROOT_FOLDER = os.path.join(BASE_PATH, 'Pipelines')
 INTERFACES_ROOT_FOLDER = os.path.join(BASE_PATH, 'Interfaces')
 SUBSCRIPTIONS_ROOT_FOLDER = os.path.join(BASE_PATH, 'Subscriptions')
 
-sql_alchemy_db = SQLAlchemy()
 login_manager = LoginManager()
 
 from server.models.user import User

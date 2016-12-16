@@ -4,7 +4,7 @@ import os
 import psutil
 from time import time
 from Queue import Queue, Empty as QueueEmpty
-from subprocess import Popen, PIPE, STDOUT, CREATE_NEW_PROCESS_GROUP
+from subprocess import Popen, PIPE, STDOUT
 from server.constants import PYTHON_DIR
 
 class PipelineThread(threading.Thread):

@@ -21,6 +21,6 @@
     <input type="text" class="form-control input" data-ng-model="filename" placeholder="File name" />
 </div>
 <div class="modal-footer">
-    <button class='btn btn-default' data-ng-click="$close([selectedNode.id, filename])">Save</button>
+    <button class='btn btn-default' data-ng-click="$close([selectedNode.path, filename])">Save</button>
     <button class='btn btn-default' data-ng-click="$dismiss('Canceled')">Cancel</button>
 </div>

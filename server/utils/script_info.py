@@ -1,12 +1,13 @@
 import subprocess
 import json
+import os
 
 class ScriptInfo(object):
     """docstring for ScriptInfo"""
     def __init__(self, script_path):
         super(ScriptInfo, self).__init__()
         self.script_path = script_path
-        cmd = subprocess.Popen(['python', 'server\\external\\get_script_info.py', script_path], stdout=subprocess.PIPE)
+        cmd = subprocess.Popen(['python', os.path.join('server', 'external', 'get_script_info.py'), script_path], stdout=subprocess.PIPE)
         ret = cmd.wait()
         if ret != 0:
             self.info = type('NoneDict', (object,), {'__getitem__': lambda s, e: None})()

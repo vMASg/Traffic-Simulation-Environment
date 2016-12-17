@@ -583,10 +583,10 @@ angular.module('trafficEnv')
                             };
                             aimsunNodeCounter += response.data.stype != 'PythonScript'?1:0;
                             $scope.shapes.push(nodeInfo);
-                            if (!versionCtrl.scripts[nodeInfo.path]) {
-                                versionCtrl.scripts[nodeInfo.path] = [];
+                            if (!versionCtrl.scripts[response.data.id]) {
+                                versionCtrl.scripts[response.data.id] = [];
                             }
-                            versionCtrl.scripts[nodeInfo.path].push(nodeInfo);
+                            versionCtrl.scripts[response.data.id].push(nodeInfo);
                             $timeout(function(){
                                 var nodeboxes = nodes.querySelectorAll('.node-box.stdnodes');
                                 createBox(nodeboxes[nodeboxes.length-1], nodeInfo, $event.clientX, $event.clientY);
@@ -1013,10 +1013,10 @@ angular.module('trafficEnv')
                             $scope.shapes.push(nodeInfo);
                             if (node.type == 'code' || node.type == 'pipeline') {                            
                                 var typeArr = (node.type=='code'?versionCtrl.scripts:versionCtrl.pipelines);
-                                if (!typeArr[nodeInfo.path]) {
-                                    typeArr[nodeInfo.path] = [];
+                                if (!typeArr[nodeInfo.path]) {  // TODO: replace nodeInfo.path with resource id
+                                    typeArr[nodeInfo.path] = [];  // TODO: replace nodeInfo.path with resource id
                                 }
-                                typeArr[nodeInfo.path].push(nodeInfo);
+                                typeArr[nodeInfo.path].push(nodeInfo);  // TODO: replace nodeInfo.path with resource id
                             }
                         }
                         if (pipeline.inputs) {

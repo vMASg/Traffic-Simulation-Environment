@@ -45,7 +45,7 @@ class PipelineService(BaseService):
                 os.remove(abs_path_hash)
 
             hashes = self.git_service.get_revision_hashes(abs_path, self._root_folder_content)
-            return id, os.path.basename(abs_path), content, hashes
+            return id, os.path.basename(abs_path), relpath, content, hashes
         else:
             raise InvalidPathException()
 

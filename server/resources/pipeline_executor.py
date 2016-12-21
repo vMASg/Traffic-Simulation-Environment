@@ -88,7 +88,7 @@ class PipelineExecutor(object):
                 'type': 'pipeline',
                 'comment': comment,
                 'task': id,
-                'hash': self.pipeline_service.get_pipeline(id)[3][0]
+                'hash': self.pipeline_service.get_pipeline(id)[4][0]
             }
 
         # Create a new channel to send output to users

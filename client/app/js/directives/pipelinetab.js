@@ -1,5 +1,5 @@
 angular.module('trafficEnv')
-    .directive('pipelineTab', ['$timeout', 'scriptServices', 'pipelineServices', '$uibModal', 'socket', function($timeout, scriptServices, pipelineServices, $uibModal, socket){
+    .directive('pipelineTab', ['$timeout', 'scriptServices', 'modelServices', 'pipelineServices', '$uibModal', 'socket', function($timeout, scriptServices, modelServices, pipelineServices, $uibModal, socket){
         return {
             scope: {
                 'data': '=tabData',
@@ -568,57 +568,62 @@ angular.module('trafficEnv')
                 $scope.dropHandler = function ($event, $data, $channel) {
                     if ($channel == 'code') {
                         scriptServices.getScript($data, ['name', 'inout', 'path', 'hash', 'stype']).then(function (response) {
+                            var data = response.data;
                             var nodeInfo = {
-                                id: nodeIdCounter++,  // TODO replace by proper random id
+                                // id: nodeIdCounter++,  // TODO replace by proper random id
+                                id: data.id,
                                 type: $channel,
-                                path: response.data.path,
-                                hash: response.data.hash[0],
-                                title: response.data.name,
-                                inputs: (response.data.inout[0] || []).map(function (a) { return {name: a}; }),
-                                outputs: (response.data.inout[1] || []).map(function (a) { return {name: a}; }),
+                                path: data.path,
+                                hash: data.hash[0],
+                                title: data.name,
+                                inputs: (data.inout[0] || []).map(function (a) { return {name: a}; }),
+                                outputs: (data.inout[1] || []).map(function (a) { return {name: a}; }),
                                 predecessors: [],
                                 successors: [],
                                 isExecutor: false,
-                                aimsun: response.data.stype != 'PythonScript'
+                                aimsun: data.stype != 'PythonScript'
                             };
-                            aimsunNodeCounter += response.data.stype != 'PythonScript'?1:0;
+                            aimsunNodeCounter += data.stype != 'PythonScript'?1:0;
                             $scope.shapes.push(nodeInfo);
-                            if (!versionCtrl.scripts[response.data.id]) {
-                                versionCtrl.scripts[response.data.id] = [];
+                            if (!versionCtrl.scripts[data.id]) {
+                                versionCtrl.scripts[data.id] = [];
                             }
-                            versionCtrl.scripts[response.data.id].push(nodeInfo);
+                            versionCtrl.scripts[data.id].push(nodeInfo);
                             $timeout(function(){
                                 var nodeboxes = nodes.querySelectorAll('.node-box.stdnodes');
                                 createBox(nodeboxes[nodeboxes.length-1], nodeInfo, $event.clientX, $event.clientY);
                             }, 5);
                         });
                     } else if ($channel == 'model') {
-                        var nodeInfo = {
-                            id: nodeIdCounter++,  // TODO replace by proper random id
-                            type: $channel,
-                            path: $data,  // TODO retrieve info from server
-                            hash: null,
-                            title: 'Model ' + $data,
-                            inputs: [],
-                            outputs: [{name: 'id_model'}],
-                            predecessors: [],
-                            successors: [],
-                            isExecutor: false,
-                            aimsun: false
-                        };
-                        $scope.shapes.push(nodeInfo);
-                        $timeout(function(){
-                            var nodeboxes = nodes.querySelectorAll('.node-box.stdnodes');
-                            createBox(nodeboxes[nodeboxes.length-1], nodeInfo, $event.clientX, $event.clientY);
-                        }, 5);
+                        modelServices.getModel($data).then(function (response) {
+                            var data = response.data;
+                            var nodeInfo = {
+                                id: data.id,  // TODO replace by proper random id
+                                type: $channel,
+                                path: data.path,  // TODO retrieve info from server
+                                hash: null,
+                                title: data.name,
+                                inputs: [],
+                                outputs: [{name: 'id_model'}],
+                                predecessors: [],
+                                successors: [],
+                                isExecutor: false,
+                                aimsun: false
+                            };
+                            $scope.shapes.push(nodeInfo);
+                            $timeout(function(){
+                                var nodeboxes = nodes.querySelectorAll('.node-box.stdnodes');
+                                createBox(nodeboxes[nodeboxes.length-1], nodeInfo, $event.clientX, $event.clientY);
+                            }, 5);
+                        });
                     } else if ($channel == 'pipeline') {
                         pipelineServices.getPipeline($data).then(function (response) {
                             var data = response.data;
                             var pipeline = angular.fromJson(data.graph);
                             var nodeInfo = {
-                                id: nodeIdCounter++,
+                                id: data.id,
                                 type: $channel,
-                                path: data.id,
+                                path: data.path,
                                 hash: data.hash[0],
                                 title: data.name,
                                 inputs: (pipeline.inputs || {outputs:[]}).outputs.map(function (a) { return {name: a.name}; }),
@@ -631,10 +636,10 @@ angular.module('trafficEnv')
                             executionNodeCounter += pipeline.isExecutor?1:0;
                             aimsunNodeCounter += pipeline.aimsun?1:0;
                             $scope.shapes.push(nodeInfo);
-                            if (!versionCtrl.pipelines[nodeInfo.path]) {
-                                versionCtrl.pipelines[nodeInfo.path] = [];
+                            if (!versionCtrl.pipelines[nodeInfo.id]) {
+                                versionCtrl.pipelines[nodeInfo.id] = [];
                             }
-                            versionCtrl.pipelines[nodeInfo.path].push(nodeInfo);
+                            versionCtrl.pipelines[nodeInfo.id].push(nodeInfo);
                             $timeout(function(){
                                 var nodeboxes = nodes.querySelectorAll('.node-box.stdnodes');
                                 createBox(nodeboxes[nodeboxes.length-1], nodeInfo, $event.clientX, $event.clientY);
@@ -1013,10 +1018,10 @@ angular.module('trafficEnv')
                             $scope.shapes.push(nodeInfo);
                             if (node.type == 'code' || node.type == 'pipeline') {                            
                                 var typeArr = (node.type=='code'?versionCtrl.scripts:versionCtrl.pipelines);
-                                if (!typeArr[nodeInfo.path]) {  // TODO: replace nodeInfo.path with resource id
-                                    typeArr[nodeInfo.path] = [];  // TODO: replace nodeInfo.path with resource id
+                                if (!typeArr[nodeInfo.id]) {
+                                    typeArr[nodeInfo.id] = [];
                                 }
-                                typeArr[nodeInfo.path].push(nodeInfo);  // TODO: replace nodeInfo.path with resource id
+                                typeArr[nodeInfo.id].push(nodeInfo);
                             }
                         }
                         if (pipeline.inputs) {

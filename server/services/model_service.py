@@ -33,7 +33,7 @@ class ModelService(BaseService):
                     with open(abs_path + '.reg', 'r') as reg:
                         registry = [line.strip() for line in reg if len(line.strip()) > 0]
 
-                return {'id': id, 'name': id, 'changes': registry}
+                return {'id': id, 'name': id, 'path': rel_path, 'changes': registry}
             else:
                 return None
         else:

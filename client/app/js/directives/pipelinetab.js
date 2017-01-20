@@ -242,7 +242,7 @@ angular.module('trafficEnv')
                         visited = [];
                     }
                     visited.push(starting.id);
-                    var i, j, len = starting.outputs.length;
+                    var i, j, len = starting.outputs?starting.outputs.length:0;
                     var pathFound = false;
                     for (i = 0; i < len && !pathFound; ++i) {
                         var output = starting.outputs[i];
@@ -252,7 +252,7 @@ angular.module('trafficEnv')
                             pathFound = visited.indexOf(connectedNode.id) < 0 && existsPath(connectedNode, ending, visited);
                         }
                     }
-                    len = starting.successors.length;
+                    len = starting.successors?starting.successors.length:0;
                     for (i = 0; i < len && !pathFound; ++i) {
                         var successor = starting.successors[i];
                         pathFound = visited.indexOf(successor.destination.id) < 0 && existsPath(successor.destination, ending, visited);

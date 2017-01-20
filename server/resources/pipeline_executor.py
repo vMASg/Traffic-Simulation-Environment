@@ -42,14 +42,14 @@ class PipelineExecutor(object):
         pipeline_nodes = pipeline['nodes']
         for node in pipeline_nodes:
             if node['type'] == 'code':
-                node['path'] = self.script_service.get_path_for_execution(node['path'], hash=node['hash'])
+                node['path'] = self.script_service.get_path_for_execution(node['id'], hash=node['hash'])
                 clean_up.append(self.script_service.get_clean_up_function(node['path']))
             elif node['type'] == 'model':
-                node['originalModelPath'] = self.model_service.get_path(node['path'])
-                node['path'] = self.model_service.get_path_for_execution(node['path'])
+                node['originalModelPath'] = self.model_service.get_path(node['id'])
+                node['path'] = self.model_service.get_path_for_execution(node['id'])
                 clean_up.append(self.model_service.get_clean_up_function(node['path']))
             elif node['type'] == 'pipeline':
-                node['path'] = self._prepare_pipeline(node['path'], loaded_pipelines, clean_up)
+                node['path'] = self._prepare_pipeline(node['id'], loaded_pipelines, clean_up)
 
         with open(pipeline_path, 'w') as f:
             f.write(json.dumps(pipeline))
@@ -92,7 +92,7 @@ class PipelineExecutor(object):
             }
 
         # Create a new channel to send output to users
-        sc = self.subscription_service.create_subscription_channel('pipeline-{}-{}'.format(id, meta['requestTime']), alive='while_active', persist=True, persist_type='unique')
+        sc = self.subscription_service.create_subscription_channel('pipeline={}={}'.format(id, meta['requestTime']), alive='while_active', persist=True, persist_type='unique')
         sc.meta = meta
 
         current_user_info = {'username': current_user.username, 'email': current_user.email}
@@ -131,7 +131,7 @@ class PipelineExecutor(object):
             'hash': None
         }
 
-        channel_name = '{}-script-{}-{}'.format(current_user.username, model_id, meta['requestTime'])
+        channel_name = '{}=script={}={}'.format(current_user.username, model_id, meta['requestTime'])
         subs_chan = self.subscription_service.create_subscription_channel(channel_name, alive="while_active", persist=False)
         subs_chan.meta = meta
 

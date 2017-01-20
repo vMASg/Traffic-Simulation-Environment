@@ -27,7 +27,7 @@ class PipelineThread(threading.Thread):
         inout = [self.pipeline_inputs or '-', self.pipeline_outputs or '-']
         if self.only_python:
             cmd = Popen(
-                ['python', 'server\\external\\aimsun_executor.py', self.pipeline] + inout,
+                ['python', os.path.join('server','external','aimsun_executor.py'), self.pipeline] + inout,
                 # [self.aconsole_path, '-script', 'server\\external\\aimsun_executor.py', self.pipeline] + inout,
                 # stdin=PIPE,
                 stdout=PIPE,
@@ -39,7 +39,7 @@ class PipelineThread(threading.Thread):
             environ['PYTHONDIR'] = PYTHON_DIR
             cmd = Popen(
                 # ['python', 'server\\external\\aimsun_executor.py', self.pipeline] + inout,
-                [self.aconsole_path, '-script', 'server\\external\\aimsun_executor.py', self.pipeline] + inout,
+                [self.aconsole_path, '-script', os.path.join('server','external','aimsun_executor.py'), self.pipeline] + inout,
                 # stdin=PIPE,
                 stdout=PIPE,
                 stderr=STDOUT,

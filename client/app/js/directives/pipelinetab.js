@@ -682,7 +682,7 @@ angular.module('trafficEnv')
 
                     $scope.newFolder = function (selectedNode, foldername) {
                         selectedNode.children.push({
-                            id: selectedNode.id=='.'?foldername:selectedNode.id + '\\' + foldername,
+                            path: selectedNode.path=='.'?foldername:selectedNode.path + '\\' + foldername,
                             name: foldername,
                             type: 'dir',
                             children: []

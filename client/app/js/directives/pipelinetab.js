@@ -423,6 +423,7 @@ angular.module('trafficEnv')
                         nodes: graph.map(function(e) {
                             return {
                                 id: e.id,
+                                oid: e.oid,
                                 type: e.type,
                                 path: e.path,
                                 hash: e.hash,
@@ -570,8 +571,8 @@ angular.module('trafficEnv')
                         scriptServices.getScript($data, ['name', 'inout', 'path', 'hash', 'stype']).then(function (response) {
                             var data = response.data;
                             var nodeInfo = {
-                                // id: nodeIdCounter++,  // TODO replace by proper random id
-                                id: data.id,
+                                id: nodeIdCounter++,  // TODO replace by proper random id
+                                oid: data.id,
                                 type: $channel,
                                 path: data.path,
                                 hash: data.hash[0],
@@ -598,7 +599,8 @@ angular.module('trafficEnv')
                         modelServices.getModel($data).then(function (response) {
                             var data = response.data;
                             var nodeInfo = {
-                                id: data.id,  // TODO replace by proper random id
+                                id: nodeIdCounter++,  // TODO replace by proper random id
+                                oid: data.id,
                                 type: $channel,
                                 path: data.path,  // TODO retrieve info from server
                                 hash: null,
@@ -621,7 +623,8 @@ angular.module('trafficEnv')
                             var data = response.data;
                             var pipeline = angular.fromJson(data.graph);
                             var nodeInfo = {
-                                id: data.id,
+                                id: nodeIdCounter++,  // TODO replace by proper random id
+                                oid: data.id,
                                 type: $channel,
                                 path: data.path,
                                 hash: data.hash[0],
@@ -636,10 +639,10 @@ angular.module('trafficEnv')
                             executionNodeCounter += pipeline.isExecutor?1:0;
                             aimsunNodeCounter += pipeline.aimsun?1:0;
                             $scope.shapes.push(nodeInfo);
-                            if (!versionCtrl.pipelines[nodeInfo.id]) {
-                                versionCtrl.pipelines[nodeInfo.id] = [];
+                            if (!versionCtrl.pipelines[data.id]) {
+                                versionCtrl.pipelines[data.id] = [];
                             }
-                            versionCtrl.pipelines[nodeInfo.id].push(nodeInfo);
+                            versionCtrl.pipelines[data.id].push(nodeInfo);
                             $timeout(function(){
                                 var nodeboxes = nodes.querySelectorAll('.node-box.stdnodes');
                                 createBox(nodeboxes[nodeboxes.length-1], nodeInfo, $event.clientX, $event.clientY);
@@ -836,6 +839,7 @@ angular.module('trafficEnv')
                     }
                     var nodeInfo = {
                         id: nodeIdCounter++,  // TODO replace by proper random id
+                        oid: null,
                         type: 'special',
                         path: '<' + nodeType.toUpperCase().replace(/\s/g, '_') + '>',
                         hash: null,
@@ -999,6 +1003,7 @@ angular.module('trafficEnv')
                             var node = graph[i];
                             var nodeInfo = {
                                 id: node.id,
+                                oid: node.oid,
                                 type: node.type,
                                 path: node.path,
                                 hash: node.hash,
@@ -1018,10 +1023,10 @@ angular.module('trafficEnv')
                             $scope.shapes.push(nodeInfo);
                             if (node.type == 'code' || node.type == 'pipeline') {                            
                                 var typeArr = (node.type=='code'?versionCtrl.scripts:versionCtrl.pipelines);
-                                if (!typeArr[nodeInfo.id]) {
-                                    typeArr[nodeInfo.id] = [];
+                                if (!typeArr[nodeInfo.oid]) {
+                                    typeArr[nodeInfo.oid] = [];
                                 }
-                                typeArr[nodeInfo.id].push(nodeInfo);
+                                typeArr[nodeInfo.oid].push(nodeInfo);
                             }
                         }
                         if (pipeline.inputs) {

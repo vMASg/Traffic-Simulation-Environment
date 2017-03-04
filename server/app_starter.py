@@ -4,7 +4,6 @@ import json
 from flask import Flask, send_from_directory, redirect, url_for, render_template, request
 from flask_restful import Resource, Api
 from flask_socketio import SocketIO, disconnect
-from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 # Forms
@@ -22,7 +21,7 @@ from server.resources.execution_collection import ExecutionCollection
 from server.resources.execution import Execution
 from server.resources.pipeline_executor import PipelineExecutor
 
-sql_alchemy_db = SQLAlchemy()
+from server.utils.sqlalchemy import sql_alchemy_db
 
 # Services
 from server.services.script_service import ScriptService

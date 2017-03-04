@@ -1,6 +1,6 @@
 import uuid
 from sqlalchemy_utils import UUIDType
-from server.app_starter import sql_alchemy_db as db
+from server.utils.sqlalchemy import sql_alchemy_db as db
 
 class ResourceModel(db.Model):
     """docstring for ResourceModel"""

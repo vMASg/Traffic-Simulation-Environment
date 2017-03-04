@@ -1,6 +1,6 @@
 import os
 from server.models.resource import ResourceModel
-from server.app_starter import sql_alchemy_db as db
+from server.utils.sqlalchemy import sql_alchemy_db as db
 
 class BaseService(object):
     """docstring for BaseService"""

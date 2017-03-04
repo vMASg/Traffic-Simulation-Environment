@@ -1,5 +1,5 @@
 from flask_login import UserMixin
-from server.app_starter import sql_alchemy_db as db
+from server.utils.sqlalchemy import sql_alchemy_db as db
 from sqlalchemy.ext.hybrid import hybrid_property
 
 class User(UserMixin, db.Model):

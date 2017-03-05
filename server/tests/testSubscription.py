@@ -1,5 +1,4 @@
 import unittest
-import mock
 from server.subscription import Channel
 
 
@@ -18,7 +17,7 @@ class TestChannel(unittest.TestCase):
         self.ch.user_in('usr1')
         self.assertFalse(self.ch.is_dead())
 
-    def testUserInAndSameUserOutChanelDead(self):
+    def testUserInAndSameUserOutChannelDead(self):
         self.ch.user_in('usr2')
         self.ch.user_out('usr2')
         self.assertTrue(self.ch.is_dead())

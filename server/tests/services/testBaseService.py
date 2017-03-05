@@ -2,6 +2,7 @@ import unittest
 import os
 import shutil
 import tempfile
+from mock import Mock
 from flask import Flask
 from server.utils.sqlalchemy import sql_alchemy_db as db
 from server.services.base_service import BaseService
@@ -19,20 +20,61 @@ class TestBaseService(unittest.TestCase):
         self.app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
         self.app.config['SQLALCHEMY_ECHO'] = False
         db.init_app(self.app)
-        with self.app.app_context():
-            db.create_all()
+        self.app.app_context().push()
+        db.create_all()
 
     def setUp(self):
         self._create_app()
+        self.gitservice_mock = Mock()
 
     def tearDown(self):
         os.remove(self.sqlite_path)
         shutil.rmtree(self.tmpdir)
+        self.gitservice_mock = None
 
-    def testBaseServiceCreatesStructureNoGit(self):
-        bs = BaseService(self.tmpdir)
+    def testCreatesStructureNoGit(self):
+        BaseService(self.tmpdir)
         content = frozenset(os.listdir(self.tmpdir))
         self.assertEqual(content, frozenset(['content', 'tmp']))
+
+    def testCreatesGitFolderNogitignoreNogitattributes(self):
+        BaseService(self.tmpdir, git_service=self.gitservice_mock)
+        content_folder = os.path.join(self.tmpdir, 'content')
+        self.gitservice_mock.init_repo.assert_called_once_with(content_folder)
+        self.gitservice_mock.commit_file.assert_called_once_with('.', content_folder, 'auto.environ <environ@foo.com>', message='Initial commit')
+
+    def testDoesntCreateNewRepoOrFilesIfAlreadyExist(self):
+        content_folder = os.path.join(self.tmpdir, 'content')
+        os.mkdir(content_folder)
+        os.mkdir(os.path.join(content_folder, '.git'))
+        os.mkdir(os.path.join(self.tmpdir, 'tmp'))
+        BaseService(self.tmpdir, git_service=self.gitservice_mock)
+        self.gitservice_mock.init_repo.assert_not_called()
+        self.gitservice_mock.commit_file.assert_not_called()
+        self.assertFalse(os.path.isfile(os.path.join(content_folder, '.gitignore')))
+        self.assertFalse(os.path.isfile(os.path.join(content_folder, '.gitattributes')))
+
+    def testCreatesAllFilesWithContent(self):
+        content_folder = os.path.join(self.tmpdir, 'content')
+        gitignore, gitattr = os.path.join(content_folder, '.gitignore'), os.path.join(content_folder, '.gitattributes')
+        BaseService(self.tmpdir, git_service=self.gitservice_mock, gitignore_file='gitignore content', gitattributes_file='gitattributes content')
+        self.assertTrue(os.path.isfile(gitignore))
+        self.assertTrue(os.path.isfile(gitattr))
+        with open(gitignore, 'r') as gitignore_file, open(gitattr, 'r') as gitattr_file:
+            ign_content, attr_content = gitignore_file.read(), gitattr_file.read()
+
+        self.assertEqual(ign_content, 'gitignore content')
+        self.assertEqual(attr_content, 'gitattributes content')
+
+    def testNewResourceId(self):
+        content_folder = os.path.join(self.tmpdir, 'content')
+        resource_path = os.path.join(content_folder, 'new_resource')
+        bs = BaseService(self.tmpdir)
+        resource_id = bs._new_resource(resource_path)
+        abs_path, rel_path = bs._get_rel_abs_path(resource_id)
+        self.assertEqual(resource_id, bs.get_id_from_path(resource_path))
+        self.assertEqual(abs_path, resource_path)
+        self.assertEqual(rel_path, os.path.relpath(resource_path, start=content_folder))
 
 
 if __name__ == '__main__':

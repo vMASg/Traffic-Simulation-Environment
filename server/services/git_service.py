@@ -1,11 +1,14 @@
+import os
+from functools import wraps
 from subprocess import Popen, STDOUT, PIPE
 from threading import Lock
 from time import sleep
-import os
 
 from server.exceptions import LockException
 
+
 def mutex(func):
+    @wraps(func)
     def decorated(*args, **kwargs):
         self = args[0]
         max_attempts = 3
@@ -30,7 +33,6 @@ class GitService(object):
         super(GitService, self).__init__()
         self.git_location = git_location
         self.lock = Lock()
-
 
     @mutex
     def init_repo(self, repo_dir):

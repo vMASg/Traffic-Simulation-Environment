@@ -6,6 +6,8 @@ from mock import Mock
 from flask import Flask
 from server.utils.sqlalchemy import sql_alchemy_db as db
 from server.services.base_service import BaseService
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm.exc import UnmappedInstanceError
 
 
 class TestBaseService(unittest.TestCase):
@@ -16,6 +18,7 @@ class TestBaseService(unittest.TestCase):
         fd, self.sqlite_path = tempfile.mkstemp()
         self.tmpdir = tempfile.mkdtemp()
         os.close(fd)
+        self.app.config['TESTING'] = True
         self.app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///{}'.format(self.sqlite_path)
         self.app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
         self.app.config['SQLALCHEMY_ECHO'] = False
@@ -29,7 +32,10 @@ class TestBaseService(unittest.TestCase):
 
     def tearDown(self):
         os.remove(self.sqlite_path)
+        self.sqlite_path = None
         shutil.rmtree(self.tmpdir)
+        db.session.remove()
+        db.drop_all()
         self.gitservice_mock = None
 
     def testCreatesStructureNoGit(self):
@@ -66,7 +72,7 @@ class TestBaseService(unittest.TestCase):
         self.assertEqual(ign_content, 'gitignore content')
         self.assertEqual(attr_content, 'gitattributes content')
 
-    def testNewResourceId(self):
+    def testNewResource(self):
         content_folder = os.path.join(self.tmpdir, 'content')
         resource_path = os.path.join(content_folder, 'new_resource')
         bs = BaseService(self.tmpdir)
@@ -75,6 +81,29 @@ class TestBaseService(unittest.TestCase):
         self.assertEqual(resource_id, bs.get_id_from_path(resource_path))
         self.assertEqual(abs_path, resource_path)
         self.assertEqual(rel_path, os.path.relpath(resource_path, start=content_folder))
+
+    def testCreateResourceTwiceThrowsIntegrityError(self):
+        resource_path = os.path.join(self.tmpdir, 'content', 'new_resource')
+        bs = BaseService(self.tmpdir)
+        bs._new_resource(resource_path)
+        with self.assertRaises(IntegrityError):
+            bs._new_resource(resource_path)
+
+    def testCreateResourceDeleteitRecreateSameResource(self):
+        resource_path = os.path.join(self.tmpdir, 'content', 'new_resource')
+        bs = BaseService(self.tmpdir)
+        rid = bs._new_resource(resource_path)
+        bs._delete_resource(rid)
+        nid = bs._new_resource(resource_path)
+        self.assertEqual(rid, nid)
+
+    def testDeleteResourceTwice(self):
+        resource_path = os.path.join(self.tmpdir, 'content', 'new_resource')
+        bs = BaseService(self.tmpdir)
+        rid = bs._new_resource(resource_path)
+        bs._delete_resource(rid)
+        with self.assertRaises(UnmappedInstanceError):
+            bs._delete_resource(rid)
 
 
 if __name__ == '__main__':

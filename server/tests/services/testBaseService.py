@@ -48,6 +48,9 @@ class TestBaseService(unittest.TestCase):
         content_folder = os.path.join(self.tmpdir, 'content')
         self.gitservice_mock.init_repo.assert_called_once_with(content_folder)
         self.gitservice_mock.commit_file.assert_called_once_with('.', content_folder, 'auto.environ <environ@foo.com>', message='Initial commit')
+        content_content_folder = os.listdir(content_folder)
+        self.assertNotIn('.gitignore', content_content_folder)
+        self.assertNotIn('.gitattributes', content_content_folder)
 
     def testDoesntCreateNewRepoOrFilesIfAlreadyExist(self):
         content_folder = os.path.join(self.tmpdir, 'content')
@@ -98,6 +101,7 @@ class TestBaseService(unittest.TestCase):
         self.assertEqual(rid, nid)
 
     def testDeleteResourceTwice(self):
+        # TODO shouldn't raise exception
         resource_path = os.path.join(self.tmpdir, 'content', 'new_resource')
         bs = BaseService(self.tmpdir)
         rid = bs._new_resource(resource_path)

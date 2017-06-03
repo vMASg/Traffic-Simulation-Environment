@@ -75,6 +75,22 @@ class TestBaseService(unittest.TestCase):
         self.assertEqual(ign_content, 'gitignore content')
         self.assertEqual(attr_content, 'gitattributes content')
 
+    def testGetRelAbsPath(self):
+        content_folder = os.path.join(self.tmpdir, 'content')
+        resource_path = os.path.join(content_folder, 'new_resource')
+        bs = BaseService(self.tmpdir)
+        resource_id = bs._new_resource(resource_path)
+        absp, relp = bs._get_rel_abs_path(resource_id)
+        self.assertEqual(absp, resource_path)
+        self.assertEqual(relp, 'new_resource')
+
+    @unittest.skip("should return None, None")
+    def testGetRelAbsPathNonExistantResourceReturnsNone(self):
+        bs = BaseService(self.tmpdir)
+        absp, relp = bs._get_rel_abs_path('20b1daac7a1e5577ba798a19cddef3c6')
+        self.assertIsNone(absp)
+        self.assertIsNone(relp)
+
     def testNewResource(self):
         content_folder = os.path.join(self.tmpdir, 'content')
         resource_path = os.path.join(content_folder, 'new_resource')
@@ -102,7 +118,6 @@ class TestBaseService(unittest.TestCase):
 
     @unittest.skip("shouldn't raise exception")
     def testDeleteResourceTwice(self):
-        # TODO shouldn't raise exception
         resource_path = os.path.join(self.tmpdir, 'content', 'new_resource')
         bs = BaseService(self.tmpdir)
         rid = bs._new_resource(resource_path)

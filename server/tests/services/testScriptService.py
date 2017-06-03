@@ -118,6 +118,43 @@ class TestScriptService(unittest.TestCase):
         mock_open.assert_called_once_with('/sth/sth/root/normal_file.py', 'w')
         self.gitserv_mock.commit_file.assert_called_once()
 
+    @mock.patch("server.services.script_service.BaseService.__init__", autospec=True)
+    @mock.patch("server.services.script_service.BaseService._get_rel_abs_path")
+    def testDeleteScriptInvalidPath(self, BaseServiceMock_relabspath, BaseServiceMock_init):
+        BaseServiceMock_init.side_effect = self.base_init_side_effect
+        BaseServiceMock_relabspath.return_value = ('/sth/sth/scr.py', '../../scr.py')
+        scr = ScriptService('root', self.gitserv_mock)
+        with self.assertRaises(InvalidPathException):
+            scr.delete_script('idscript')
+
+    @mock.patch("server.services.script_service.BaseService.__init__", autospec=True)
+    @mock.patch("server.services.script_service.BaseService._get_rel_abs_path")
+    @mock.patch("server.services.script_service.BaseService._delete_resource")
+    @mock.patch("server.services.script_service.os")
+    def testDeleteScriptDeletesScript(self, os_mock, BaseServiceMock_delete_resource, BaseServiceMock_relabspath, BaseServiceMock_init):
+        BaseServiceMock_init.side_effect = self.base_init_side_effect
+        BaseServiceMock_relabspath.return_value = ('/sth/sth/root/normal_file.py', 'normal_file.py')
+        os_mock.path.is_file.return_value = True
+        os_mock.path.split.return_value = ('/sth/sth/root', 'normal_file.py')
+        scr = ScriptService('root', self.gitserv_mock)
+        scr.delete_script('idscript')
+        os_mock.remove.assert_has_calls([mock.call('/sth/sth/root/normal_file.py'), mock.call('/sth/sth/root/normal_file.pyc')], any_order=True)
+        os_mock.removedirs.assert_called_once_with('/sth/sth/root')
+        BaseServiceMock_delete_resource.assert_called_once_with('idscript')
+
+    @unittest.skip("shouldn't call startswith")
+    @mock.patch("server.services.script_service.BaseService.__init__", autospec=True)
+    @mock.patch("server.services.script_service.BaseService._get_rel_abs_path")
+    @mock.patch("server.services.script_service.os")
+    def testDeleteScriptNonexistantScript(self, os_mock, BaseServiceMock_relabspath, BaseServiceMock_init):
+        BaseServiceMock_init.side_effect = self.base_init_side_effect
+        BaseServiceMock_relabspath.return_value = (None, None)
+        os_mock.path.is_file.return_value = False
+        scr = ScriptService('root', self.gitserv_mock)
+        scr.delete_script('idscript')
+        os_mock.remove.assert_not_called()
+        os_mock.removedirs.assert_not_called()
+
 
 if __name__ == '__main__':
     unittest.main()

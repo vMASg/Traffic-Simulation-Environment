@@ -71,8 +71,6 @@ class ScriptService(BaseService):
                     os.remove(abs_path + 'c')
                 os.removedirs(os.path.split(abs_path)[0])
                 self._delete_resource(id)
-            except WindowsError:
-                pass
             except OSError:
                 pass
         else:

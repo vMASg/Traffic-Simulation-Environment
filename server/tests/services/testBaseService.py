@@ -101,6 +101,14 @@ class TestBaseService(unittest.TestCase):
         self.assertEqual(abs_path, resource_path)
         self.assertEqual(rel_path, os.path.relpath(resource_path, start=content_folder))
 
+    def testNewResourceDuplicatedLocation(self):
+        content_folder = os.path.join(self.tmpdir, 'content')
+        resource_path = os.path.join(content_folder, 'new_resource')
+        bs = BaseService(self.tmpdir)
+        resource_id = bs._new_resource(resource_path)
+        with self.assertRaises(IntegrityError):
+            resource_id2 = bs._new_resource(resource_path)
+
     def testCreateResourceTwiceThrowsIntegrityError(self):
         resource_path = os.path.join(self.tmpdir, 'content', 'new_resource')
         bs = BaseService(self.tmpdir)

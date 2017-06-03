@@ -23,6 +23,7 @@ class TestScriptService(unittest.TestCase):
         def base_init_side_effect(self, root_folder, git_service=None, gitignore_file=None, gitattributes_file=None, rtype="resource"):
             self.git_service = git_service
             self._root_folder_content = root_folder
+            self._root_folder_tmp = new_join(root_folder, 'tmp')
 
         self.base_init_side_effect = base_init_side_effect
 
@@ -154,6 +155,77 @@ class TestScriptService(unittest.TestCase):
         scr.delete_script('idscript')
         os_mock.remove.assert_not_called()
         os_mock.removedirs.assert_not_called()
+
+    @mock.patch("server.services.script_service.BaseService.__init__", autospec=True)
+    @mock.patch("server.services.script_service.BaseService._new_resource")
+    @mock.patch("server.services.script_service.ScriptService.update_script")
+    @mock.patch("server.services.script_service.os")
+    def testCreateScript(self, os_mock, ScriptService_update_script, BaseServiceMock_new_resource, BaseServiceMock_init):
+        BaseServiceMock_init.side_effect = self.base_init_side_effect
+        os_mock.path.join.side_effect = self.new_join
+        os_mock.path.normpath.side_effect = lambda e: e
+        os_mock.path.relpath.side_effect = lambda a, b: a
+        os_mock.path.split.return_value = ('root/jaja', 'new_script.py')
+        os_mock.path.isdir.return_value = False
+        os_mock.path.basename.side_effect = lambda a: a[a.rfind('/')+1:]
+        BaseServiceMock_new_resource.return_value = 'idnewresource'
+        scr = ScriptService('root', self.gitserv_mock)
+        nid, name, ncontent = scr.create_script('new_script.py', 'jaja', 'content')
+        os_mock.makedirs.assert_called_once_with('root/jaja')
+        ScriptService_update_script.assert_called_once_with('idnewresource', 'content')
+        self.assertEqual(nid, 'idnewresource')
+        self.assertEqual(name, 'new_script.py')
+        self.assertEqual(ncontent, 'content')
+
+    @unittest.skip("TODO")
+    def testCreateScriptSamePath(self):
+        pass
+
+    @mock.patch("server.services.script_service.BaseService.__init__", autospec=True)
+    @mock.patch("server.services.script_service.BaseService._get_rel_abs_path")
+    @mock.patch("server.services.script_service.os")
+    def testGetName(self, os_mock, BaseServiceMock_relabspath, BaseServiceMock_init):
+        BaseServiceMock_init.side_effect = self.base_init_side_effect
+        BaseServiceMock_relabspath.return_value = ('/sth/sth/root/normal_file.py', 'normal_file.py')
+        os_mock.path.basename.side_effect = lambda a: a[a.rfind('/')+1:]
+        scr = ScriptService('root', self.gitserv_mock)
+        name = scr.get_name('idscript')
+        self.assertEqual(name, 'normal_file.py')
+
+    @mock.patch("server.services.script_service.BaseService.__init__", autospec=True)
+    @mock.patch("server.services.script_service.BaseService._get_rel_abs_path")
+    @mock.patch("server.services.script_service.os")
+    def testGetPathForExecutionNoHash(self, os_mock, BaseServiceMock_relabspath, BaseServiceMock_init):
+        BaseServiceMock_init.side_effect = self.base_init_side_effect
+        BaseServiceMock_relabspath.return_value = ('/sth/sth/root/normal_file.py', 'normal_file.py')
+        os_mock.path.join.side_effect = self.new_join
+        os_mock.path.basename.side_effect = lambda a: a[a.rfind('/')+1:]
+        scr = ScriptService('root', self.gitserv_mock)
+        expected_path = 'root/tmp/_normal_file.py'
+        with mock.patch("server.services.script_service.open", mock.mock_open(read_data='script_data')) as mock_open:
+            path = scr.get_path_for_execution('idscript')
+            mock_open.assert_called_with(expected_path, 'w')
+            mock_open().write.assert_called_with('script_data')
+        self.assertEqual(path, expected_path)
+
+    @mock.patch("server.services.script_service.BaseService.__init__", autospec=True)
+    @mock.patch("server.services.script_service.BaseService._get_rel_abs_path")
+    @mock.patch("server.services.script_service.os")
+    def testGetPathForExecutionWithHash(self, os_mock, BaseServiceMock_relabspath, BaseServiceMock_init):
+        BaseServiceMock_init.side_effect = self.base_init_side_effect
+        BaseServiceMock_relabspath.return_value = ('/sth/sth/root/normal_file.py', 'normal_file.py')
+        os_mock.path.join.side_effect = self.new_join
+        os_mock.path.basename.side_effect = lambda a: a[a.rfind('/')+1:]
+        self.gitserv_mock.get_content.return_value = "script content at Hash"
+        scr = ScriptService('root', self.gitserv_mock)
+        expected_path = 'root/tmp/Hash_normal_file.py'
+        with mock.patch("server.services.script_service.open", mock.mock_open(read_data='script_data')) as mock_open:
+            path = scr.get_path_for_execution('idscript', 'Hash')
+            mock_open.assert_called_with(expected_path, 'w')
+            mock_open().write.assert_called_with('script content at Hash')
+
+        self.gitserv_mock.get_content.assert_called_once_with('/sth/sth/root/normal_file.py', scr._root_folder_content, 'Hash')
+        self.assertEqual(path, expected_path)
 
 
 if __name__ == '__main__':

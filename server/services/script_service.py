@@ -67,11 +67,11 @@ class ScriptService(BaseService):
         if abs_path is not None:
             if not relpath.startswith('..'):
                 try:
+                    self._delete_resource(id)
                     os.remove(abs_path)
                     if os.path.isfile(abs_path + 'c'):
                         os.remove(abs_path + 'c')
                     os.removedirs(os.path.split(abs_path)[0])
-                    self._delete_resource(id)
                 except OSError:
                     pass
             else:

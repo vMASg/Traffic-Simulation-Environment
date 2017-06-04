@@ -9,7 +9,7 @@ import json
 def authenticated_only(f):
     @wraps(f)
     def wrapped(*args, **kwargs):
-        if not current_user.is_authenticated:
+        if not current_user.is_authenticated or not current_user.is_active:
             disconnect()
         else:
             return f(*args, **kwargs)

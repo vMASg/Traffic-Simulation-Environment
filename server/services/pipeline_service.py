@@ -67,7 +67,7 @@ class PipelineService(BaseService):
                 os.remove(abs_path)
                 os.removedirs(os.path.split(abs_path)[0])
                 self._delete_resource(id)
-            except WindowsError:
+            except OSError:
                 pass
         else:
             raise InvalidPathException()

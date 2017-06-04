@@ -42,14 +42,14 @@ class PipelineExecutor(object):
         pipeline_nodes = pipeline['nodes']
         for node in pipeline_nodes:
             if node['type'] == 'code':
-                node['path'] = self.script_service.get_path_for_execution(node['id'], hash=node['hash'])
+                node['path'] = self.script_service.get_path_for_execution(node['oid'], hash=node['hash'])
                 clean_up.append(self.script_service.get_clean_up_function(node['path']))
             elif node['type'] == 'model':
-                node['originalModelPath'] = self.model_service.get_path(node['id'])
-                node['path'] = self.model_service.get_path_for_execution(node['id'])
+                node['originalModelPath'] = self.model_service.get_path(node['oid'])
+                node['path'] = self.model_service.get_path_for_execution(node['oid'])
                 clean_up.append(self.model_service.get_clean_up_function(node['path']))
             elif node['type'] == 'pipeline':
-                node['path'] = self._prepare_pipeline(node['id'], loaded_pipelines, clean_up)
+                node['path'] = self._prepare_pipeline(node['oid'], loaded_pipelines, clean_up)
 
         with open(pipeline_path, 'w') as f:
             f.write(json.dumps(pipeline))

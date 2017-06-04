@@ -74,7 +74,7 @@ angular.module('trafficEnv')
                             }
                             if (i == currentNode.length) {
                                 // TODO create folders
-                                var accum = tab.id.slice(0, tab.id.indexOf('\\', tab.id.indexOf(name)));
+                                var accum = tab.id.slice(0, tab.id.indexOf('/', tab.id.indexOf(name)));
                                 var newFolder = {name: name, id: accum, type: 'dir', children: []};
                                 where.shift();
                                 addNewElement(newFolder.children, where, tab);
@@ -90,7 +90,7 @@ angular.module('trafficEnv')
                             });
                         }
                     };
-                    var where = data.id.split('\\');
+                    var where = data.id.split('/');
                     where.pop();
                     addNewElement($scope.treeFiles[0].children, where, data);
                 });
@@ -120,7 +120,7 @@ angular.module('trafficEnv')
                         }
                     };
                     var id = data.id;
-                    var where = id.split('\\');
+                    var where = id.split('/');
                     where.pop();
                     deleteScript($scope.treeFiles[0].children, where, id);
                     $scope.deleteTab(id);
@@ -147,7 +147,7 @@ angular.module('trafficEnv')
                             }
                             if (i == currentNode.length) {
                                 // TODO create folders
-                                var accum = tab.id.slice(0, tab.id.indexOf('\\', tab.id.indexOf(name)));
+                                var accum = tab.id.slice(0, tab.id.indexOf('/', tab.id.indexOf(name)));
                                 var newFolder = {name: name, id: accum, type: 'dir', children: []};
                                 where.shift();
                                 addNewElement(newFolder.children, where, tab);
@@ -163,7 +163,7 @@ angular.module('trafficEnv')
                             });
                         }
                     };
-                    var where = data.id.split('\\');
+                    var where = data.id.split('/');
                     where.pop();
                     addNewElement($scope.treeFiles[2].children, where, data);
                 });
@@ -193,7 +193,7 @@ angular.module('trafficEnv')
                         }
                     };
                     var id = data.id;
-                    var where = id.split('\\');
+                    var where = id.split('/');
                     where.pop();
                     deletePipeline($scope.treeFiles[2].children, where, id);
                     $scope.deleteTab(id);
@@ -213,7 +213,7 @@ angular.module('trafficEnv')
                     //         }
                     //         if (i == currentNode.length) {
                     //             // TODO create folders
-                    //             var accum = tab.id.slice(0, tab.id.indexOf('\\', tab.id.indexOf(name)));
+                    //             var accum = tab.id.slice(0, tab.id.indexOf('/', tab.id.indexOf(name)));
                     //             var newFolder = {name: name, id: accum, type: 'dir', children: []};
                     //             where.shift();
                     //             addNewElement(newFolder.children, where, tab);
@@ -229,7 +229,7 @@ angular.module('trafficEnv')
                     //         });
                     //     }
                     // };
-                    // var where = data.id.split('\\');
+                    // var where = data.id.split('/');
                     // where.pop();
                     // addNewElement($scope.treeFiles[3].children, where, data);
                     interfaceServices.getInterfaceCollection().then(function (data) {
@@ -262,7 +262,7 @@ angular.module('trafficEnv')
                     //     }
                     // };
                     // var id = data.id;
-                    // var where = id.split('\\');
+                    // var where = id.split('/');
                     // where.pop();
                     // deleteInterface($scope.treeFiles[3].children, where, id);
                     // $scope.deleteTab(id);

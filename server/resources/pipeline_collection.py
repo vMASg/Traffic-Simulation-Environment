@@ -37,6 +37,7 @@ class PipelineCollection(Resource):
         parser.add_argument('parent', type=str)
         parser.add_argument('data', type=str)
         args = parser.parse_args()
+        args['parent'] = os.path.join(*args['parent'].split('/'))
         try:
             id, name, graph = self._pipeline_locator.create_pipeline(args['name'], args['parent'], args['data'])
         except InvalidPathException as e:

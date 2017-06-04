@@ -37,6 +37,7 @@ class ScriptCollection(Resource):
         parser.add_argument('parent', type=str)
         parser.add_argument('code', type=str)
         args = parser.parse_args()
+        args['parent'] = os.path.join(*args['parent'].split('/'))
         try:
             id, name, code = self._script_locator.create_script(args['name'], args['parent'], args['code'])
         except InvalidPathException as e:

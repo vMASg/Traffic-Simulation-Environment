@@ -143,7 +143,6 @@ class TestScriptService(unittest.TestCase):
         os_mock.removedirs.assert_called_once_with('/sth/sth/root')
         BaseServiceMock_delete_resource.assert_called_once_with('idscript')
 
-    @unittest.skip("shouldn't call startswith")
     @mock.patch("server.services.script_service.BaseService.__init__", autospec=True)
     @mock.patch("server.services.script_service.BaseService._get_rel_abs_path")
     @mock.patch("server.services.script_service.os")
@@ -177,9 +176,20 @@ class TestScriptService(unittest.TestCase):
         self.assertEqual(name, 'new_script.py')
         self.assertEqual(ncontent, 'content')
 
-    @unittest.skip("TODO")
-    def testCreateScriptSamePath(self):
-        pass
+    @mock.patch("server.services.script_service.BaseService.__init__", autospec=True)
+    @mock.patch("server.services.script_service.BaseService._new_resource")
+    @mock.patch("server.services.script_service.ScriptService.update_script")
+    @mock.patch("server.services.script_service.os")
+    def testCreateScriptSamePath(self, os_mock, ScriptService_update_script, BaseServiceMock_new_resource, BaseServiceMock_init):
+        BaseServiceMock_init.side_effect = self.base_init_side_effect
+        os_mock.path.join.side_effect = self.new_join
+        os_mock.path.normpath.side_effect = lambda e: e
+        os_mock.path.relpath.side_effect = lambda a, b: a
+        BaseServiceMock_new_resource.return_value = None
+        scr = ScriptService('root', self.gitserv_mock)
+        nid, name, ncontent = scr.create_script('new_script.py', 'jaja', 'content 2')
+        ScriptService_update_script.assert_not_called()
+        self.assertIsNone(nid)
 
     @mock.patch("server.services.script_service.BaseService.__init__", autospec=True)
     @mock.patch("server.services.script_service.BaseService._get_rel_abs_path")

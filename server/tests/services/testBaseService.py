@@ -84,7 +84,6 @@ class TestBaseService(unittest.TestCase):
         self.assertEqual(absp, resource_path)
         self.assertEqual(relp, 'new_resource')
 
-    @unittest.skip("should return None, None")
     def testGetRelAbsPathNonExistantResourceReturnsNone(self):
         bs = BaseService(self.tmpdir)
         absp, relp = bs._get_rel_abs_path('20b1daac7a1e5577ba798a19cddef3c6')
@@ -106,15 +105,17 @@ class TestBaseService(unittest.TestCase):
         resource_path = os.path.join(content_folder, 'new_resource')
         bs = BaseService(self.tmpdir)
         resource_id = bs._new_resource(resource_path)
-        with self.assertRaises(IntegrityError):
-            resource_id2 = bs._new_resource(resource_path)
+        # with self.assertRaises(IntegrityError):
+        resource_id2 = bs._new_resource(resource_path)
+        self.assertIsNone(resource_id2)
 
     def testCreateResourceTwiceThrowsIntegrityError(self):
         resource_path = os.path.join(self.tmpdir, 'content', 'new_resource')
         bs = BaseService(self.tmpdir)
         bs._new_resource(resource_path)
-        with self.assertRaises(IntegrityError):
-            bs._new_resource(resource_path)
+        # with self.assertRaises(IntegrityError):
+        rid = bs._new_resource(resource_path)
+        self.assertIsNone(rid)
 
     def testCreateResourceDeleteitRecreateSameResource(self):
         resource_path = os.path.join(self.tmpdir, 'content', 'new_resource')
@@ -124,7 +125,6 @@ class TestBaseService(unittest.TestCase):
         nid = bs._new_resource(resource_path)
         self.assertEqual(rid, nid)
 
-    @unittest.skip("shouldn't raise exception")
     def testDeleteResourceTwice(self):
         resource_path = os.path.join(self.tmpdir, 'content', 'new_resource')
         bs = BaseService(self.tmpdir)

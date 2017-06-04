@@ -64,26 +64,28 @@ class ScriptService(BaseService):
 
     def delete_script(self, id):
         abs_path, relpath = self._get_rel_abs_path(id)
-        if not relpath.startswith('..'):
-            try:
-                os.remove(abs_path)
-                if os.path.isfile(abs_path + 'c'):
-                    os.remove(abs_path + 'c')
-                os.removedirs(os.path.split(abs_path)[0])
-                self._delete_resource(id)
-            except OSError:
-                pass
-        else:
-            raise InvalidPathException()
+        if abs_path is not None:
+            if not relpath.startswith('..'):
+                try:
+                    os.remove(abs_path)
+                    if os.path.isfile(abs_path + 'c'):
+                        os.remove(abs_path + 'c')
+                    os.removedirs(os.path.split(abs_path)[0])
+                    self._delete_resource(id)
+                except OSError:
+                    pass
+            else:
+                raise InvalidPathException()
 
     def create_script(self, name, parent, content):
         path = os.path.normpath(os.path.join(self._root_folder_content, parent, name))
         rel_path = os.path.relpath(path, self._root_folder_content)
         id = self._new_resource(rel_path)
-        parent_folder = os.path.split(path)[0]
-        if not os.path.isdir(parent_folder):
-            os.makedirs(parent_folder)
-        self.update_script(id, content)
+        if id is not None:
+            parent_folder = os.path.split(path)[0]
+            if not os.path.isdir(parent_folder):
+                os.makedirs(parent_folder)
+            self.update_script(id, content)
         return id, os.path.basename(rel_path), content
 
     # FIELDS QUERY

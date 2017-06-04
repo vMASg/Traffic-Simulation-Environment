@@ -1,6 +1,7 @@
 import os
 from server.models.resource import ResourceModel
 from server.utils.sqlalchemy import sql_alchemy_db as db
+from sqlalchemy.exc import IntegrityError
 
 class BaseService(object):
     """docstring for BaseService"""
@@ -33,15 +34,20 @@ class BaseService(object):
 
     def _get_rel_abs_path(self, id):
         resource = ResourceModel.query.get(id)  # TODO: check if uuid.UUID(hex=id) is needed
+        if resource is None:
+            return None, None
         abs_path = os.path.join(self._root_folder_content, resource.location)
         relpath = os.path.relpath(os.path.normpath(abs_path), self._root_folder_content)
         return abs_path, relpath
 
     def _new_resource(self, location):
-        resource = ResourceModel(self._rtype, location)
-        db.session.add(resource)
-        db.session.commit()
-        return resource.id.hex
+        try:
+            resource = ResourceModel(self._rtype, location)
+            db.session.add(resource)
+            db.session.commit()
+            return resource.id.hex
+        except IntegrityError:
+            return None
 
     def get_id_from_path(self, path):
         # return ResourceModel.query.filter_by(rtype=self._rtype, location=path).first().id.hex
@@ -49,5 +55,6 @@ class BaseService(object):
 
     def _delete_resource(self, id):
         resource = ResourceModel.query.get(id)
-        db.session.delete(resource)
-        db.session.commit()
+        if resource is not None:
+            db.session.delete(resource)
+            db.session.commit()

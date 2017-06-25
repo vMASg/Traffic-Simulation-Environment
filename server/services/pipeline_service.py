@@ -36,14 +36,7 @@ class PipelineService(BaseService):
         return self.delete_resource(id)
 
     def create_pipeline(self, name, parent, content):
-        path = os.path.normpath(os.path.join(self._root_folder_content, parent, name))
-        rel_path = os.path.relpath(path, self._root_folder_content)
-        id = self._new_resource(rel_path)
-        parent_folder = os.path.split(path)[0]
-        if not os.path.isdir(parent_folder):
-            os.makedirs(parent_folder)
-        self.update_pipeline(id, content)
-        return id, os.path.basename(rel_path), content
+        return self.create_resource(name, parent, content)
 
     def get_revision_hashes(self, id):
         return self.git_service.get_revision_hashes(self._get_rel_abs_path(id)[0], self._root_folder_content)

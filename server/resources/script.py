@@ -1,9 +1,7 @@
-import os
 from StringIO import StringIO
 from flask_restful import reqparse, abort
-from flask import request, send_file
+from flask import send_file
 from server.resources.base_resource import BaseResource as Resource
-from server.exceptions import InvalidPathException
 
 class Script(Resource):
     """docstring for Script"""
@@ -60,20 +58,10 @@ class Script(Resource):
         return retval
 
     def put(self, id):
-        try:
-            self._script_locator.update_script(id, request.get_data())
-        except InvalidPathException as e:
-            return e.msg, 403
-        else:
-            self._changed_script(id)
+        return self.put_resource(id, self._script_locator.update_script, self._changed_script)
 
     def delete(self, id):
-        try:
-            self._script_locator.delete_script(id)
-        except InvalidPathException as e:
-            return e.msg, 403
-        else:
-            self._deleted_script(id)
+        return self.delete_resource(id, self._script_locator.delete_script, self._deleted_script)
 
     def _deleted_script(self, id):
         self._subscription_service.socketio.emit('deleted_script', {'id': id}, namespace=self._subscription_service.namespace)

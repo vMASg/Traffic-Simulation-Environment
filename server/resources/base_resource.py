@@ -3,6 +3,7 @@ from functools import wraps
 from flask_restful import Resource, abort
 from flask_restful import reqparse
 from flask_login import current_user
+from flask import request
 from server.exceptions import InvalidPathException
 
 def authenticated_only(f):
@@ -41,7 +42,7 @@ class BaseResource(Resource):
         return construct_response(resources)
 
     @staticmethod
-    def post_resource_collection(create_resource_fn, announce_creation_fn, data_arg_name, res_type):
+    def post_resource_collection(create_resource_fn, announcer, data_arg_name, res_type):
         parser = reqparse.RequestParser()
         parser.add_argument('name', type=str)
         parser.add_argument('parent', type=str)
@@ -54,5 +55,23 @@ class BaseResource(Resource):
             return e.msg, 403
 
         data = {'id': id, 'name': name, 'type': res_type, data_arg_name: data}
-        announce_creation_fn(data)
+        announcer(data)
         return data
+
+    @staticmethod
+    def put_resource(id_res, updater, announcer):
+        try:
+            updater(id_res, request.get_data())
+        except InvalidPathException as e:
+            return e.msg, 403
+        else:
+            announcer(id_res)
+
+    @staticmethod
+    def delete_resource(id_res, deleter, announcer):
+        try:
+            deleter(id_res)
+        except InvalidPathException as e:
+            return e.msg, 403
+        else:
+            announcer(id_res)

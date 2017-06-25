@@ -1,7 +1,5 @@
-from flask_restful import reqparse, abort
-from flask import request, send_file
+from flask import send_file
 from server.resources.base_resource import BaseResource as Resource
-from server.exceptions import InvalidPathException
 
 class Interface(Resource):
     """docstring for Interface"""
@@ -15,18 +13,13 @@ class Interface(Resource):
 
 
     def put(self, id):
-        try:
-            self._interface_locator.update_interface(id, request.get_data())
-        except InvalidPathException as e:
-            return e.msg, 403
+        return self.put_resource(id, self._interface_locator.update_interface, self._changed_interface)
 
     def delete(self, id):
-        try:
-            self._interface_locator.delete_interface(id)
-        except InvalidPathException as e:
-            return e.msg, 403
-        else:
-            self._deleted_interface(id)
+        return self.delete_resource(id, self._interface_locator.delete_interface, self._deleted_interface)
 
     def _deleted_interface(self, id):
         self._subscription_service.socketio.emit('deleted_interface', {'id': id}, namespace=self._subscription_service.namespace)
+
+    def _changed_interface(self, id):
+        self._subscription_service.socketio.emit('changed_interface', {'id': id}, namespace=self._subscription_service.namespace)

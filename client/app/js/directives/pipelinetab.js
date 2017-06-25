@@ -662,7 +662,7 @@ angular.module('trafficEnv')
                         dirSelectable: true,
                         allowDeselect: false,
                         equality: function (a, b) {
-                            return a.id === b.id && a.name === b.name;
+                            return a.id === b.id && a.path === b.path;
                         },
                         isLeaf: function (a) {
                             if (!a.children) return true;

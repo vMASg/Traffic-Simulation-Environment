@@ -116,4 +116,4 @@ class BaseService(object):
             if not os.path.isdir(parent_folder):
                 os.makedirs(parent_folder)
             self.update_resource(id, content)
-        return id, os.path.basename(rel_path), content
+        return id, rel_path, os.path.basename(rel_path), content

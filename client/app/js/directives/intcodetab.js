@@ -83,7 +83,7 @@ angular.module('trafficEnv')
                         allowDeselect: false,
                         equality: function (a, b) {
                             // return a === b || (a && b && !(a.id && !b.id || b.id && !a.id) && ((a.id && b.id && a.id === b.id) || !(a.id && b.id) && a.name === b.name));
-                            return a.id === b.id && a.name === b.name;
+                            return a.id === b.id && a.path === b.path;
                         },
                         isLeaf: function (a) {
                             if (!a.children) return true;

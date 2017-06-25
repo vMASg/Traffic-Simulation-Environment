@@ -50,11 +50,11 @@ class BaseResource(Resource):
         args = parser.parse_args()
         args['parent'] = os.path.join(*args['parent'].split('/'))
         try:
-            id, name, data = create_resource_fn(args['name'], args['parent'], args[data_arg_name])
+            id, path, name, data = create_resource_fn(args['name'], args['parent'], args[data_arg_name])
         except InvalidPathException as e:
             return e.msg, 403
 
-        data = {'id': id, 'name': name, 'type': res_type, data_arg_name: data}
+        data = {'id': id, 'path': path, 'name': name, 'type': res_type, data_arg_name: data}
         announcer(data)
         return data
 

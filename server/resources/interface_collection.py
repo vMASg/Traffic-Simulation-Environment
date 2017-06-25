@@ -11,17 +11,20 @@ class InterfaceCollection(Resource):
         self._subscription_service = subscription_service
 
     def get(self):
+        # TODO when grouped interfaces, uncomment:
+        # return self.get_resource_collection(self._interface_locator.get_interfaces, 'interface')
         interfaces = self._interface_locator.get_interfaces()
         def construct_response(scr):
             retval = []
             for script in scr:
-                info = {'name': script.name}
+                info = {
+                    'id': script.id,
+                    'name': script.name
+                }
                 if script.type == 'group':
-                    info['id'] = script.id
                     info['type'] = 'dir'
                     info['children'] = construct_response(script.children)
                 else:
-                    info['id'] = script.id
                     info['type'] = 'interface' if script.name.endswith('.intf') else 'intcode'
 
                 retval.append(info)
@@ -30,6 +33,13 @@ class InterfaceCollection(Resource):
         return construct_response(interfaces)
 
     def post(self):
+        # TODO when grouped interfaces, uncomment:
+        # return self.post_resource_collection(
+        #     self._interface_locator.create_interface,
+        #     self._new_interface,
+        #     data_arg_name='code',
+        #     res_type='interface'
+        # )
         parser = reqparse.RequestParser()
         parser.add_argument('name', type=str)
         parser.add_argument('parent', type=str)

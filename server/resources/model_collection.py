@@ -10,15 +10,7 @@ class ModelCollection(Resource):
         self._subscription_service = subscription_service
 
     def get(self):
-        models = self._model_locator.get_models()
-        return [
-            {
-                'id': model.id,
-                'name': model.name,
-                'type': 'model'
-            }
-            for model in models
-        ]
+        return self.get_resource_collection(self._model_locator.get_models, 'model')
 
     def post(self):
         if 'model' not in request.files:

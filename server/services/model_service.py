@@ -1,6 +1,5 @@
 import os
 import shutil
-from collections import namedtuple
 from flask_login import current_user
 from server.exceptions import LockException, InvalidPathException
 from server.services.base_service import BaseService
@@ -15,14 +14,7 @@ class ModelService(BaseService):
         super(ModelService, self).__init__(root_folder, git_service=git_service, gitattributes_file=''.join(gitattrs), rtype="model")
 
     def get_models(self):
-        return_type = namedtuple('ModelLocator', ['id', 'name'])
-        retval = []
-        for element in os.listdir(self._root_folder_content):
-            if not element.endswith('.reg') and element != '.gitattributes':
-                full_path = os.path.join(self._root_folder_content, element)
-                if os.path.isfile(full_path) and element[-4:] == '.ang':
-                    retval.append(return_type(element, element))
-        return retval
+        return self.get_resources('Models', exceptions=[r'\.\w+', r'.*\.reg'])
 
     def get_model(self, id):
         abs_path, rel_path = self._get_rel_abs_path(id)

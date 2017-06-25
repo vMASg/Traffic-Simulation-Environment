@@ -1,8 +1,8 @@
 angular.module('trafficEnv')
     .directive('panelBrowser', function() {
         return {
-            controller: ['$scope', 'scriptServices', 'modelServices', 'pipelineServices', 'interfaceServices', 'socket',
-            function($scope, scriptServices, modelServices, pipelineServices, interfaceServices, socket) {
+            controller: ['$scope', 'scriptServices', 'modelServices', 'pipelineServices', 'interfaceServices', '$q', 'socket',
+            function($scope, scriptServices, modelServices, pipelineServices, interfaceServices, $q, socket) {
 
                 // // TODO add API Call
                 // $scope.scriptsDirectories = [
@@ -14,25 +14,41 @@ angular.module('trafficEnv')
                 $scope.treeFiles = [];
                 $scope.expandedNodes = [];
 
-                scriptServices.getScriptCollection().then(function (data) {
-                    var scriptsDirectories = data.data;
-                    $scope.expandedNodes.push(scriptsDirectories[0]);
-                    modelServices.getModelCollection().then(function (data) {
-                        var modelsDirectories = [
-                            {name: 'Models', id: '.', type: 'dir', children: data.data}
-                        ];
-                        $scope.expandedNodes.push(modelsDirectories[0]);
-                        pipelineServices.getPipelineCollection().then(function (data) {
-                            var pipelinesDirectories = data.data;
-                            $scope.expandedNodes.push(pipelinesDirectories[0]);
-                            interfaceServices.getInterfaceCollection().then(function (data) {
-                                var interfacesDirectories = data.data;
-                                $scope.expandedNodes.push(interfacesDirectories[0]);
-                                $scope.treeFiles = scriptsDirectories.concat(modelsDirectories).concat(pipelinesDirectories).concat(interfacesDirectories);
-                            });
-                        });
-                    });
+                var scripts_deferred = $q.defer();
+                var models_deferred = $q.defer();
+                var pipelines_deferred = $q.defer();
+                var interfaces_deferred = $q.defer();
+
+                var all_deferred = $q.all([
+                    scripts_deferred.promise,
+                    models_deferred.promise,
+                    pipelines_deferred.promise,
+                    interfaces_deferred.promise
+                ]);
+
+                all_deferred.then(function (all_data) {
+                    var scriptsDirectories    = all_data[0].data;
+                    var modelsDirectories     = all_data[1].data;
+                    var pipelinesDirectories  = all_data[2].data;
+                    var interfacesDirectories = all_data[3].data;
+
+                    $scope.expandedNodes = [
+                        scriptsDirectories[0],
+                        modelsDirectories[0],
+                        pipelinesDirectories[0],
+                        interfacesDirectories[0]
+                    ];
+
+                    $scope.treeFiles = scriptsDirectories
+                        .concat(modelsDirectories)
+                        .concat(pipelinesDirectories)
+                        .concat(interfacesDirectories);
                 });
+
+                scriptServices.getScriptCollection()       .then( scripts_deferred.resolve );
+                modelServices.getModelCollection()         .then( models_deferred.resolve );
+                pipelineServices.getPipelineCollection()   .then( pipelines_deferred.resolve );
+                interfaceServices.getInterfaceCollection() .then( interfaces_deferred.resolve );
 
                 $scope.treeOptions = {
                     nodeChildren: "children",

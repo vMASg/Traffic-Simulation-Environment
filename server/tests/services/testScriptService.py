@@ -9,7 +9,7 @@ class TestScriptService(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(TestScriptService, self).__init__(*args, **kwargs)
         self.listdir_retvals = {
-            'root': ['.git', 'proj_folder', 'normal_file.py', 'normal_file.pyc'],
+            'root': ['.git', 'proj_folder', 'normal_file.py'],
             'root/proj_folder': ['file.py'],
             'proj_folder': ['file.py']
         }
@@ -26,6 +26,7 @@ class TestScriptService(unittest.TestCase):
             self._root_folder_tmp = new_join(root_folder, 'tmp')
 
         self.base_init_side_effect = base_init_side_effect
+        self.maxDiff = None
 
 
     def setUp(self):
@@ -37,7 +38,7 @@ class TestScriptService(unittest.TestCase):
 
     @mock.patch("server.services.script_service.BaseService.__init__", autospec=True)
     @mock.patch("server.services.script_service.BaseService.get_id_from_path")
-    @mock.patch("server.services.script_service.os")
+    @mock.patch("server.services.base_service.os")
     def testGetScripts(self, os_mock, BaseServiceMock_idfrompath, BaseServiceMock_init):
         BaseServiceMock_init.side_effect = self.base_init_side_effect
         BaseServiceMock_idfrompath.return_value = 'id'
@@ -107,14 +108,14 @@ class TestScriptService(unittest.TestCase):
 
     @mock.patch("server.services.script_service.BaseService.__init__", autospec=True)
     @mock.patch("server.services.script_service.BaseService._get_rel_abs_path")
-    @mock.patch("server.services.script_service.current_user")
+    @mock.patch("server.services.base_service.current_user")
     def testUpdateScript(self, current_user_mock, BaseServiceMock_relabspath, BaseServiceMock_init):
         BaseServiceMock_init.side_effect = self.base_init_side_effect
         current_user_mock.username.return_value = 'fakeuser'
         current_user_mock.email.return_value = 'fakeuser@fakemail.com'
         BaseServiceMock_relabspath.return_value = ('/sth/sth/root/normal_file.py', 'normal_file.py')
         scr = ScriptService('root', self.gitserv_mock)
-        with mock.patch("server.services.script_service.open", mock.mock_open()) as mock_open:
+        with mock.patch("server.services.base_service.open", mock.mock_open()) as mock_open:
             scr.update_script('idscript', 'script_content')
         mock_open.assert_called_once_with('/sth/sth/root/normal_file.py', 'w')
         self.gitserv_mock.commit_file.assert_called_once()
@@ -131,7 +132,7 @@ class TestScriptService(unittest.TestCase):
     @mock.patch("server.services.script_service.BaseService.__init__", autospec=True)
     @mock.patch("server.services.script_service.BaseService._get_rel_abs_path")
     @mock.patch("server.services.script_service.BaseService._delete_resource")
-    @mock.patch("server.services.script_service.os")
+    @mock.patch("server.services.base_service.os")
     def testDeleteScriptDeletesScript(self, os_mock, BaseServiceMock_delete_resource, BaseServiceMock_relabspath, BaseServiceMock_init):
         BaseServiceMock_init.side_effect = self.base_init_side_effect
         BaseServiceMock_relabspath.return_value = ('/sth/sth/root/normal_file.py', 'normal_file.py')
@@ -139,7 +140,10 @@ class TestScriptService(unittest.TestCase):
         os_mock.path.split.return_value = ('/sth/sth/root', 'normal_file.py')
         scr = ScriptService('root', self.gitserv_mock)
         scr.delete_script('idscript')
-        os_mock.remove.assert_has_calls([mock.call('/sth/sth/root/normal_file.py'), mock.call('/sth/sth/root/normal_file.pyc')], any_order=True)
+        os_mock.remove.assert_has_calls([
+            mock.call('/sth/sth/root/normal_file.py'),
+            # mock.call('/sth/sth/root/normal_file.pyc')
+        ], any_order=True)
         os_mock.removedirs.assert_called_once_with('/sth/sth/root')
         BaseServiceMock_delete_resource.assert_called_once_with('idscript')
 
@@ -157,9 +161,9 @@ class TestScriptService(unittest.TestCase):
 
     @mock.patch("server.services.script_service.BaseService.__init__", autospec=True)
     @mock.patch("server.services.script_service.BaseService._new_resource")
-    @mock.patch("server.services.script_service.ScriptService.update_script")
-    @mock.patch("server.services.script_service.os")
-    def testCreateScript(self, os_mock, ScriptService_update_script, BaseServiceMock_new_resource, BaseServiceMock_init):
+    @mock.patch("server.services.script_service.BaseService.update_resource")
+    @mock.patch("server.services.base_service.os")
+    def testCreateScript(self, os_mock, BaseService_update_resource, BaseServiceMock_new_resource, BaseServiceMock_init):
         BaseServiceMock_init.side_effect = self.base_init_side_effect
         os_mock.path.join.side_effect = self.new_join
         os_mock.path.normpath.side_effect = lambda e: e
@@ -171,16 +175,16 @@ class TestScriptService(unittest.TestCase):
         scr = ScriptService('root', self.gitserv_mock)
         nid, name, ncontent = scr.create_script('new_script.py', 'jaja', 'content')
         os_mock.makedirs.assert_called_once_with('root/jaja')
-        ScriptService_update_script.assert_called_once_with('idnewresource', 'content')
+        BaseService_update_resource.assert_called_once_with('idnewresource', 'content')
         self.assertEqual(nid, 'idnewresource')
         self.assertEqual(name, 'new_script.py')
         self.assertEqual(ncontent, 'content')
 
     @mock.patch("server.services.script_service.BaseService.__init__", autospec=True)
     @mock.patch("server.services.script_service.BaseService._new_resource")
-    @mock.patch("server.services.script_service.ScriptService.update_script")
-    @mock.patch("server.services.script_service.os")
-    def testCreateScriptSamePath(self, os_mock, ScriptService_update_script, BaseServiceMock_new_resource, BaseServiceMock_init):
+    @mock.patch("server.services.script_service.BaseService.update_resource")
+    @mock.patch("server.services.base_service.os")
+    def testCreateScriptSamePath(self, os_mock, BaseService_update_resource, BaseServiceMock_new_resource, BaseServiceMock_init):
         BaseServiceMock_init.side_effect = self.base_init_side_effect
         os_mock.path.join.side_effect = self.new_join
         os_mock.path.normpath.side_effect = lambda e: e
@@ -188,7 +192,7 @@ class TestScriptService(unittest.TestCase):
         BaseServiceMock_new_resource.return_value = None
         scr = ScriptService('root', self.gitserv_mock)
         nid, name, ncontent = scr.create_script('new_script.py', 'jaja', 'content 2')
-        ScriptService_update_script.assert_not_called()
+        BaseService_update_resource.assert_not_called()
         self.assertIsNone(nid)
 
     @mock.patch("server.services.script_service.BaseService.__init__", autospec=True)

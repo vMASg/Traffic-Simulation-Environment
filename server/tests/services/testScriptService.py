@@ -173,10 +173,11 @@ class TestScriptService(unittest.TestCase):
         os_mock.path.basename.side_effect = lambda a: a[a.rfind('/')+1:]
         BaseServiceMock_new_resource.return_value = 'idnewresource'
         scr = ScriptService('root', self.gitserv_mock)
-        nid, name, ncontent = scr.create_script('new_script.py', 'jaja', 'content')
+        nid, path, name, ncontent = scr.create_script('new_script.py', 'jaja', 'content')
         os_mock.makedirs.assert_called_once_with('root/jaja')
         BaseService_update_resource.assert_called_once_with('idnewresource', 'content')
         self.assertEqual(nid, 'idnewresource')
+        self.assertEqual(path, 'root/jaja/new_script.py')
         self.assertEqual(name, 'new_script.py')
         self.assertEqual(ncontent, 'content')
 
@@ -191,7 +192,7 @@ class TestScriptService(unittest.TestCase):
         os_mock.path.relpath.side_effect = lambda a, b: a
         BaseServiceMock_new_resource.return_value = None
         scr = ScriptService('root', self.gitserv_mock)
-        nid, name, ncontent = scr.create_script('new_script.py', 'jaja', 'content 2')
+        nid, path, name, ncontent = scr.create_script('new_script.py', 'jaja', 'content 2')
         BaseService_update_resource.assert_not_called()
         self.assertIsNone(nid)
 

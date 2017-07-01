@@ -1,5 +1,4 @@
 import os
-from flask_login import current_user
 from server.exceptions import InvalidPathException
 from server.utils.script_info import ScriptInfo
 from server.services.base_service import BaseService

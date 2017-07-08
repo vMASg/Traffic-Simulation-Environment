@@ -105,19 +105,22 @@ angular.module('APIServices', [])
             getInterfaceCollection: function () {
                 return $http.get('/interfaces');
             },
-            getInterface: function (id) {
-                return $http.get('/interfaces/' + encodeURIComponent(id));
+            getInterface: function (id, hash, info) {
+                if (typeof hash == 'object') {
+                    info = hash || [];
+                    hash = null;
+                } else {
+                    info = info || [];
+                }
+                hash = hash&&hash.length?'/'+hash:'';
+                return $http.get('/interfaces/' + encodeURIComponent(id) + hash + info.length?'?' + info.join('&'):'');
             },
             saveInterface: function (name, parent, code) {
                 var data = {name: name, parent: parent, code: code};
                 return $http.post('/interfaces', angular.toJson(data));
             },
             updateInterface: function (id, code) {
-                return $http.put('/interfaces/' + encodeURIComponent(id), code, {
-                    headers: {
-                        'Content-Type': 'text/plain'
-                    }
-                });
+                return $http.put('/interfaces/' + encodeURIComponent(id), angular.toJson(code));
             },
             deleteInterface: function (id) {
                 return $http.delete('/interfaces/' + encodeURIComponent(id));

@@ -16,7 +16,7 @@ class InterfaceService(BaseService):
 
     def get_interface_content(self, id, hash=None):
         abs_path, relpath = self._get_rel_abs_path(id)
-        if not relpath.startswith('..'):
+        if abs_path is not None and not relpath.startswith('..'):
             if hash is not None:
                 content = self.git_service.get_content(abs_path, self._root_folder_content, hash)
             else:
@@ -35,3 +35,6 @@ class InterfaceService(BaseService):
 
     def create_interface(self, name, parent, content):
         return self.create_resource(name, parent, content)
+
+    def get_revision_hashes(self, id):
+        return self.git_service.get_revision_hashes(self._get_rel_abs_path(id)[0], self._root_folder_content)

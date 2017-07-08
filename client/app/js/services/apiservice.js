@@ -113,11 +113,11 @@ angular.module('APIServices', [])
                     info = info || [];
                 }
                 hash = hash&&hash.length?'/'+hash:'';
-                return $http.get('/interfaces/' + encodeURIComponent(id) + hash + info.length?'?' + info.join('&'):'');
+                return $http.get('/interfaces/' + encodeURIComponent(id) + hash + (info.length?'?' + info.join('&'):''));
             },
             saveInterface: function (name, parent, code) {
-                var data = {name: name, parent: parent, code: code};
-                return $http.post('/interfaces', angular.toJson(data));
+                var data = {name: name, parent: parent, code: angular.toJson(code)};
+                return $http.post('/interfaces', data);
             },
             updateInterface: function (id, code) {
                 return $http.put('/interfaces/' + encodeURIComponent(id), angular.toJson(code));

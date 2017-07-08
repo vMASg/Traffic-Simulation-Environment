@@ -2219,9 +2219,11 @@
       }
 
       var editorWrapper = this.codeMirror_ ? this.codeMirror_.getWrapperElement() : this.ace_.container;
-      this.firepadWrapper_ = utils.elt("div", null, { 'class': 'firepad' });
-      editorWrapper.parentNode.replaceChild(this.firepadWrapper_, editorWrapper);
-      this.firepadWrapper_.appendChild(editorWrapper);
+      // TODO MASV: commented lines to avoid creating wrapper
+      // this.firepadWrapper_ = utils.elt("div", null, { 'class': 'firepad' });
+      // editorWrapper.parentNode.replaceChild(this.firepadWrapper_, editorWrapper);
+      // this.firepadWrapper_.appendChild(editorWrapper);
+      this.firepadWrapper_ = editorWrapper;
 
       // Don't allow drag/drop because it causes issues.  See https://github.com/firebase/firepad/issues/36
       utils.on(editorWrapper, 'dragstart', utils.stopEvent);

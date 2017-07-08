@@ -1,3 +1,4 @@
+import json
 from StringIO import StringIO
 from flask import send_file
 from flask_restful import reqparse, abort
@@ -14,7 +15,7 @@ class Interface(Resource):
     def get(self, id, hash=None):
 
         try:
-            content = self._interface_locator.get_interface_content(id, hash)
+            content = json.loads(self._interface_locator.get_interface_content(id, hash))
         except InvalidPathException:
             abort(404, message="Interface not found")
 

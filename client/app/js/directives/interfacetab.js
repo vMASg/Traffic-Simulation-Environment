@@ -5,12 +5,16 @@ angular.module('trafficEnv')
                 'data': '=tabData',
                 'switchNew': '&'
             },
-            controller: ['$scope', 'interfaceServices', '$uibModal', 'socket', function($scope, interfaceServices, $uibModal, socket) {
-                var baseOption = {
+            controller: ['$scope', 'interfaceServices', '$uibModal', 'socket', '$q', function($scope, interfaceServices, $uibModal, socket, $q) {
+                function BaseOption(params) {
                     // mode: will be set by inheriting children,
-                    theme: 'monokai',
-                    showPrintMargin: false,
-                    onLoad: function (_ace) {
+                    this.mode = params.mode;
+                    this.index = params.index;
+                    this.readonly = params.readonly;
+
+                    this.theme = 'monokai';
+                    this.showPrintMargin = false;
+                    this.onLoadHelper = function (_ace) {
                         // HACK to have the ace instance in the scope...
                         $scope.modeChanged = function (_ace) {
                             _ace.getSession().setMode("ace/mode/" + this.mode);
@@ -18,29 +22,24 @@ angular.module('trafficEnv')
                         _ace.setOption('scrollPastEnd', 0.9);
                         _ace.$blockScrolling = Infinity;
                         _ace.setHighlightActiveLine(false);
-                        if ($scope.data.id && this.index) {
+                        if ($scope.data.id && this.index !== undefined) {
                             $scope._aces[this.index] = _ace;
+                            acesd[this.index].resolve();
                         }
                         if (this.readonly) {
                             _ace.setReadOnly(true);
                         }
-                    }
-                };
+                    };
+
+                    this.onLoad = this.onLoadHelper.bind(this);
+                }
 
                 // TODO find better way to inherit from baseOption (angular.copy/extend?)
                 $scope.aceOptions = [
-                    angular.copy(baseOption),
-                    angular.copy(baseOption),
-                    angular.copy(baseOption)
+                    new BaseOption({mode: 'html',       index: 0}),
+                    new BaseOption({mode: 'javascript', index: 1}),
+                    new BaseOption({mode: 'css',        index: 2})
                 ];
-
-                $scope.aceOptions[0].mode = 'html';
-                $scope.aceOptions[1].mode = 'javascript';
-                $scope.aceOptions[2].mode = 'css';
-
-                $scope.aceOptions[0].index = 0;
-                $scope.aceOptions[1].index = 1;
-                $scope.aceOptions[2].index = 2;
 
                 $scope.code = ['', '', ''];
                 $scope.oldCode = ['', '', ''];
@@ -70,24 +69,24 @@ angular.module('trafficEnv')
                     socketIOAdapters[0].initRoom();
                     socketIOAdapters[1].initRoom();
                     socketIOAdapters[2].initRoom();
-                    interfaceServices.getInterface($scope.data.id).then(function (code) {
-                        // $scope.code = code.data.replace(/\r/gm, '');
-                        Firepad.fromACE(socketIOAdapters[0], $scope._aces[0], { defaultText: code['html'].data.replace(/\r/gm, '') });
-                        Firepad.fromACE(socketIOAdapters[1], $scope._aces[1], { defaultText: code['js']  .data.replace(/\r/gm, '') });
-                        Firepad.fromACE(socketIOAdapters[2], $scope._aces[2], { defaultText: code['css'] .data.replace(/\r/gm, '') });
-                    });
-                    $scope.oldCodeAceOptions = [
-                        angular.copy(baseOption),
-                        angular.copy(baseOption),
-                        angular.copy(baseOption)
-                    ];
-                    $scope.oldCodeAceOptions[0].mode = 'html';
-                    $scope.oldCodeAceOptions[1].mode = 'javascript';
-                    $scope.oldCodeAceOptions[2].mode = 'css';
 
-                    $scope.oldCodeAceOptions[0].readonly = true;
-                    $scope.oldCodeAceOptions[1].readonly = true;
-                    $scope.oldCodeAceOptions[2].readonly = true;
+                    $scope._aces = new Array(3);
+                    var acesd = [$q.defer(), $q.defer(), $q.defer()];
+                    $scope.oldCodeAceOptions = [
+                        new BaseOption({mode: 'html',       readonly: true}),
+                        new BaseOption({mode: 'javascript', readonly: true}),
+                        new BaseOption({mode: 'css',        readonly: true})
+                    ];
+
+                    interfaceServices.getInterface($scope.data.id).then(function (response) {
+                        // $scope.code = code.data.replace(/\r/gm, '');
+                        $q.all(acesd.map(d => d.promise)).then(function () {
+                            var code = response.data;
+                            Firepad.fromACE(socketIOAdapters[0], $scope._aces[0], { defaultText: code['html'].replace(/\r/gm, '') });
+                            Firepad.fromACE(socketIOAdapters[1], $scope._aces[1], { defaultText: code['js']  .replace(/\r/gm, '') });
+                            Firepad.fromACE(socketIOAdapters[2], $scope._aces[2], { defaultText: code['css'] .replace(/\r/gm, '') });
+                        });
+                    });
                     // $scope.oldCodeAceOption.onLoad = function (_ace) {
                     //     // HACK to have the ace instance in the scope...
                     //     $scope.modeChanged = function (_ace) {
@@ -141,11 +140,12 @@ angular.module('trafficEnv')
                 $scope.changeHash = function () {
                     // $scope.currentHash = currentHash;
                     if ($scope.currentHash != $scope.hashes[0]) {
-                        interfaceServices.getInterface($scope.data.id, $scope.currentHash).then(function (code) {
+                        interfaceServices.getInterface($scope.data.id, $scope.currentHash).then(function (response) {
+                            var code = response.data;
                             $scope.oldCode = [
-                                code['html'].data.replace(/\r/gm, ''),
-                                code['js'].data.replace(/\r/gm, ''),
-                                code['css'].data.replace(/\r/gm, '')
+                                code['html'].replace(/\r/gm, ''),
+                                code['js']  .replace(/\r/gm, ''),
+                                code['css'] .replace(/\r/gm, '')
                             ];
                         });
                     }

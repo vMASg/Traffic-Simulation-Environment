@@ -1,4 +1,6 @@
+from StringIO import StringIO
 from flask import send_file
+from flask_restful import reqparse
 from server.resources.base_resource import BaseResource as Resource
 
 class Interface(Resource):
@@ -8,8 +10,20 @@ class Interface(Resource):
         self._interface_locator = interface_locator
         self._subscription_service = subscription_service
 
-    def get(self, id):
-        return send_file(self._interface_locator.get_interface_location(id))
+    def get(self, id, hash=None):
+
+        content = self._interface_locator.get_interface_content(id, hash)
+        parser = reqparse.RequestParser()
+        parser.add_argument('type', type=str, location='args', case_sensitive=False, store_missing=False)
+        args = parser.parse_args()
+        if 'type' in args and args['type'] in ['html', 'css', 'js']:
+            content_to_send = content[args['type']]
+            str_io = StringIO()
+            str_io.write(content_to_send)
+            str_io.seek(0)
+            return send_file(str_io, as_attachment=False, mimetype="text/plain")
+
+        return content
 
 
     def put(self, id):

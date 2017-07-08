@@ -1,7 +1,4 @@
 from server.resources.base_resource import BaseResource as Resource
-from flask_restful import reqparse
-from server.exceptions import InvalidPathException
-import os
 
 class InterfaceCollection(Resource):
     """docstring for InterfaceCollection"""
@@ -11,49 +8,15 @@ class InterfaceCollection(Resource):
         self._subscription_service = subscription_service
 
     def get(self):
-        # TODO when grouped interfaces, uncomment:
-        # return self.get_resource_collection(self._interface_locator.get_interfaces, 'interface')
-        interfaces = self._interface_locator.get_interfaces()
-        def construct_response(scr):
-            retval = []
-            for script in scr:
-                info = {
-                    'id': script.id,
-                    'name': script.name
-                }
-                if script.type == 'group':
-                    info['type'] = 'dir'
-                    info['children'] = construct_response(script.children)
-                else:
-                    info['type'] = 'interface' if script.name.endswith('.intf') else 'intcode'
-
-                retval.append(info)
-            return retval
-
-        return construct_response(interfaces)
+        return self.get_resource_collection(self._interface_locator.get_interfaces, 'interface')
 
     def post(self):
-        # TODO when grouped interfaces, uncomment:
-        # return self.post_resource_collection(
-        #     self._interface_locator.create_interface,
-        #     self._new_interface,
-        #     data_arg_name='code',
-        #     res_type='interface'
-        # )
-        parser = reqparse.RequestParser()
-        parser.add_argument('name', type=str)
-        parser.add_argument('parent', type=str)
-        parser.add_argument('code', type=str)
-        args = parser.parse_args()
-        args['parent'] = os.path.join(*args['parent'].split('/'))
-        try:
-            id, name, code = self._interface_locator.create_interface(args['name'], args['parent'], args['code'])
-        except InvalidPathException as e:
-            return e.msg, 403
-
-        data = {'id': id, 'name': name, 'type': 'interface' if name.endswith('.intf') else 'intcode', 'code': code}
-        self._new_interface(data)
-        return data
+        return self.post_resource_collection(
+            self._interface_locator.create_interface,
+            self._new_interface,
+            data_arg_name='code',
+            res_type='interface'
+        )
 
     def _new_interface(self, data):
         self._subscription_service.socketio.emit('new_interface', data, namespace=self._subscription_service.namespace)

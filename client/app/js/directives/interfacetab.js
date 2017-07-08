@@ -5,7 +5,7 @@ angular.module('trafficEnv')
                 'data': '=tabData',
                 'switchNew': '&'
             },
-            controller: ['$scope', 'interfaceServices', '$uibModal', 'socket', '$q', function($scope, interfaceServices, $uibModal, socket, $q) {
+            controller: ['$scope', 'interfaceServices', '$uibModal', 'socket', '$q', '$element', function($scope, interfaceServices, $uibModal, socket, $q, $element) {
                 function BaseOption(params) {
                     // mode: will be set by inheriting children,
                     this.mode = params.mode;
@@ -87,27 +87,6 @@ angular.module('trafficEnv')
                             Firepad.fromACE(socketIOAdapters[2], $scope._aces[2], { defaultText: code['css'] .replace(/\r/gm, '') });
                         });
                     });
-                    // $scope.oldCodeAceOption.onLoad = function (_ace) {
-                    //     // HACK to have the ace instance in the scope...
-                    //     $scope.modeChanged = function (_ace) {
-                    //         _ace.getSession().setMode("ace/mode/python");
-                    //     };
-                    //     _ace.setOption('scrollPastEnd', 0.9);
-                    //     _ace.$blockScrolling = Infinity;
-                    //     _ace.setHighlightActiveLine(false);
-                    //     _ace.setReadOnly(true);
-                    // };
-
-                    // $scope.aceOption.onLoad = function (_ace) {
-                    //     // HACK to have the ace instance in the scope...
-                    //     $scope.modeChanged = function (_ace) {
-                    //         _ace.getSession().setMode("ace/mode/python");
-                    //     };
-                    //     _ace.setOption('scrollPastEnd', 0.9);
-                    //     _ace.$blockScrolling = Infinity;
-                    //     _ace.setHighlightActiveLine(false);
-                    //     $scope._ace = _ace;
-                    // };
 
                     $scope.$on('$destroy', function () {
                         socket.emit('unsubscribe', {channel: roomName + '0'});
@@ -229,6 +208,14 @@ angular.module('trafficEnv')
                         $scope.data.id = undefined;
                     });
                 };
+
+                $scope.$watch('visibleEditor', function (newValue, oldValue) {
+                    if (newValue == 3) {
+                        var iframe = $element[0].getElementsByTagName('iframe')[0];
+                        console.log(iframe);
+                    }
+                });
+
             }],
             templateUrl: 'templates/interface-tab.html',
             // replace: true

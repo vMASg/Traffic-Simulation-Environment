@@ -717,6 +717,7 @@ angular.module('trafficEnv')
 
                     modalInstance.result.then(function () {
                         pipelineServices.deletePipeline($scope.data.id);
+                        $scope.data.id = undefined;
                     });
                 };
 

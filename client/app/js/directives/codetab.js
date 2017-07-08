@@ -182,6 +182,7 @@ angular.module('trafficEnv')
 
                     modalInstance.result.then(function () {
                         scriptServices.deleteScript($scope.data.id);
+                        $scope.data.id = undefined;
                     });
                 };
             }],

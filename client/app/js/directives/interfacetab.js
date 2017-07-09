@@ -285,13 +285,14 @@ angular.module('trafficEnv')
                         myKey = Math.random();
                         if (trusted) {
                             iframe = iframe || $element[0].getElementsByTagName('iframe')[0];
+                            var sendOld = $scope.currentHash && $scope.currentHash != $scope.hashes[0];
                             iframe.contentWindow.postMessage(JSON.stringify({
                                 target: messageAddress,
                                 message: {
                                     op: 'send-content',
-                                    html: $scope.code[0],
-                                    js:   $scope.code[1],
-                                    css:  $scope.code[2]
+                                    html: sendOld?$scope.oldCode[0]:$scope.code[0],
+                                    js:   sendOld?$scope.oldCode[1]:$scope.code[1],
+                                    css:  sendOld?$scope.oldCode[2]:$scope.code[2]
                                 }
                             }), window.location.origin);
                         }

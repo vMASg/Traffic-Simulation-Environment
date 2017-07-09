@@ -20,6 +20,6 @@
 <div class="code-editor" ui-ace="aceOptions[0]" ng-model="code[0]" ng-hide="(currentHash && currentHash != hashes[0]) || visibleEditor != 0"></div>
 <div class="code-editor" ui-ace="aceOptions[1]" ng-model="code[1]" ng-hide="(currentHash && currentHash != hashes[0]) || visibleEditor != 1"></div>
 <div class="code-editor" ui-ace="aceOptions[2]" ng-model="code[2]" ng-hide="(currentHash && currentHash != hashes[0]) || visibleEditor != 2"></div>
-<div ng-if="visibleEditor == 3">
-    <iframe src="interface-frame.html" frameborder="0"></iframe>
+<div class="interface-frame" ng-if="visibleEditor == 3">
+    <iframe ng-src="{{iframeLocation()}}" frameborder="0"></iframe>
 </div>

@@ -5,7 +5,8 @@ angular.module('trafficEnv')
                 'data': '=tabData',
                 'switchNew': '&'
             },
-            controller: ['$scope', 'interfaceServices', '$uibModal', 'socket', '$q', '$element', function($scope, interfaceServices, $uibModal, socket, $q, $element) {
+            controller: ['$scope', 'interfaceServices', '$uibModal', 'socket', '$q', '$element', '$timeout',
+            function($scope, interfaceServices, $uibModal, socket, $q, $element, $timeout) {
                 function BaseOption(params) {
                     // mode: will be set by inheriting children,
                     this.mode = params.mode;
@@ -209,11 +210,105 @@ angular.module('trafficEnv')
                     });
                 };
 
+                var iframe;
                 $scope.$watch('visibleEditor', function (newValue, oldValue) {
                     if (newValue == 3) {
-                        var iframe = $element[0].getElementsByTagName('iframe')[0];
-                        console.log(iframe);
+                        iframe = $element[0].getElementsByTagName('iframe')[0];
+                    } else {
+                        iframe = undefined;
                     }
+                });
+
+                var verylongrandomstuff = function () {
+                    var retval = "";
+                    var randomNums = new Uint8Array(25);
+                    window.crypto.getRandomValues(randomNums);
+                    for (var i = 0; i < 25; ++i) {
+                        var n = randomNums[i];
+                        retval += String.fromCharCode(((n % 26) + 97) ^ ((n > 128)?0x20:0x00));
+                        if (Math.random() >= 0.8) {
+                            retval += '-';
+                        }
+                    }
+                    return retval;
+                }
+
+                var messageAddress = $scope.data.id || verylongrandomstuff();
+                var trustKeyRoomName = messageAddress + '-key';
+                var myKey = Math.random();
+                var trusted = false;
+                var numFrame;
+
+                $scope.iframeLocation = function () {
+                    return "interface-frame.html?" + messageAddress;
+                }
+
+                var trustKeySys = new SocketIOFirebase(socket, trustKeyRoomName);
+                trustKeySys.initRoom();
+
+                var onmessage = function (message) {
+                    var data = JSON.parse(message.data);
+                    var trust = message.origin == window.location.origin;
+                    if (data.message.op == 'req-ack' && data.target === messageAddress) {
+                        trust = trust && data.message.key === myKey;
+                        trusted = trust;
+                        if (trust) {
+                            iframe = iframe || $element[0].getElementsByTagName('iframe')[0];
+                            iframe.contentWindow.postMessage(JSON.stringify({
+                                target: messageAddress,
+                                message: {
+                                    op: 'req-ack',
+                                    key: numFrame
+                                }
+                            }), window.location.origin);
+                        }
+                    }
+                }
+
+                var keyAdded = function (s) {
+                    if (s.key() == 'num_frame') {
+                        numFrame = s.val();
+                        trustKeySys.child('num_main').set(myKey);
+                        $timeout(function () {
+                            trustKeySys.child('num_main').remove();
+                            numFrame = undefined;
+                            myKey = Math.random();
+                            trusted = false;
+                        }, 3000);
+                    }
+                };
+
+                var keyRemoved = function (s) {
+                    if (s.key() == 'num_frame') {
+                        trustKeySys.child('num_main').remove();
+                        numFrame = undefined;
+                        myKey = Math.random();
+                        if (trusted) {
+                            iframe = iframe || $element[0].getElementsByTagName('iframe')[0];
+                            iframe.contentWindow.postMessage(JSON.stringify({
+                                target: messageAddress,
+                                message: {
+                                    op: 'send-content',
+                                    html: $scope.code[0],
+                                    js:   $scope.code[1],
+                                    css:  $scope.code[2]
+                                }
+                            }), window.location.origin);
+                        }
+                        trusted = false;
+                    }
+                }
+
+                window.addEventListener('message', onmessage);
+
+                trustKeySys.on('child_added', keyAdded);
+                trustKeySys.on('child_removed', keyRemoved);
+
+                $scope.$on('$destroy', function () {
+                    window.removeEventListener('message', onmessage);
+                    trustKeySys.off('child_added', keyAdded);
+                    trustKeySys.off('child_removed', keyRemoved);
+                    socket.emit('unsubscribe', {channel: trustKeyRoomName});
                 });
 
             }],

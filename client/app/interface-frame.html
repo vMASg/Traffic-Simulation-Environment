@@ -37,8 +37,121 @@
     <link rel="stylesheet" type="text/css" href="js/vendor/angular-fx/dist/angular-fx.min.css" />
     <link rel="stylesheet" type="text/css" href="css/main.css" />
     <link rel="stylesheet" type="text/css" href="css/dark-theme.css" />
+    <script type="text/javascript">
+        angular.module('trafficEnv')
+        .directive('frameContent', function($compile, $q, socket, $timeout){
+            var queueLen = angular.module('trafficEnv')._invokeQueue.length;
+
+            function registerScript() {
+                var queue = angular.module('trafficEnv')._invokeQueue;
+                for(var i=queueLen;i<queue.length;i++) {
+                    var call = queue[i];
+                    // call is in the form [providerName, providerFunc, providerArguments]
+                    var provider = providers[call[0]];
+                    if(provider) {
+                        // e.g. $controllerProvider.register("Ctrl", function() { ... })
+                        provider[call[1]].apply(provider, call[2]);
+                    }
+                }
+            }
+
+            return {
+                scope: true,
+                link: function($scope, iElm, iAttrs) {
+                        if (window.parent === window) {
+                            iElm[0].outerHTML = '<h1>The interface is not being run from inside a frame</h1>';
+                            $compile(iElm.contents())($scope.$parent);
+                            return;
+                        }
+                        var myKey = Math.random();
+                        var messageAddress = window.location.search.slice(1);
+                        var isTrusted = false;
+                        var received = $q.defer();
+
+                        function scopeDestroy () {
+                            window.removeEventListener('message', onmessage);
+                            trustKeySys.off('child_added', keyAdded);
+                            socket.emit('unsubscribe', {channel: roomname});
+                        }
+
+                        received.promise.then(function(trust) {
+                            if (!trust) {
+                                iElm[0].outerHTML = '<h1>The parent window cannot be trusted or takes too long to respond</h1>';
+                                scopeDestroy();
+                                $compile(iElm.contents())($scope.$parent);
+                            }
+                        });
+
+                        var onmessage = function (message) {
+                            var data = JSON.parse(message.data);
+                            var trust = message.origin == window.location.origin && data.target === messageAddress;
+
+                            if (data.message.op == 'req-ack') {
+                                trust = trust && data.message.key === myKey;
+                                isTrusted = trust;
+                                trustKeySys.child('num_frame').remove();
+                                received.resolve(trust);
+                            }
+                            else if (data.message.op == 'send-content' && trust && isTrusted) {
+                                var html = data.message.html;
+                                var js = data.message.js;
+                                var css = data.message.css;
+
+                                var stylesheet = document.createElement('style');
+                                stylesheet.setAttribute('type', 'text/css');
+                                stylesheet.appendChild(document.createTextNode(css));
+                                document.head.appendChild(stylesheet);
+
+                                var script = document.createElement('script');
+                                script.setAttribute('type', 'text/javascript');
+                                script.appendChild(document.createTextNode(js));
+
+                                document.head.appendChild(script);
+
+                                registerScript();
+
+                                var e = $compile(html)($scope.$parent);
+                                iElm.replaceWith(e);
+                                scopeDestroy();
+                            }
+                        };
+
+                        window.addEventListener('message', onmessage);
+
+                        var roomname = messageAddress + '-key';
+                        var trustKeySys = new SocketIOFirebase(socket, roomname);
+                        trustKeySys.initRoom();
+
+                        var keyAdded = function (s) {
+                            if (s.key() == 'num_main') {
+                                var numMain = s.val();
+                                window.parent.postMessage(JSON.stringify({
+                                    target: messageAddress,
+                                    message: {
+                                        op: 'req-ack',
+                                        key: numMain
+                                    }
+                                }), window.location.origin);
+                            }
+                        };
+
+                        trustKeySys.on('child_added', keyAdded);
+
+                        trustKeySys.child('num_frame').set(myKey);
+
+                        $scope.$on('$destroy', scopeDestroy);
+
+                        $timeout(function () {
+                            received.resolve(false);
+                        }, 2000);
+                }
+            };
+        });
+
+    </script>
 </head>
-<body>
-    <p>Hello boys!</p>
+<body data-ng-app="trafficEnv">
+    <frame-content>
+    </frame-content>
 </body>
 </html>

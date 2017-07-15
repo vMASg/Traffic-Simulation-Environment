@@ -71,6 +71,7 @@
     background-color: rgba(0,0,0,.25);
 }
 
+.iframe-body,
 .body-tabs-container {
     background-color: #222222;
 }
@@ -83,6 +84,7 @@
     /*background: linear-gradient(to bottom, hsla(247,11%,10%,1) 0%, hsla(247,11%,25%,1) 70%, #f44545 100%);*/
 }
 
+.iframe-body,
 .model-history,
 .model-upload,
 .form-control.input,

@@ -127,7 +127,11 @@ angular.module('trafficEnv')
                                 code['js']  .replace(/\r/gm, ''),
                                 code['css'] .replace(/\r/gm, '')
                             ];
+
+                            iframe && iframe.contentWindow.location.reload(true);
                         });
+                    } else if (iframe) {
+                        iframe.contentWindow.location.reload(true);
                     }
                 };
 

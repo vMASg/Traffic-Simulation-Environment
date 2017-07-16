@@ -236,7 +236,7 @@ angular.module('trafficEnv')
                 };
 
                 var existsPath = function (starting, ending, visited) {
-                    if (starting.id == ending.id) {
+                    if (starting.id && ending.id && starting.id === ending.id) {
                         return true;
                     } else if (!visited) {
                         visited = [];

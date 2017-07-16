@@ -61,7 +61,7 @@ angular.module('trafficEnv')
                         }
                         var predecessors = element.nodeInfo.predecessors;
                         if (predecessors) {
-                            var circ = predecessors.getCircle();
+                            var circ = predecessors.getCircle?predecessors.getCircle():null;
                             for (var i = predecessors.length - 1; i >= 0; i--) {
                                 var inp = predecessors[i];
                                 var path = inp.pathObj;
@@ -71,7 +71,7 @@ angular.module('trafficEnv')
                         }
                         var successors = element.nodeInfo.successors;
                         if (successors) {
-                            var circOrig = successors.getCircle();
+                            var circOrig = successors.getCircle?successors.getCircle():null;
                             for (var i = successors.length - 1; i >= 0; i--) {
                                 var inp = successors[i];
                                 var path = inp.pathObj;
@@ -433,7 +433,8 @@ angular.module('trafficEnv')
                                 inputs: e.inputs.map(function (input) {
                                     return {
                                         name: input.name,
-                                        origin: input.input?{ node: input.input.origin.getNode().id, connector: input.input.origin.name }:null
+                                        origin: input.input?{ node: input.input.origin.getNode().id, connector: input.input.origin.name }:null,
+                                        value: input.inputValue || null
                                     };
                                 }),
                                 outputs: e.outputs.map(function (output) {
@@ -444,7 +445,8 @@ angular.module('trafficEnv')
                                                 node: conn.destination.getNode().id,
                                                 connector: conn.destination.name
                                             };
-                                        }):[]
+                                        }):[],
+                                        value: output.inputValue || null
                                     };
                                 }),
                                 predecessors: e.predecessors.map(function (pred) {
@@ -930,6 +932,30 @@ angular.module('trafficEnv')
                     }
                 };
 
+                $scope.addConstant = function () {
+                    var nodeInfo = {
+                        id: nodeIdCounter++,  // TODO replace by proper random id
+                        oid: null,
+                        type: 'special',
+                        path: '<CONSTANT>',
+                        hash: null,
+                        title: 'Constant',
+                        inputs: [],
+                        outputs: [{name: 'constant_name', editionMode: true, inputType: 'null'}],
+                        predecessors: [],
+                        successors: [],
+                        x: containerLeft,
+                        y: containerTop,
+                        isExecutor: false,
+                        aimsun: false
+                    };
+                    $scope.shapes.push(nodeInfo);
+                    $timeout(function() {
+                        var nodeboxes = nodes.querySelectorAll('.node-box.constant-nodes');
+                        createBoxOut(nodeboxes[nodeboxes.length-1], nodeInfo);
+                    }, 5);
+                };
+
                 $scope.infoNodePopover = {
                     template: 'nodeInfo.html',
                     node: null
@@ -1009,8 +1035,8 @@ angular.module('trafficEnv')
                                 path: node.path,
                                 hash: node.hash,
                                 title: node.title,
-                                inputs: node.inputs.map(function (inp) { return {name: inp.name}; }),
-                                outputs: node.outputs.map(function (out) { return {name: out.name}; }),
+                                inputs: node.inputs.map(function (inp) { return {name: inp.name, value: inp.value}; }),
+                                outputs: node.outputs.map(function (out) { return {name: out.name, value: out.value}; }),
                                 predecessors: [], // node.predecessors.map(function (pre) { return {origin: pre.origin}; }),
                                 successors: [], // node.successors.map(function (suc) { return {destination: suc.destination}; }),
                                 x: node.x,

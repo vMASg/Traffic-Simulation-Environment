@@ -15,6 +15,7 @@
             <li role="menuitem" data-ng-click="addNode('Run Simulation')"><a>Run Simulation</a></li>
             <li role="menuitem" data-ng-click="addInputs()"><a>Add Input</a></li>
             <li role="menuitem" data-ng-click="addOutputs()"><a>Add Output</a></li>
+            <li role="menuitem" data-ng-click="addConstant()"><a>Add Constant</a></li>
 <!--             <li role="menuitem"><a href="#">Something else here</a></li>
             <li class="divider"></li>
             <li role="menuitem"><a href="#">Separated link</a></li> -->
@@ -70,7 +71,7 @@
 <div class="pipeline-container">
     <div class="connections"></div>
     <div class="nodes" data-ui-on-drop="dropHandler($event, $data, $channel)" data-drop-channel="{{acceptedChannels}}" ng-mousemove="mousemove($event);drawpath($event)" ng-mouseup="stopMoving($event)">
-        <div class=" node-box input-box" ng-if="pipelineInputs" ng-mousedown="startMoving($event, null, pipelineInputs);" ng-mouseup="maybeStopProp($event)" style="visibility: hidden;">
+        <div class="node-box input-box" ng-if="pipelineInputs" ng-mousedown="startMoving($event, null, pipelineInputs);" ng-mouseup="maybeStopProp($event)" style="visibility: hidden;">
             <div class="title">
                 <span>Inputs</span>
                 <div class="icon ion-trash-a" ng-dblclick="deleteInputs($event)"></div>
@@ -114,7 +115,43 @@
                 </div>
             </div>
         </div>
-        <div class="node-box stdnodes" ng-repeat="nodeInfo in shapes" ng-mousedown="startMoving($event, null, nodeInfo);" ng-mouseup="maybeStopProp($event)" style="visibility: hidden;" uib-popover-template="infoNodePopover.template" popover-title="{{nodeInfo.title}} Info" popover-trigger="none" popover-placement="top" popover-is-open="nodeInfo.infoShown">
+        <div class="node-box constant-nodes" ng-repeat="nodeInfo in shapes | filter:{ path: '<CONSTANT>'}" ng-mousedown="startMoving($event, null, nodeInfo);" ng-mouseup="maybeStopProp($event)" style="visibility: hidden;">
+            <div class="title">
+                <span>{{nodeInfo.title}}</span>
+                <div class="icon ion-trash-a" ng-dblclick="deleteNode($event, nodeInfo)"></div>
+            </div>
+            <div class="inputs_outputs">
+                <div class="io-row clearfix" ng-repeat="output in nodeInfo.outputs">
+                    <div class="io-cell"></div>
+                    <div class="io-cell" uib-popover-template="contextOptions.template" popover-trigger="none" popover-placement="right" popover-is-open="output.isOpen" ng-context-menu="deleteConnetion($event, output)" popover-append-to-body="true">
+                        <div class="constant-name-val">
+                            <span class="cnt-name" data-ng-hide="output.editionMode" data-ng-dblclick="output.editionMode = true">{{output.name}}</span>
+                            <span class="cnt-val" data-ng-hide="output.editionMode" data-ng-dblclick="output.editionMode = true">= {{output.inputType == 'null'?'None':output.inputValue}}</span>
+                        </div>
+                        <div data-ng-show="output.editionMode" class="insert-inputs clearfix">
+                            <!-- TODO type selector + input -->
+                            <input class="form-control input value"  ng-model="output.name" type="text" />
+                            <select class="form-control input type" ng-model="output.inputType">
+                                <option value="string">String</option>
+                                <option value="number">Number</option>
+                                <option value="boolean">Boolean</option>
+                                <option value="null">None</option>
+                            </select>
+                            <input class="form-control input value"  ng-model="output.inputValue" type="text" ng-if="output.inputType == 'string'" />
+                            <input class="form-control input value"  ng-model="output.inputValue" type="number" ng-if="output.inputType == 'number'" />
+                            <select class="form-control input value" ng-model="output.inputValue"  ng-if="output.inputType == 'boolean'">
+                                <option value="true">True</option>
+                                <option value="false">False</option>
+                            </select>
+                            <input class="form-control input value" type="text" ng-if="output.inputType == 'null'" style="visibility: hidden;" />
+                        </div>
+                        <div data-ng-hide="output.editionMode" class="circle start" ng-mousedown="createStartingConnection($event, output)" ng-mouseup="finishEndingConnection($event, output)"></div>
+                    </div>
+                    <div data-ng-show="output.editionMode" class="btn btn-default" ng-click="output.editionMode = false">OK</div>
+                </div>
+            </div>
+        </div>
+        <div class="node-box stdnodes" ng-repeat="nodeInfo in shapes | filter:{ path: '!<CONSTANT>'}" ng-mousedown="startMoving($event, null, nodeInfo);" ng-mouseup="maybeStopProp($event)" style="visibility: hidden;" uib-popover-template="infoNodePopover.template" popover-title="{{nodeInfo.title}} Info" popover-trigger="none" popover-placement="top" popover-is-open="nodeInfo.infoShown">
             <div class="title">
                 <div ng-show="nodeInfo.outdated" class="ion-alert-circled"></div>
                 <span>{{nodeInfo.title}}</span>

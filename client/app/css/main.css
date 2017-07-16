@@ -482,6 +482,22 @@ td.output-view > table > tbody > tr > th {
     font-style: italic;
 }
 
+.io-cell > .constant-name-val {
+    display: flex;
+    flex: 1;
+}
+
+.constant-name-val > .cnt-name,
+.constant-name-val > .cnt-val {
+    flex: 1;
+}
+
+.constant-name-val > .cnt-val {
+    font-style: italic;
+    color: #8f8f8f;
+    text-align: center;
+}
+
 .pipeline-container .io-cell:first-child > .circle {
     float: left;
     margin-right: 10px;

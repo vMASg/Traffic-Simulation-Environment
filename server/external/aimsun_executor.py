@@ -200,10 +200,23 @@ class RunSimulation(Node):
         self._kill_spammer()
 
     def _start_spammer(self):
-        self._spammer = subprocess.Popen(['server\\external\\spammer3.exe'])
+        self._spammer = subprocess.Popen([os.path.join('server', 'external', 'spammer3.exe')])
 
     def _kill_spammer(self):
         self._spammer.kill()
+
+class Constant(Node):
+    """docstring for Constant"""
+    def __init__(self, node_info):
+        super(Constant, self).__init__(node_info)
+        self.node_info = node_info
+        self.outputs = {e['name']: e['value'] for e in self.node_info['outputs']}
+
+    def get_output(self, connector):
+        return self.outputs[connector]
+
+    def __call__(self):
+        pass
 
 class Pipeline(object):
     """docstring for Pipeline"""
@@ -282,6 +295,8 @@ class Pipeline(object):
             return CloseModel(node)
         elif node['path'] == '<SAVE_MODEL>':
             return SaveModel(node)
+        elif node['path'] == '<CONSTANT>':
+            return Constant(node)
         else:
             raise Exception("Unrecognized special node {}".format(node['path']))
 

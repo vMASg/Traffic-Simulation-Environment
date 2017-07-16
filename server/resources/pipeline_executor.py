@@ -8,7 +8,7 @@ from server.exceptions import RecursivePipelineCall
 class PipelineExecutor(object):
     """docstring for PipelineExecutor"""
 
-    _RUN_SCRIPT_PIPELINE_PATH = 'server\\external\\run_script.pipeline'
+    _RUN_SCRIPT_PIPELINE_PATH = os.path.join('server', 'external', 'run_script.pipeline')
 
     def __init__(self, aimsun_service, pipeline_service, script_service, model_service, subscription_service):
         super(PipelineExecutor, self).__init__()

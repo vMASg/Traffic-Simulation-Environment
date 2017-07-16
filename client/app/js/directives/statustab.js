@@ -5,7 +5,7 @@ angular.module('trafficEnv')
                 'data': '=tabData',
                 'switchNew': '&'
             },
-            controller: ['$scope', 'socket', 'finishedTasksServices', function($scope, socket, finishedTasksServices) {
+            controller: ['$scope', 'socket', 'finishedTasksServices', 'pipelineServices', function($scope, socket, finishedTasksServices, pipelineServices) {
 
                 var self = this;
                 var channelInfo = {};
@@ -119,7 +119,23 @@ angular.module('trafficEnv')
                 };
 
                 finishedTasksServices.getFinishedTaskCollection().then(function (data) {
-                    $scope.finishedTasks = data.data;
+                    var tasks = data.data;
+                    for (var i = 0, len = tasks.length; i < len; ++i) {
+                        var task = tasks[i].data;
+                        if (task.meta.type == 'pipeline') {
+                            pipelineServices.getPipeline(task.meta.task).then((function (task, response) {
+                                var info = response.data;
+                                task.meta.task = {
+                                    id: info.id,
+                                    name: info.name,
+                                    path: info.path
+                                };
+                                var hashinfo = info.hash.find(h => h.id === task.meta.hash);
+                                task.meta.hash = hashinfo || task.meta.hash;
+                            }).bind(this, task));
+                        }
+                    }
+                    $scope.finishedTasks = tasks;
                 });
 
                 var onChannelCatchUp = function (channelName, transmissionsData) {
@@ -133,6 +149,23 @@ angular.module('trafficEnv')
 
                 var onMetaChannel = function (channelName, data) {
                     $scope.inpoutTrans[channelName].meta = data;
+                    if (data.type == 'pipeline' && data.task) {
+                        pipelineServices.getPipeline(data.task).then(function (response) {
+                            var info = response.data;
+                            $scope.inpoutTrans[channelName].meta.task = {
+                                id: info.id,
+                                name: info.name,
+                                path: info.path
+                            };
+                            var hashinfo = info.hash.find(h => h.id === data.hash);
+                            $scope.inpoutTrans[channelName].meta.hash = hashinfo || data.hash;
+                        });
+                    }
+                };
+
+                $scope.formatHash = function (hash) {
+                    return moment(hash.timestamp, 'X').format('DD/MM/YY HH:mm:ss') + ' - ' + hash.author.split(" ")[0] + ' ('+ hash.id.slice(0,7) + ')';
+                    // return moment(hash.timestamp, 'X').format('ddd MMM D HH:mm:ss Y') + ' - ' + hash.author.split(" ")[0] + ' ('+ hash.id.slice(0,7) + ')';
                 };
 
                 $scope.toggleVisibility = function (channelName) {

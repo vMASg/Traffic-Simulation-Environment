@@ -23,7 +23,7 @@
                     <td uib-tooltip="{{fullDate(metaData.startTime)}}" tooltip-append-to-body="true">{{relativeDate(metaData.startTime)}}</td>
                     <td uib-tooltip="{{fullDate(metaData.finishTime)}}" tooltip-append-to-body="true">{{relativeDate(metaData.finishTime)}}</td>
                     <td>{{metaData.type || '-'}}</td>
-                    <td uib-tooltip="{{metaData.hash}}" tooltip-append-to-body="true">{{metaData.task || '-'}}</td>
+                    <td uib-tooltip="{{metaData.hash.id?formatHash(metaData.hash):metaData.hash}}" tooltip-append-to-body="true">{{metaData.task?(metaData.task.path?metaData.task.path:metaData.task):'-'}}</td>
                     <td class="comment">{{metaData.comment || '-'}}</td>
                     <td ng-click="abortTask($event,channelName)">Abort</td>
                 </tr>
@@ -83,7 +83,7 @@
                     <td uib-tooltip="{{fullDate(metaData.startTime)}}" tooltip-append-to-body="true">{{relativeDate(metaData.startTime)}}</td>
                     <td uib-tooltip="{{fullDate(metaData.finishTime)}}" tooltip-append-to-body="true">{{relativeDate(metaData.finishTime)}}</td>
                     <td>{{metaData.type || '-'}}</td>
-                    <td uib-tooltip="{{metaData.hash}}" tooltip-append-to-body="true">{{metaData.task || '-'}}</td>
+                    <td uib-tooltip="{{metaData.hash.id?formatHash(metaData.hash):metaData.hash}}" tooltip-append-to-body="true">{{metaData.task?(metaData.task.path?metaData.task.path:metaData.task):'-'}}</td>
                     <td class="comment">{{metaData.comment || '-'}}</td>
                     <!-- <td>delete</td> -->
                 </tr>
@@ -114,7 +114,7 @@
                     <td uib-tooltip="{{fullDate(data.data.meta.startTime)}}" tooltip-append-to-body="true">{{relativeDate(data.data.meta.startTime)}}</td>
                     <td uib-tooltip="{{fullDate(data.data.meta.finishTime)}}" tooltip-append-to-body="true">{{relativeDate(data.data.meta.finishTime)}}</td>
                     <td>{{data.data.meta.type || '-'}}</td>
-                    <td uib-tooltip="{{data.data.meta.hash}}" tooltip-append-to-body="true">{{data.data.meta.task || '-'}}</td>
+                    <td uib-tooltip="{{data.data.meta.hash.id?formatHash(data.data.meta.hash):data.data.meta.hash}}" tooltip-append-to-body="true">{{data.data.meta.task?(data.data.meta.task.path?data.data.meta.task.path:data.data.meta.task):'-'}}</td>
                     <td class="comment">{{data.data.meta.comment || '-'}}</td>
                     <td ng-click="deleteResult($event, data.id)">delete</td>
                 </tr>

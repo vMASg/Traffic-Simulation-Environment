@@ -21,7 +21,8 @@ class Interface(Resource):
 
         def get_data(data_type):
             if data_type == 'hash':
-                return self._interface_locator.get_revision_hashes(id)
+                hashesinfo = self._interface_locator.get_revision_hashes(id)
+                return [{'id': hid, 'author': author, 'timestamp': time} for hid, author, time in hashesinfo]
 
         parser = reqparse.RequestParser()
         parser.add_argument('type', type=str, location='args', case_sensitive=False, store_missing=False)

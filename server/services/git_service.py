@@ -180,7 +180,7 @@ class GitService(object):
             retcode = cmd.poll()
 
         retval += cmd.stdout.read()
-        return [hash.strip().split('~')[0] for hash in retval.splitlines() if len(hash.strip()) > 0]
+        return [tuple(hash.strip().split('~')) for hash in retval.splitlines() if len(hash.strip()) > 0]
 
     @mutex
     def get_content(self, file_path, repo_dir, hash):

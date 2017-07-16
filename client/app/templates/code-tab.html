@@ -4,9 +4,10 @@
     <div class="btn btn-default" data-ng-click="saveScriptAs()">Save As</div>
     <div class="btn btn-default" data-ng-disabled="!data.id" data-ng-click="deleteScript()">Delete</div>
     <span ng-if="hashes" class="space-between">Version:</span>
-    <select ng-if="hashes" class="form-control input value" ng-options="hash for hash in hashes" ng-model="$parent.currentHash" ng-change="changeHash()">
+    <select ng-if="hashes" class="form-control input value" ng-model="$parent.currentHash" ng-change="changeHash()">
+        <option ng-repeat="hash in hashes" value="{{hash.id}}">{{formatHash(hash)}}</option>
     </select>
-    <div class="btn read-only" ng-show="currentHash && currentHash != hashes[0]" disabled="disabled">Read Only</div>
+    <div class="btn read-only" ng-show="currentHash && currentHash != hashes[0].id" disabled="disabled">Read Only</div>
 </div>
-<div class="code-editor" style="opacity: 0.8;" ui-ace="oldCodeAceOption" ng-model="oldCode" ng-show="currentHash && currentHash != hashes[0]"></div>
-<div class="code-editor" ui-ace="aceOption" ng-model="code" ng-hide="currentHash && currentHash != hashes[0]"></div>
+<div class="code-editor" style="opacity: 0.8;" ui-ace="oldCodeAceOption" ng-model="oldCode" ng-show="currentHash && currentHash != hashes[0].id"></div>
+<div class="code-editor" ui-ace="aceOption" ng-model="code" ng-hide="currentHash && currentHash != hashes[0].id"></div>

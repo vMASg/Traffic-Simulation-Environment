@@ -9,7 +9,8 @@ class Pipeline(Resource):
 
     def get(self, id, hash=None):
         id, name, path, content, hashes = self._pipeline_locator.get_pipeline(id, hash)
-        return {'id': id, 'name': name, 'path': path, 'graph': content, 'hash': hashes}
+        hashesinfo = [{'id': hid, 'author': author, 'timestamp': time} for hid, author, time in hashes]
+        return {'id': id, 'name': name, 'path': path, 'graph': content, 'hash': hashesinfo}
 
     def put(self, id):
         return self.put_resource(id, self._pipeline_locator.update_pipeline, self._changed_pipeline)

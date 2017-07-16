@@ -530,7 +530,7 @@ angular.module('trafficEnv')
                     var setOutdated = function (target, data) {
                         for (var i = 0; i < target.length; ++i) {
                             var elem = target[i];
-                            if (data.data.hash[0] != elem.hash) {
+                            if (data.data.hash[0].id != elem.hash) {
                                 elem.outdated = true;
                             }
                         }
@@ -575,7 +575,7 @@ angular.module('trafficEnv')
                                 oid: data.id,
                                 type: $channel,
                                 path: data.path,
-                                hash: data.hash[0],
+                                hash: data.hash[0].id,
                                 title: data.name,
                                 inputs: (data.inout[0] || []).map(function (a) { return {name: a}; }),
                                 outputs: (data.inout[1] || []).map(function (a) { return {name: a}; }),
@@ -627,7 +627,7 @@ angular.module('trafficEnv')
                                 oid: data.id,
                                 type: $channel,
                                 path: data.path,
-                                hash: data.hash[0],
+                                hash: data.hash[0].id,
                                 title: data.name,
                                 inputs: (pipeline.inputs || {outputs:[]}).outputs.map(function (a) { return {name: a.name}; }),
                                 outputs: (pipeline.outputs || {inputs: []}).inputs.map(function (a) { return {name: a.name}; }),
@@ -989,10 +989,10 @@ angular.module('trafficEnv')
 
                 if ($scope.data.id) {
                     function refreshHashes(data) {
-                        var latestVersion = !$scope.currentHash || $scope.currentHash == $scope.hashes[0];
+                        var latestVersion = !$scope.currentHash || $scope.currentHash == $scope.hashes[0].id;
                         $scope.hashes = data.data.hash;
                         if (latestVersion) {
-                            $scope.currentHash = $scope.hashes[0];
+                            $scope.currentHash = $scope.hashes[0].id;
                         }
                     }
                     function loadPipeline (data) {
@@ -1138,7 +1138,7 @@ angular.module('trafficEnv')
                     pipelineServices.getPipeline($scope.data.id).then(loadPipeline);
 
                     var onChangedPipeline = function (data, hash) {
-                        if ($scope.data.id === data.id && $scope.permission == 'read_only' && (hash || $scope.currentHash == $scope.hashes[0])) {
+                        if ($scope.data.id === data.id && $scope.permission == 'read_only' && (hash || $scope.currentHash == $scope.hashes[0].id)) {
                             var i, j, input, len = $scope.shapes.length;
                             for (i = 0; i < len; ++i) {
                                 var node = $scope.shapes[i];
@@ -1168,7 +1168,7 @@ angular.module('trafficEnv')
                             executionNodeCounter = 0;
                             aimsunNodeCounter = 0;
                             pipelineServices.getPipeline($scope.data.id, hash).then(loadPipeline);
-                        } else if ($scope.permission != 'read_only' || !hash && $scope.currentHash != $scope.hashes[0]) {
+                        } else if ($scope.permission != 'read_only' || !hash && $scope.currentHash != $scope.hashes[0].id) {
                             pipelineServices.getPipeline($scope.data.id).then(refreshHashes);
                         }
                     };
@@ -1227,7 +1227,7 @@ angular.module('trafficEnv')
                     };
 
                     $scope.changeHash = function () {
-                        if ($scope.currentHash != $scope.hashes[0]) {
+                        if ($scope.currentHash != $scope.hashes[0].id) {
                             initialized = false;
                             $scope.permission = 'read_only';
                             usersRef.child(userName).set('read_only');
@@ -1237,7 +1237,12 @@ angular.module('trafficEnv')
                             initialized = true;
                             initRequest();
                         }
-                    }
+                    };
+
+                    $scope.formatHash = function (hash) {
+                        return moment(hash.timestamp, 'X').format('DD/MM/YY HH:mm:ss') + ' - ' + hash.author.split(" ")[0] + ' ('+ hash.id.slice(0,7) + ')';
+                        // return moment(hash.timestamp, 'X').format('ddd MMM D HH:mm:ss Y') + ' - ' + hash.author.split(" ")[0] + ' ('+ hash.id.slice(0,7) + ')';
+                    };
 
                     usersRef.on('child_added', userChange);
                     usersRef.on('child_changed', userChange);

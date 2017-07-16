@@ -24,7 +24,8 @@ class Script(Resource):
             elif data_type == 'path':
                 return self._script_locator.get_path(id)
             elif data_type == 'hash':
-                return self._script_locator.get_revision_hashes(id)
+                hashes = self._script_locator.get_revision_hashes(id)
+                return [{'id': hid, 'author': author, 'timestamp': time} for hid, author, time in hashes]
             elif data_type == 'inout':
                 return script_content_info.get_inputs_outputs()
             elif data_type == 'stype':

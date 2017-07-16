@@ -10,16 +10,17 @@
         <label class="btn btn-default" ng-model="visibleEditor" uib-btn-radio="3">Interface</label>
     </div>
     <span ng-if="hashes" class="space-between">Version:</span>
-    <select ng-if="hashes" class="form-control input value" ng-options="hash for hash in hashes" ng-model="$parent.currentHash" ng-change="changeHash()">
+    <select ng-if="hashes" class="form-control input value" ng-model="$parent.currentHash" ng-change="changeHash()">
+        <option ng-repeat="hash in hashes" value="{{hash.id}}">{{formatHash(hash)}}</option>
     </select>
-    <div class="btn read-only" ng-show="currentHash && currentHash != hashes[0]" disabled="disabled">Read Only</div>
+    <div class="btn read-only" ng-show="currentHash && currentHash != hashes[0].id" disabled="disabled">Read Only</div>
 </div>
-<div class="code-editor" style="opacity: 0.8;" ui-ace="oldCodeAceOptions[0]" ng-model="oldCode[0]" ng-show="currentHash && currentHash != hashes[0] && visibleEditor == 0"></div>
-<div class="code-editor" style="opacity: 0.8;" ui-ace="oldCodeAceOptions[1]" ng-model="oldCode[1]" ng-show="currentHash && currentHash != hashes[0] && visibleEditor == 1"></div>
-<div class="code-editor" style="opacity: 0.8;" ui-ace="oldCodeAceOptions[2]" ng-model="oldCode[2]" ng-show="currentHash && currentHash != hashes[0] && visibleEditor == 2"></div>
-<div class="code-editor" ui-ace="aceOptions[0]" ng-model="code[0]" ng-hide="(currentHash && currentHash != hashes[0]) || visibleEditor != 0"></div>
-<div class="code-editor" ui-ace="aceOptions[1]" ng-model="code[1]" ng-hide="(currentHash && currentHash != hashes[0]) || visibleEditor != 1"></div>
-<div class="code-editor" ui-ace="aceOptions[2]" ng-model="code[2]" ng-hide="(currentHash && currentHash != hashes[0]) || visibleEditor != 2"></div>
+<div class="code-editor" style="opacity: 0.8;" ui-ace="oldCodeAceOptions[0]" ng-model="oldCode[0]" ng-show="currentHash && currentHash != hashes[0].id && visibleEditor == 0"></div>
+<div class="code-editor" style="opacity: 0.8;" ui-ace="oldCodeAceOptions[1]" ng-model="oldCode[1]" ng-show="currentHash && currentHash != hashes[0].id && visibleEditor == 1"></div>
+<div class="code-editor" style="opacity: 0.8;" ui-ace="oldCodeAceOptions[2]" ng-model="oldCode[2]" ng-show="currentHash && currentHash != hashes[0].id && visibleEditor == 2"></div>
+<div class="code-editor" ui-ace="aceOptions[0]" ng-model="code[0]" ng-hide="(currentHash && currentHash != hashes[0].id) || visibleEditor != 0"></div>
+<div class="code-editor" ui-ace="aceOptions[1]" ng-model="code[1]" ng-hide="(currentHash && currentHash != hashes[0].id) || visibleEditor != 1"></div>
+<div class="code-editor" ui-ace="aceOptions[2]" ng-model="code[2]" ng-hide="(currentHash && currentHash != hashes[0].id) || visibleEditor != 2"></div>
 <div class="interface-frame" ng-if="visibleEditor == 3">
     <iframe ng-src="{{iframeLocation()}}" frameborder="0"></iframe>
 </div>

@@ -21,10 +21,11 @@
         </ul>
     </div>
     <span ng-if="hashes" class="space-between">Version:</span>
-    <select ng-if="hashes" class="form-control input value" ng-options="hash for hash in hashes" ng-model="$parent.currentHash" ng-change="changeHash()">
+    <select ng-if="hashes" class="form-control input value" ng-model="$parent.currentHash" ng-change="changeHash()">
+        <option ng-repeat="hash in hashes" value="{{hash.id}}">{{formatHash(hash)}}</option>
     </select>
-    <div class="btn read-only" ng-show="permission=='read_only' || currentHash && currentHash != hashes[0]" disabled="disabled">Read Only</div>
-    <span class="space-between" ng-if="permission=='read_only' && currentHash && currentHash == hashes[0]">Blocked by {{get_users_with_write()[0]}}</span>
+    <div class="btn read-only" ng-show="permission=='read_only' || currentHash && currentHash != hashes[0].id" disabled="disabled">Read Only</div>
+    <span class="space-between" ng-if="permission=='read_only' && currentHash && currentHash == hashes[0].id">Blocked by {{get_users_with_write()[0]}}</span>
     <div class="btn read-write" ng-show="permission=='read_write'" disabled="disabled">Read Write</div>
 <!--     <script type="text/ng-template" id="nodeOptions.html">
         <div class="pipelinenode-options">
@@ -160,5 +161,5 @@
             </div>
         </div>
     </div>
-    <div ng-if="permission == 'read_only' || $scope.currentHash && $scope.currentHash != $scope.hashes[0]" class="overlay"></div>
+    <div ng-if="permission == 'read_only' || $scope.currentHash && $scope.currentHash != $scope.hashes[0].id" class="overlay"></div>
 </div>

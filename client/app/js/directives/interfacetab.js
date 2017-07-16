@@ -58,10 +58,10 @@ angular.module('trafficEnv')
                         var id = data.id;
                         if ($scope.data.id == id) {
                             interfaceServices.getInterface($scope.data.id, ['hash']).then(function (response) {
-                                var latestVersion = !$scope.currentHash || $scope.currentHash == $scope.hashes[0];
+                                var latestVersion = !$scope.currentHash || $scope.currentHash == $scope.hashes[0].id;
                                 $scope.hashes = response.data.hash;
                                 if (latestVersion) {
-                                    $scope.currentHash = response.data.hash[0];
+                                    $scope.currentHash = response.data.hash[0].id;
                                 }
                             });
                         }
@@ -98,7 +98,7 @@ angular.module('trafficEnv')
 
                     interfaceServices.getInterface($scope.data.id, ['hash']).then(function (response) {
                         $scope.hashes = response.data.hash;
-                        $scope.currentHash = response.data.hash[0];
+                        $scope.currentHash = response.data.hash[0].id;
                     });
                     socket.on('changed_interface', onChangedInterface);
 
@@ -119,7 +119,7 @@ angular.module('trafficEnv')
 
                 $scope.changeHash = function () {
                     // $scope.currentHash = currentHash;
-                    if ($scope.currentHash != $scope.hashes[0]) {
+                    if ($scope.currentHash != $scope.hashes[0].id) {
                         interfaceServices.getInterface($scope.data.id, $scope.currentHash).then(function (response) {
                             var code = response.data;
                             $scope.oldCode = [
@@ -133,6 +133,11 @@ angular.module('trafficEnv')
                     } else if (iframe) {
                         iframe.contentWindow.location.reload(true);
                     }
+                };
+
+                $scope.formatHash = function (hash) {
+                    return moment(hash.timestamp, 'X').format('DD/MM/YY HH:mm:ss') + ' - ' + hash.author.split(" ")[0] + ' ('+ hash.id.slice(0,7) + ')';
+                    // return moment(hash.timestamp, 'X').format('ddd MMM D HH:mm:ss Y') + ' - ' + hash.author.split(" ")[0] + ' ('+ hash.id.slice(0,7) + ')';
                 };
 
                 $scope.saveInterface = function () {
@@ -289,7 +294,7 @@ angular.module('trafficEnv')
                         myKey = Math.random();
                         if (trusted) {
                             iframe = iframe || $element[0].getElementsByTagName('iframe')[0];
-                            var sendOld = $scope.currentHash && $scope.currentHash != $scope.hashes[0];
+                            var sendOld = $scope.currentHash && $scope.currentHash != $scope.hashes[0].id;
                             iframe.contentWindow.postMessage(JSON.stringify({
                                 target: messageAddress,
                                 message: {

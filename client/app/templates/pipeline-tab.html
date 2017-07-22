@@ -147,7 +147,7 @@
                         </div>
                         <div data-ng-hide="output.editionMode" class="circle start" ng-mousedown="createStartingConnection($event, output)" ng-mouseup="finishEndingConnection($event, output)"></div>
                     </div>
-                    <div data-ng-show="output.editionMode" class="btn btn-default" ng-click="output.editionMode = false">OK</div>
+                    <div data-ng-show="output.editionMode" class="btn btn-default" ng-click="addOutputConstant($event, output, $parent.$index, nodeInfo)">OK</div>
                 </div>
             </div>
         </div>

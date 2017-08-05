@@ -8,6 +8,8 @@ import subprocess
 import traceback
 import shutil
 
+from functools import partial
+
 import aimsun_scriptreg
 
 try:
@@ -46,8 +48,22 @@ class Node(object):
     def get_output(self, connector):
         return self.outputs[connector]
 
-    def __call__(self):
+    def __call__(self, **kwargs):
         raise NotImplementedError
+
+    def partially_apply(self, **arguments):
+        for out_name in self.outputs.iterkeys():
+            self.outputs[out_name] = partial(self.partial_run(out_name), **arguments)
+
+    def partial_run(self, output):
+        def run_get_output(**kwargs):
+            original_outputs = {k: v for k, v in self.outputs.iteritems()}
+            self(**kwargs)
+            target_output = self.outputs[output]
+            self.outputs = original_outputs
+            return target_output
+
+        return run_get_output
 
 class Script(Node):
     """docstring for Script"""
@@ -164,7 +180,7 @@ class Constant(Node):
         super(Constant, self).__init__(node_info)
         self.outputs.update(self.node_info['outputs'])
 
-    def __call__(self):
+    def __call__(self, **kwargs):
         pass
 
 class Pipeline(object):
@@ -209,7 +225,7 @@ class Pipeline(object):
 
             inputs = {k: v for k, v in zip(node.get_input_names(), values) if k not in unconnected_inputs}
             if unconnected_inputs:
-                node.partially_apply(inputs)
+                node.partially_apply(**inputs)
             else:
                 node(**inputs)
 

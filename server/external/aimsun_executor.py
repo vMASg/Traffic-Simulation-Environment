@@ -32,6 +32,7 @@ class Node(object):
     def __init__(self, node_info):
         super(Node, self).__init__()
         self.node_info = node_info
+        self.outputs = {e['name']: None for e in self.node_info['outputs']}
 
     def get_id(self):
         return self.node_info['id']
@@ -43,21 +44,13 @@ class Node(object):
         return [e['name'] for e in self.node_info['inputs']]
 
     def get_output(self, connector):
-        raise NotImplementedError
+        return self.outputs[connector]
 
     def __call__(self):
         raise NotImplementedError
 
 class Script(Node):
     """docstring for Script"""
-    def __init__(self, node_info):
-        super(Script, self).__init__(node_info)
-        # self.node_info = node_info
-        self.outputs = {e['name']: None for e in self.node_info['outputs']}
-
-    def get_output(self, connector):
-        return self.outputs[connector]
-
     def __call__(self, **kwargs):
         mod_name, file_ext = os.path.splitext(os.path.split(self.node_info['path'])[-1])
         if not self.node_info['path'] in aimsun_scriptreg.classregistry.packages:
@@ -81,27 +74,12 @@ class Script(Node):
 
 class Model(Node):
     """docstring for Model"""
-    def __init__(self, node_info):
-        super(Model, self).__init__(node_info)
-        # self.node_info = node_info
-        self.outputs = {e['name']: None for e in self.node_info['outputs']}
-
-    def get_output(self, connector):
-        return self.outputs[connector]
-
     def __call__(self, **kwargs):
         # self.outputs['id_model'] = self.node_info['path']
         self.outputs['id_model'] = (self.node_info['path'], self.node_info['originalModelPath'])
 
 class PipelineNode(Node):
     """docstring for PipelineNode"""
-    def __init__(self, node_info):
-        super(PipelineNode, self).__init__(node_info)
-        self.outputs = {e['name']: None for e in self.node_info['outputs']}
-
-    def get_output(self, connector):
-        return self.outputs[connector]
-
     def __call__(self, **kwargs):
         pipeline = Pipeline(self.node_info['path'])
         output = pipeline(**kwargs)
@@ -113,13 +91,6 @@ class PipelineNode(Node):
 
 class OpenModel(Node):
     """docstring for OpenModel"""
-    def __init__(self, node_info):
-        super(OpenModel, self).__init__(node_info)
-        self.outputs = {e['name']: None for e in self.node_info['outputs']}
-
-    def get_output(self, connector):
-        return self.outputs[connector]
-
     def __call__(self, id_model):
         console = ANGConsole()
         if not console.open(id_model[0]):
@@ -134,25 +105,11 @@ class OpenModel(Node):
 
 class CloseModel(Node):
     """docstring for CloseModel"""
-    def __init__(self, node_info):
-        super(CloseModel, self).__init__(node_info)
-        self.outputs = {e['name']: None for e in self.node_info['outputs']}
-
-    def get_output(self, connector):
-        return self.outputs[connector]
-
     def __call__(self, model):
         model.console.close()
 
 class SaveModel(Node):
     """docstring for SaveModel"""
-    def __init__(self, node_info):
-        super(SaveModel, self).__init__(node_info)
-        self.outputs = {e['name']: None for e in self.node_info['outputs']}
-
-    def get_output(self, connector):
-        return self.outputs[connector]
-
     def __call__(self, model):
         model.console.save(model.getDocumentFileName())
         shutil.copy2(str(model.getDocumentFileName()), model.original_model_path)
@@ -164,11 +121,7 @@ class RunSimulation(Node):
     """docstring for RunSimulation"""
     def __init__(self, node_info):
         super(RunSimulation, self).__init__(node_info)
-        self.outputs = {e['name']: None for e in self.node_info['outputs']}
         self._spammer = None
-
-    def get_output(self, connector):
-        return self.outputs[connector]
 
     def __call__(self, model, replication):
         catalog = model.getCatalog()
@@ -209,11 +162,7 @@ class Constant(Node):
     """docstring for Constant"""
     def __init__(self, node_info):
         super(Constant, self).__init__(node_info)
-        self.node_info = node_info
-        self.outputs = {e['name']: e['value'] for e in self.node_info['outputs']}
-
-    def get_output(self, connector):
-        return self.outputs[connector]
+        self.outputs.update(self.node_info['outputs'])
 
     def __call__(self):
         pass
@@ -245,8 +194,10 @@ class Pipeline(object):
         for node in execution_graph:
             inputs_info = node.get_input_info()
             values = []
+            unconnected_inputs = []
             for inp in inputs_info:
                 if inp['origin'] is None:
+                    unconnected_inputs.append(inp['name'])
                     values.append(None)
                 else:
                     if 'node' not in inp['origin']:
@@ -256,8 +207,11 @@ class Pipeline(object):
                         origin = find(lambda e: e.get_id() == origin_node, execution_graph)
                         values.append(origin.get_output(inp['origin']['connector']))
 
-            inputs = {k: v for k, v in zip(node.get_input_names(), values)}
-            node(**inputs)
+            inputs = {k: v for k, v in zip(node.get_input_names(), values) if k not in unconnected_inputs}
+            if unconnected_inputs:
+                node.partially_apply(inputs)
+            else:
+                node(**inputs)
 
         # Returning pipeline outputs
         if self.pipeline['outputs'] and self.pipeline['outputs'] is not None:

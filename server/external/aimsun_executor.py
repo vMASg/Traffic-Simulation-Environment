@@ -178,7 +178,7 @@ class Constant(Node):
     """docstring for Constant"""
     def __init__(self, node_info):
         super(Constant, self).__init__(node_info)
-        self.outputs.update(self.node_info['outputs'])
+        self.outputs.update({e['name']: e['value'] for e in self.node_info['outputs']})
 
     def __call__(self, **kwargs):
         pass

@@ -976,6 +976,43 @@ angular.module('trafficEnv')
                     }, 5);
                 };
 
+                $scope.addLambda = function () {
+                    var nodeInfo = {
+                        id: nodeIdCounter++,  // TODO replace by proper random id
+                        oid: null,
+                        type: 'special',
+                        path: '<LAMBDA>',
+                        hash: null,
+                        title: 'Lambda',
+                        inputs: [],
+                        outputs: [],
+                        predecessors: [],
+                        successors: [],
+                        x: containerLeft,
+                        y: containerTop,
+                        isExecutor: false,
+                        aimsun: false,
+                        editionMode: true
+                    };
+                    $scope.shapes.push(nodeInfo);
+                    $timeout(function() {
+                        var nodeboxes = nodes.querySelectorAll('.node-box.lambda-nodes');
+                        createBox(nodeboxes[nodeboxes.length-1], nodeInfo);
+                    }, 5);
+                };
+
+                $scope.filterconstants = function (node) {
+                    return node.path == '<CONSTANT>';
+                };
+
+                $scope.filterlambdas = function (node) {
+                    return node.path == '<LAMBDA>';
+                };
+
+                $scope.filterstandard = function (node) {
+                    return node.path != '<CONSTANT>' && node.path != '<LAMBDA>';
+                };
+
                 $scope.infoNodePopover = {
                     template: 'nodeInfo.html',
                     node: null

@@ -16,7 +16,6 @@
             <li role="menuitem" data-ng-click="addInputs()"><a>Add Input</a></li>
             <li role="menuitem" data-ng-click="addOutputs()"><a>Add Output</a></li>
             <li role="menuitem" data-ng-click="addConstant()"><a>Add Constant</a></li>
-            <li role="menuitem" data-ng-click="addLambda()"><a>Add Lambda</a></li>
 <!--             <li role="menuitem"><a href="#">Something else here</a></li>
             <li class="divider"></li>
             <li role="menuitem"><a href="#">Separated link</a></li> -->
@@ -116,7 +115,7 @@
                 </div>
             </div>
         </div>
-        <div class="node-box constant-nodes" ng-repeat="nodeInfo in shapes | filter:filterconstants" ng-mousedown="startMoving($event, null, nodeInfo);" ng-mouseup="maybeStopProp($event)" style="visibility: hidden;">
+        <div class="node-box constant-nodes" ng-repeat="nodeInfo in shapes | filter:{ path: '<CONSTANT>'}" ng-mousedown="startMoving($event, null, nodeInfo);" ng-mouseup="maybeStopProp($event)" style="visibility: hidden;">
             <div class="title">
                 <span>{{nodeInfo.title}}</span>
                 <div class="icon ion-trash-a" ng-dblclick="deleteNode($event, nodeInfo)"></div>
@@ -152,44 +151,7 @@
                 </div>
             </div>
         </div>
-        <div class="node-box lambda-nodes" ng-repeat="nodeInfo in shapes | filter:filterlambdas" ng-mousedown="startMoving($event, null, nodeInfo);" ng-mouseup="maybeStopProp($event)" style="visibility: hidden;" ng-switch on="nodeInfo.editionMode">
-            <div class="title">
-                <div ng-show="nodeInfo.outdated" class="ion-alert-circled"></div>
-                <span>{{nodeInfo.title}}</span>
-                <div class="icon ion-trash-a" ng-dblclick="deleteNode($event, nodeInfo)"></div>
-            </div>
-            <div class="inputs_outputs" ng-switch-when="false">
-                <!-- Adding inputs & outputs -->
-                <div class="io-row clearfix" ng-repeat="input in nodeInfo.inputs | limitTo:min(nodeInfo.inputs.length, nodeInfo.outputs.length)">
-                    <div class="io-cell" uib-popover-template="contextOptions.template" popover-trigger="none" popover-placement="left" popover-is-open="input.isOpen" ng-context-menu="deleteConnetion($event, input)" popover-append-to-body="true">
-                        <div class="circle end" ng-mousedown="createEndingConnection($event, input)" ng-mouseup="finishStartingConnection($event, input)"></div>
-                        <span>{{input.name}}</span>
-                    </div>
-                    <div class="io-cell" uib-popover-template="contextOptions.template" popover-trigger="none" popover-placement="right" popover-is-open="nodeInfo.outputs[$index].isOpen" ng-context-menu="deleteConnetion($event, nodeInfo.outputs[$index])" popover-append-to-body="true">
-                        <span>{{nodeInfo.outputs[$index].name}}</span>
-                        <div class="circle start" ng-mousedown="createStartingConnection($event, nodeInfo.outputs[$index])" ng-mouseup="finishEndingConnection($event, nodeInfo.outputs[$index])"></div>
-                    </div>
-                </div>
-                <div class="io-row clearfix" ng-repeat="input in nodeInfo.inputs | limitTo:nodeInfo.inputs.length:min(nodeInfo.inputs.length, nodeInfo.outputs.length)">
-                    <div class="io-cell" uib-popover-template="contextOptions.template" popover-trigger="none" popover-placement="left" popover-is-open="input.isOpen" ng-context-menu="deleteConnetion($event, input)" popover-append-to-body="true">
-                        <div class="circle end" ng-mousedown="createEndingConnection($event, input)" ng-mouseup="finishStartingConnection($event, input)"></div>
-                        <span>{{input.name}}</span>
-                    </div>
-                    <div class="io-cell"></div>
-                </div>
-                <div class="io-row clearfix" ng-repeat="output in nodeInfo.outputs | limitTo:nodeInfo.outputs.length:min(nodeInfo.inputs.length, nodeInfo.outputs.length)">
-                    <div class="io-cell"></div>
-                    <div class="io-cell" uib-popover-template="contextOptions.template" popover-trigger="none" popover-placement="right" popover-is-open="output.isOpen" ng-context-menu="deleteConnetion($event, output)" popover-append-to-body="true">
-                        <span>{{output.name}}</span>
-                        <div class="circle start" ng-mousedown="createStartingConnection($event, output)" ng-mouseup="finishEndingConnection($event, output)"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="" ng-switch-when="true">
-                <h1>TODO!</h1>
-            </div>
-        </div>
-        <div class="node-box stdnodes" ng-repeat="nodeInfo in shapes | filter:filterstandard" ng-mousedown="startMoving($event, null, nodeInfo);" ng-mouseup="maybeStopProp($event)" style="visibility: hidden;" uib-popover-template="infoNodePopover.template" popover-title="{{nodeInfo.title}} Info" popover-trigger="none" popover-placement="top" popover-is-open="nodeInfo.infoShown">
+        <div class="node-box stdnodes" ng-repeat="nodeInfo in shapes | filter:{ path: '!<CONSTANT>'}" ng-mousedown="startMoving($event, null, nodeInfo);" ng-mouseup="maybeStopProp($event)" style="visibility: hidden;" uib-popover-template="infoNodePopover.template" popover-title="{{nodeInfo.title}} Info" popover-trigger="none" popover-placement="top" popover-is-open="nodeInfo.infoShown">
             <div class="title">
                 <div ng-show="nodeInfo.outdated" class="ion-alert-circled"></div>
                 <span>{{nodeInfo.title}}</span>

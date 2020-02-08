@@ -99,7 +99,7 @@ class PipelineThread(threading.Thread):
                 self.subscription_channel.meta['outputs'] = out or {}
             self.subscription_channel.meta['finishTime'] = time()
             self.subscription_channel.send_meta()
-            self.subscription_channel.end()
+            self.subscription_channel.end(out)
             self.clean_up_func()
             self.event.set()
         else:

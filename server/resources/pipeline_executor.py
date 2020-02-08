@@ -104,7 +104,7 @@ class PipelineExecutor(object):
         is_executor, only_python = self._is_executor_only_python(pipeline_path)
         self.aimsun_service.run_pipeline((pipeline_path, input_path, output_path, clean_up), sc, is_executor=is_executor, only_python=only_python)
         # self.pipeline_channel.broadcast({'channel': sc.channel_name})
-        return 'OK'
+        return sc.channel_name
 
     def run_script(self, script_content, model_id):
         # return self._aimsun_proc1.run_script(script_content, model_id)

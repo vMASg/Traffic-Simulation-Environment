@@ -92,9 +92,12 @@ class SubscriptionChannel(Channel):
 
     def end(self, retval=None):
         self.has_ended = True
-        if retval is not None:
-            self.previous_broadcasts.append()
-        self.socketio.emit(self.channel_name + ':EOT', {'data': retval or ''}, room=self.channel_name, namespace=self.namespace)
+        self.socketio.emit(self.channel_name + ':EOT', {
+            'data': {
+                'output': retval,
+                'executionId': os.path.split(self.persist_file)[1] if self.persist else None
+            }
+        }, room=self.channel_name, namespace=self.namespace)
         if self.persist:
             broadcasts = reduce(lambda acc, e: acc + map(lambda txt: txt.strip(), e.split('\n')), self.previous_broadcasts, [])
             content = {'meta': self.meta, 'transmissions': broadcasts}

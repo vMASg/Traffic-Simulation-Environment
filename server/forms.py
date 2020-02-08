@@ -17,3 +17,12 @@ class RegistrationForm(FlaskForm):
     email = StringField('email', validators=[InputRequired(), Email(), Length(max=128)])
     password = PasswordField('password', validators=[InputRequired()])
     confirm = PasswordField('confirm', validators=[EqualTo('password', message='Passwords must match')])
+
+class ConfigSetupForm(FlaskForm):
+    """docstring for ConfigSetupForm"""
+    basepath = StringField('basepath', validators=[InputRequired()])
+    aconsole = StringField('aconsole', validators=[InputRequired()])
+    git_path = StringField('git_path', validators=[InputRequired()])
+    pythondir = StringField('pythondir', validators=[InputRequired()])
+    secret_k = PasswordField('secret_k', validators=[InputRequired()])
+    adminpass = PasswordField('adminpass', validators=[InputRequired()])

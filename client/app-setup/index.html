@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="css/main.css" />
+    <title>Configuration Setup</title>
+    <script type="text/javascript">
+        function generateKey() {
+            let rand_arr = new Uint8Array(24);
+            window.crypto.getRandomValues(rand_arr);
+            document.configForm.secret_k.value = rand_arr.reduce((acc, elem) => acc + elem.toString(16), "");
+        }
+    </script>
+</head>
+<body>
+    <div class="container main">
+        <h1 class="main-header">Initial Configuration</h1>
+        <p>The application configuration file does not exist or could not be read. Please make sure the file exists in <code>{{ config_file }}</code> and that file permissions are set correctly. Otherwise, use the form below to setup the configuration file and restart the server to apply it:</p>
+        <form name="configForm" method="POST" action="/">
+            {{ form.hidden_tag() }}
+            <!-- DATA DIRECTORY -->
+            <h3 class="option-header">Data directory</h3>
+            <p>The data directory where the application data will be saved. Make sure the directory exists and has the right permissions.</p>
+            <input class="form-control" type="text" name="basepath" value="{{ config['BASE_PATH'] }}" placeholder="Application data path" required="required" />
+            <!-- ACONSOLE -->
+            <h3 class="option-header">Aimsun aconsole</h3>
+            <p>The path to the Aimsun aconsole binary.</p>
+            <input class="form-control" type="text" name="aconsole" value="{{ config['ACONSOLE_PATH'] }}" placeholder="aconsole path" required="required" />
+            <!-- GIT -->
+            <h3 class="option-header">Git</h3>
+            <p>The path to git VCS binary.</p>
+            <input class="form-control" type="text" name="git_path" value="{{ config['GIT_PATH'] }}" placeholder="git path" required="required" />
+            <!-- PYTHON -->
+            <h3 class="option-header">Python directory</h3>
+            <p>The path to the python directory (not the binary location).</p>
+            <input class="form-control" type="text" name="pythondir" value="{{ config['PYTHON_DIR'] }}" placeholder="python directory" required="required" />
+            <!-- SECRET KEY -->
+            <h3 class="option-header">Secret key</h3>
+            <p>This is the secret key used by Flask. For more information read the <a href="https://flask.palletsprojects.com/en/1.1.x/config/#SECRET_KEY" target="_blank">documentation</a>.</p>
+            <div class="input-group">
+                <span class="input-group-btn">
+                    <button class="btn btn-default" type="button" onclick="generateKey()">Generate</button>
+                </span>
+                <input class="form-control" type="text" name="secret_k" value="" placeholder="secret key" required="required" />
+            </div><!-- /input-group -->
+            <!-- ADMIN PASSWORD -->
+            <h3 class="option-header">Admin password</h3>
+            <p>The password for the Admin user. This user is responsible for the management of users.</p>
+            <input class="form-control" type="password" name="adminpass" value="" placeholder="password" required="required" />
+            <!-- SUBMIT -->
+            <input class="btn btn-lg btn-block btn-primary submit-button" type="submit" value="Submit" />
+        </form>
+    </div>
+</body>
+</html>

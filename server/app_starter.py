@@ -32,13 +32,7 @@ from server.services.aimsun_service import AimsunService
 from server.services.git_service import GitService
 from server.subscription import Subscription
 # Constants
-from server.constants import ACONSOLE_PATH, GIT_PATH, BASE_PATH, SECRET_KEY, ADMIN_PASSWORD
-
-SCRIPTS_ROOT_FOLDER = os.path.join(BASE_PATH, 'Scripts')
-MODELS_ROOT_FOLDER = os.path.join(BASE_PATH, 'Models')
-PIPELINES_ROOT_FOLDER = os.path.join(BASE_PATH, 'Pipelines')
-INTERFACES_ROOT_FOLDER = os.path.join(BASE_PATH, 'Interfaces')
-SUBSCRIPTIONS_ROOT_FOLDER = os.path.join(BASE_PATH, 'Subscriptions')
+from server.constants import config
 
 login_manager = LoginManager()
 
@@ -53,28 +47,34 @@ class AppStarter(Resource):
     """Based in solution http://stackoverflow.com/a/29521067"""
 
     def __init__(self, app_path):
+        base_path = config.data['BASE_PATH']
+        self.SCRIPTS_ROOT_FOLDER = os.path.join(base_path, 'Scripts')
+        self.MODELS_ROOT_FOLDER = os.path.join(base_path, 'Models')
+        self.PIPELINES_ROOT_FOLDER = os.path.join(base_path, 'Pipelines')
+        self.INTERFACES_ROOT_FOLDER = os.path.join(base_path, 'Interfaces')
+        self.SUBSCRIPTIONS_ROOT_FOLDER = os.path.join(base_path, 'Subscriptions')
         # Creating default folders for Resources
-        AppStarter._create_folder_if_nonexistent(SCRIPTS_ROOT_FOLDER)
-        AppStarter._create_folder_if_nonexistent(MODELS_ROOT_FOLDER)
-        AppStarter._create_folder_if_nonexistent(PIPELINES_ROOT_FOLDER)
-        AppStarter._create_folder_if_nonexistent(INTERFACES_ROOT_FOLDER)
-        AppStarter._create_folder_if_nonexistent(SUBSCRIPTIONS_ROOT_FOLDER)
+        AppStarter._create_folder_if_nonexistent(self.SCRIPTS_ROOT_FOLDER)
+        AppStarter._create_folder_if_nonexistent(self.MODELS_ROOT_FOLDER)
+        AppStarter._create_folder_if_nonexistent(self.PIPELINES_ROOT_FOLDER)
+        AppStarter._create_folder_if_nonexistent(self.INTERFACES_ROOT_FOLDER)
+        AppStarter._create_folder_if_nonexistent(self.SUBSCRIPTIONS_ROOT_FOLDER)
         # Initializing app
         self._static_files_root_folder_path = ''
         self._app = Flask(__name__, template_folder=app_path)
-        self._app.config['SECRET_KEY'] = SECRET_KEY
+        self._app.config['SECRET_KEY'] = config.data['SECRET_KEY']
         self._app.config['ERROR_404_HELP'] = False
         self._app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
         self._api = Api(self._app)
         eventlet.monkey_patch(os=False)
         # SocketIO init
         self._socketio = SocketIO(self._app, async_mode='eventlet')
-        self._subscription = Subscription(self._socketio, '/subscription', SUBSCRIPTIONS_ROOT_FOLDER)
+        self._subscription = Subscription(self._socketio, '/subscription', self.SUBSCRIPTIONS_ROOT_FOLDER)
         # Bcrypt
         self._bcrypt = Bcrypt(self._app)
         User.bcrypt = self._bcrypt
         # SQLAlchemy init
-        self._app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///{}'.format(os.path.join(BASE_PATH, 'database.sqlite'))
+        self._app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///{}'.format(os.path.join(base_path, 'database.sqlite'))
         self._app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
         self._app.config['SQLALCHEMY_ECHO'] = False
         sql_alchemy_db.init_app(self._app)
@@ -92,7 +92,7 @@ class AppStarter(Resource):
 
     def _create_default_user(self):
         if User.query.filter_by(username=u'Admin').first() is None:
-            admin = User(u'Admin', None, ADMIN_PASSWORD, is_active=True)
+            admin = User(u'Admin', None, config.data['ADMIN_PASSWORD'], is_active=True)
             sql_alchemy_db.session.add(admin)
             sql_alchemy_db.session.commit()
 
@@ -114,12 +114,12 @@ class AppStarter(Resource):
         self._add_login_logout_routes()
         self._register_static_server(static_files_root_folder_path)
         # TODO: update resources
-        git_service = GitService(GIT_PATH or 'git')
-        script_service = ScriptService(root_folder=SCRIPTS_ROOT_FOLDER, git_service=git_service)
-        pipeline_service = PipelineService(root_folder=PIPELINES_ROOT_FOLDER, git_service=git_service)
-        model_service = ModelService(root_folder=MODELS_ROOT_FOLDER, git_service=git_service)
-        interface_service = InterfaceService(root_folder=INTERFACES_ROOT_FOLDER, git_service=git_service)
-        aimsun_service = AimsunService(ACONSOLE_PATH, self._subscription)
+        git_service = GitService(config.data['GIT_PATH'] or 'git')
+        script_service = ScriptService(root_folder=self.SCRIPTS_ROOT_FOLDER, git_service=git_service)
+        pipeline_service = PipelineService(root_folder=self.PIPELINES_ROOT_FOLDER, git_service=git_service)
+        model_service = ModelService(root_folder=self.MODELS_ROOT_FOLDER, git_service=git_service)
+        interface_service = InterfaceService(root_folder=self.INTERFACES_ROOT_FOLDER, git_service=git_service)
+        aimsun_service = AimsunService(config.data['ACONSOLE_PATH'], self._subscription)
         self._api.add_resource(ScriptCollection, '/scripts', resource_class_kwargs={'script_locator': script_service, 'subscription_service': self._subscription})
         self._api.add_resource(Script, '/scripts/<id>', '/scripts/<id>/<hash>', resource_class_kwargs={'script_locator': script_service, 'subscription_service': self._subscription})
         self._api.add_resource(PipelineCollection, '/pipelines', resource_class_kwargs={'pipeline_locator': pipeline_service, 'subscription_service': self._subscription})
@@ -128,8 +128,8 @@ class AppStarter(Resource):
         self._api.add_resource(Model, '/models/<id>', resource_class_kwargs={'model_locator': model_service, 'subscription_service': self._subscription})
         self._api.add_resource(InterfaceCollection, '/interfaces', resource_class_kwargs={'interface_locator': interface_service, 'subscription_service': self._subscription})
         self._api.add_resource(Interface, '/interfaces/<id>', '/interfaces/<id>/<hash>', resource_class_kwargs={'interface_locator': interface_service, 'subscription_service': self._subscription})
-        self._api.add_resource(ExecutionCollection, '/executions', resource_class_kwargs={'root_folder': SUBSCRIPTIONS_ROOT_FOLDER, 'subscription_service': self._subscription})
-        self._api.add_resource(Execution, '/executions/<id>', resource_class_kwargs={'root_folder': SUBSCRIPTIONS_ROOT_FOLDER, 'subscription_service': self._subscription})
+        self._api.add_resource(ExecutionCollection, '/executions', resource_class_kwargs={'root_folder': self.SUBSCRIPTIONS_ROOT_FOLDER, 'subscription_service': self._subscription})
+        self._api.add_resource(Execution, '/executions/<id>', resource_class_kwargs={'root_folder': self.SUBSCRIPTIONS_ROOT_FOLDER, 'subscription_service': self._subscription})
         # Non RESTful routes
 
         # Pipeline

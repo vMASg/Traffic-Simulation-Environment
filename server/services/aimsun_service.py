@@ -5,7 +5,7 @@ import psutil
 from time import time
 from Queue import Queue, Empty as QueueEmpty
 from subprocess import Popen, PIPE, STDOUT
-from server.constants import PYTHON_DIR
+from server.constants import config
 
 class PipelineThread(threading.Thread):
     def __init__(self, pipeline, aconsole_path, subscription_channel, only_python, output, event):
@@ -36,7 +36,7 @@ class PipelineThread(threading.Thread):
             )
         else:
             environ = os.environ.copy()
-            environ['PYTHONDIR'] = PYTHON_DIR
+            environ['PYTHONDIR'] = config.data['PYTHON_DIR']
             cmd = Popen(
                 # ['python', 'server\\external\\aimsun_executor.py', self.pipeline] + inout,
                 [self.aconsole_path, '-script', os.path.join('server','external','aimsun_executor.py'), self.pipeline] + inout,

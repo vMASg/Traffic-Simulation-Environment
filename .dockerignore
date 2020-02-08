@@ -1,0 +1,6 @@
+**/*.pyc
+client/app/js/vendor
+.git
+.gitignore
+.dockerignore
+Dockerfile
